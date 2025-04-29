@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Underline } from "lucide-react"
 
 interface TextEditorProps {
   content: string
@@ -22,7 +22,7 @@ interface TextEditorProps {
 export function TextEditor({
   content,
   fontSize = 24,
-  fontFamily = "Arial",
+  fontFamily = "Inter",
   isSelected,
   isNew = false,
   onChange,
@@ -35,6 +35,7 @@ export function TextEditor({
 
   const fontSizes = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 42, 48, 56, 64, 72]
   const fontFamilies = [
+    "Inter",
     "Arial",
     "Helvetica",
     "Times New Roman",
@@ -108,10 +109,10 @@ export function TextEditor({
   return (
     <div className="flex h-full w-full items-center justify-center">
       {isSelected && !isEditing && (
-        <div className="absolute -top-10 left-0 z-10 flex items-center gap-2 rounded-md border bg-white p-1 shadow-md">
+        <div className="absolute -top-12 left-0 z-10 flex items-center gap-1 rounded-md border border-gray-200 bg-white p-1 shadow-medium">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="flex h-7 items-center gap-1 text-xs">
+              <Button variant="ghost" size="sm" className="flex h-8 items-center gap-1 text-xs font-medium">
                 <span>{fontSize}px</span>
                 <ChevronDown className="h-3 w-3" />
               </Button>
@@ -121,7 +122,7 @@ export function TextEditor({
                 <DropdownMenuItem
                   key={size}
                   onClick={() => onFontSizeChange(size)}
-                  className={fontSize === size ? "bg-gray-100 font-medium" : ""}
+                  className={fontSize === size ? "bg-primary-50 font-medium text-primary-700" : ""}
                 >
                   {size}px
                 </DropdownMenuItem>
@@ -129,11 +130,11 @@ export function TextEditor({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="h-4 w-px bg-gray-300" />
+          <div className="h-4 w-px bg-gray-200" />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="flex h-7 items-center gap-1 text-xs">
+              <Button variant="ghost" size="sm" className="flex h-8 items-center gap-1 text-xs font-medium">
                 <span>{fontFamily}</span>
                 <ChevronDown className="h-3 w-3" />
               </Button>
@@ -144,13 +145,41 @@ export function TextEditor({
                   key={font}
                   onClick={() => onFontFamilyChange(font)}
                   style={{ fontFamily: font }}
-                  className={fontFamily === font ? "bg-gray-100 font-medium" : ""}
+                  className={fontFamily === font ? "bg-primary-50 font-medium text-primary-700" : ""}
                 >
                   {font}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          <div className="flex items-center">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
+              <AlignLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
+              <AlignCenter className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
+              <AlignRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="h-4 w-px bg-gray-200" />
+
+          <div className="flex items-center">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
+              <Bold className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
+              <Italic className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
+              <Underline className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
 

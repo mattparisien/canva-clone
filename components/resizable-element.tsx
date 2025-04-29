@@ -41,13 +41,11 @@ export function ResizableElement({
   const [resizeDirection, setResizeDirection] = useState<string | null>(null)
   const elementRef = useRef<HTMLDivElement>(null)
 
+  // Store original dimensions for aspect ratio preservation
+  const originalDimensions = useRef({ width: element.width, height: element.height })
+
   // Initial position for drag calculations
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
-
-  // Debug log canvas dimensions
-  useEffect(() => {
-    console.log("ResizableElement received canvas dimensions:", canvasWidth, "x", canvasHeight)
-  }, [canvasWidth, canvasHeight])
 
   // Handle element selection
   const handleSelect = (e: React.MouseEvent) => {
@@ -76,6 +74,12 @@ export function ResizableElement({
     setIsResizing(true)
     setResizeDirection(direction)
     setDragStart({ x: e.clientX, y: e.clientY })
+
+    // Store the current dimensions when starting resize
+    originalDimensions.current = {
+      width: element.width,
+      height: element.height,
+    }
   }
 
   // Find the closest snap point if within threshold
@@ -96,21 +100,16 @@ export function ResizableElement({
     const canvasCenterX = canvasWidth / 2
     const canvasCenterY = canvasHeight / 2
 
-    console.log("Canvas center calculation:", canvasWidth, "/", 2, "=", canvasCenterX)
-    console.log("Element center:", elementCenterX)
-
     // Check alignment with canvas center (horizontal)
     if (Math.abs(elementCenterX - canvasCenterX) < SNAP_THRESHOLD) {
       snappedX = canvasCenterX - element.width / 2
       verticalGuides.push(canvasCenterX)
-      console.log("Vertical guide at canvas center:", canvasCenterX)
     }
 
     // Check alignment with canvas center (vertical)
     if (Math.abs(elementCenterY - canvasCenterY) < SNAP_THRESHOLD) {
       snappedY = canvasCenterY - element.height / 2
       horizontalGuides.push(canvasCenterY)
-      console.log("Horizontal guide at canvas center:", canvasCenterY)
     }
 
     // Check alignment with canvas edges
@@ -241,33 +240,84 @@ export function ResizableElement({
         let newFontSize = element.fontSize || 24
 
         // Store original dimensions for scaling calculation
-        const originalWidth = element.width
-        const originalHeight = element.height
+        const originalWidth = originalDimensions.current.width
+        const originalHeight = originalDimensions.current.height
         const originalFontSize = element.fontSize || 24
+        const aspectRatio = originalWidth / originalHeight
 
-        // Handle different resize directions
-        if (resizeDirection.includes("e")) {
-          newWidth = Math.max(50, element.width + deltaX)
-        }
-        if (resizeDirection.includes("w")) {
-          newWidth = Math.max(50, element.width - deltaX)
-          newX = element.x + deltaX
-        }
-        if (resizeDirection.includes("s")) {
-          newHeight = Math.max(20, element.height + deltaY)
-        }
-        if (resizeDirection.includes("n")) {
-          newHeight = Math.max(20, element.height - deltaY)
-          newY = element.y + deltaY
-        }
+        // Check if we're resizing from a corner (which requires maintaining aspect ratio)
+        const isCornerResize = resizeDirection.length > 1
 
-        // Calculate the scale factor based on width change
-        // We use width as the primary scaling factor for text
-        const scaleFactor = newWidth / originalWidth
+        if (isCornerResize) {
+          // For corner resizing, we'll use the larger of the two deltas to determine the scale factor
+          // This ensures the aspect ratio is maintained
+          let scaleFactor = 1
 
-        // Scale the font size proportionally
-        if (element.type === "text" && element.fontSize) {
-          newFontSize = Math.max(8, Math.round(originalFontSize * scaleFactor))
+          // Calculate potential new dimensions based on which corner is being dragged
+          if (resizeDirection === "se") {
+            // Southeast corner - positive deltas for both width and height
+            const widthScale = (originalWidth + deltaX) / originalWidth
+            const heightScale = (originalHeight + deltaY) / originalHeight
+            scaleFactor = Math.max(widthScale, heightScale)
+
+            newWidth = Math.max(50, originalWidth * scaleFactor)
+            newHeight = Math.max(20, originalHeight * scaleFactor)
+          } else if (resizeDirection === "sw") {
+            // Southwest corner - negative delta for width, positive for height
+            const widthScale = (originalWidth - deltaX) / originalWidth
+            const heightScale = (originalHeight + deltaY) / originalHeight
+            scaleFactor = Math.max(widthScale, heightScale)
+
+            newWidth = Math.max(50, originalWidth * scaleFactor)
+            newHeight = Math.max(20, originalHeight * scaleFactor)
+            newX = element.x + (originalWidth - newWidth)
+          } else if (resizeDirection === "ne") {
+            // Northeast corner - positive delta for width, negative for height
+            const widthScale = (originalWidth + deltaX) / originalWidth
+            const heightScale = (originalHeight - deltaY) / originalHeight
+            scaleFactor = Math.max(widthScale, heightScale)
+
+            newWidth = Math.max(50, originalWidth * scaleFactor)
+            newHeight = Math.max(20, originalHeight * scaleFactor)
+            newY = element.y + (originalHeight - newHeight)
+          } else if (resizeDirection === "nw") {
+            // Northwest corner - negative deltas for both width and height
+            const widthScale = (originalWidth - deltaX) / originalWidth
+            const heightScale = (originalHeight - deltaY) / originalHeight
+            scaleFactor = Math.max(widthScale, heightScale)
+
+            newWidth = Math.max(50, originalWidth * scaleFactor)
+            newHeight = Math.max(20, originalHeight * scaleFactor)
+            newX = element.x + (originalWidth - newWidth)
+            newY = element.y + (originalHeight - newHeight)
+          }
+
+          // Scale the font size proportionally for text elements
+          if (element.type === "text" && element.fontSize) {
+            newFontSize = Math.max(8, Math.round(originalFontSize * scaleFactor))
+          }
+        } else {
+          // For edge handles, allow non-uniform scaling
+          if (resizeDirection.includes("e")) {
+            newWidth = Math.max(50, element.width + deltaX)
+          }
+          if (resizeDirection.includes("w")) {
+            newWidth = Math.max(50, element.width - deltaX)
+            newX = element.x + deltaX
+          }
+          if (resizeDirection.includes("s")) {
+            newHeight = Math.max(20, element.height + deltaY)
+          }
+          if (resizeDirection.includes("n")) {
+            newHeight = Math.max(20, element.height - deltaY)
+            newY = element.y + deltaY
+          }
+
+          // For edge handles, only scale font size based on width changes for text elements
+          if (element.type === "text" && element.fontSize && (resizeDirection === "e" || resizeDirection === "w")) {
+            const scaleFactor = newWidth / originalWidth
+            newFontSize = Math.max(8, Math.round(originalFontSize * scaleFactor))
+          }
         }
 
         // Update element with new dimensions and font size
