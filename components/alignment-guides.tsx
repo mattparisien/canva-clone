@@ -1,0 +1,51 @@
+"use client"
+
+import type { Element } from "@/context/canvas-context"
+import { useEffect } from "react"
+
+interface AlignmentGuidesProps {
+  activeElement: Element
+  elements: Element[]
+  canvasWidth: number
+  canvasHeight: number
+  alignments: {
+    horizontal: number[] // y-coordinates for horizontal guides
+    vertical: number[] // x-coordinates for vertical guides
+  }
+}
+
+export function AlignmentGuides({
+  activeElement,
+  elements,
+  canvasWidth,
+  canvasHeight,
+  alignments,
+}: AlignmentGuidesProps) {
+  // Debug log the dimensions and alignments
+  useEffect(() => {
+    console.log("AlignmentGuides received canvas dimensions:", canvasWidth, "x", canvasHeight)
+    console.log("Alignment guides:", alignments)
+  }, [canvasWidth, canvasHeight, alignments])
+
+  return (
+    <>
+      {/* Horizontal guides */}
+      {alignments.horizontal.map((y, index) => (
+        <div
+          key={`h-${index}-${y}`}
+          className="absolute left-0 z-50 h-[1px] w-full bg-purple-500"
+          style={{ top: `${y}px` }}
+        />
+      ))}
+
+      {/* Vertical guides */}
+      {alignments.vertical.map((x, index) => (
+        <div
+          key={`v-${index}-${x}`}
+          className="absolute top-0 z-50 h-full w-[1px] bg-purple-500"
+          style={{ left: `${x}px` }}
+        />
+      ))}
+    </>
+  )
+}
