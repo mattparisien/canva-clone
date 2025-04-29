@@ -103,9 +103,17 @@ export function Canvas() {
    * ------------------------------------------------------------------ */
   const handleWheel = (e: WheelEvent) => {
     if (e.ctrlKey || e.metaKey) {
+      // Prevent the default browser zoom behavior
       e.preventDefault()
-      const next = Math.round(Math.min(400, Math.max(25, zoom - e.deltaY * 0.1)))
+      e.stopPropagation()
+
+      // Calculate the new zoom level based on the wheel delta
+      // Use a smaller multiplier for smoother zooming
+      const zoomDelta = e.deltaY * 0.05
+      const next = Math.round(Math.min(400, Math.max(25, zoom - zoomDelta)))
       setZoom(next)
+
+      return false
     }
   }
 
