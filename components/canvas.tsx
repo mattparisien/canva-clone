@@ -232,7 +232,7 @@ export function Canvas() {
               height: canvasSize.height,
               boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08)",
               border: "1px solid rgba(0, 0, 0, 0.05)",
-              outlineWidth: isCanvasHovering ? `${2 / scale}px` : undefined,
+              outlineWidth: isCanvasHovering ? `${Math.max(2, 2 / scale)}px` : undefined,
               outlineStyle: isCanvasHovering ? "solid" : undefined,
             }}
             onClick={handleCanvasClick}
