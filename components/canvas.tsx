@@ -41,6 +41,7 @@ export function Canvas() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isInitialRender, setIsInitialRender] = useState(true)
   const [hoveredElementId, setHoveredElementId] = useState<string | null>(null)
+  const [isCanvasHovering, setIsCanvasHovering] = useState(false)
 
   // Define min and max zoom levels
   const MIN_ZOOM = 25
@@ -225,14 +226,18 @@ export function Canvas() {
         >
           <div
             ref={canvasRef}
-            className="relative bg-white overflow-hidden"
+            className={`relative bg-white overflow-hidden${isCanvasHovering ? " outline outline-primary" : ""}`}
             style={{
               width: canvasSize.width,
               height: canvasSize.height,
               boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08)",
               border: "1px solid rgba(0, 0, 0, 0.05)",
+              outlineWidth: isCanvasHovering ? `${2 / scale}px` : undefined,
+              outlineStyle: isCanvasHovering ? "solid" : undefined,
             }}
             onClick={handleCanvasClick}
+            onMouseEnter={() => setIsCanvasHovering(true)}
+            onMouseLeave={() => setIsCanvasHovering(false)}
           >
             {/* Guides - always render them when dragging */}
             {isDragging && selectedElement && (

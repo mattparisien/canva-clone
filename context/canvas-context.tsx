@@ -53,6 +53,9 @@ interface CanvasContextType {
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined)
 
+// Default font size as a percentage of canvas width
+const DEFAULT_TEXT_FONT_SIZE_RATIO = 0.09 // 4% of canvas width
+
 export function CanvasProvider({ children }: { children: ReactNode }) {
   const [elements, setElements] = useState<Element[]>([])
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
@@ -132,17 +135,20 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
       // For text elements, calculate a more precise width
       let width = element.width || 200
       let height = element.height || 50
+      let fontSize = element.fontSize
+
+      if (element.type === "text") {
+        // Use default font size as a percentage of canvas width if not provided
+        fontSize = fontSize || Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO)
+      }
 
       if (element.type === "text" && element.content) {
         // More precise calculation for text elements
-        const fontSize = element.fontSize || 36
         const contentLength = element.content.length
-
         // Adjust width based on content length and font size
-        width = Math.max(contentLength * fontSize * 0.5, fontSize * 2)
-
+        width = Math.max(contentLength * (fontSize || 36) * 0.5, (fontSize || 36) * 2)
         // Adjust height based on font size
-        height = fontSize * 1.2
+        height = (fontSize || 36) * 1.2
       }
 
       // Calculate center position
@@ -151,10 +157,9 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
       const newElement = {
         ...element,
-        // Use the calculated width/height
         width,
         height,
-        // Set centered position
+        fontSize,
         x: centeredX,
         y: centeredY,
         id: `element-${Date.now()}`,
@@ -407,15 +412,25 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
           width: 200,
           height: 44,
           content: "Add your text here",
-          fontSize: 36,
+          fontSize: Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO),
           fontFamily: "Inter",
         })
+      }
+
+      // Delete selected element: Delete or Backspace key
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        selectedElement &&
+        !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey
+      ) {
+        e.preventDefault()
+        deleteElement(selectedElement.id)
       }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [undo, redo, addElement])
+  }, [undo, redo, addElement, deleteElement, selectedElement])
 
   return (
     <CanvasContext.Provider

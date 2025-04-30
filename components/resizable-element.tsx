@@ -51,6 +51,10 @@ export function ResizableElement({
   const [showDeleteButton, setShowDeleteButton] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
 
+  // Track hover state for left/right borders to highlight the handle
+  const [leftBorderHover, setLeftBorderHover] = useState(false)
+  const [rightBorderHover, setRightBorderHover] = useState(false)
+
   // Store original dimensions and position for aspect ratio preservation
   const originalState = useRef({
     width: element.width,
@@ -489,7 +493,7 @@ export function ResizableElement({
   return (
     <div
       ref={elementRef}
-      className={`absolute ${isSelected ? "outline outline-4 outline-primary" : isHovering ? "outline outline-4 outline-primary" : ""}`}
+      className={`absolute${isSelected ? " outline outline-primary" : isHovering ? " outline outline-primary" : ""}`}
       style={{
         left: element.x,
         top: element.y,
@@ -497,6 +501,9 @@ export function ResizableElement({
         height: element.height,
         cursor: isDragging ? "grabbing" : "grab",
         transform: "none",
+        outlineWidth: (isSelected || isHovering) ? `${2 / scale}px` : undefined,
+        outlineStyle: (isSelected || isHovering) ? "solid" : undefined,
+        // Let Tailwind class handle outline color
       }}
       onMouseDown={handleDragStart}
       onMouseEnter={handleMouseEnter}
@@ -589,7 +596,8 @@ export function ResizableElement({
               e.currentTarget.style.border = "1px solid var(--handle-border)"
             }}
           />
-          {/* Left/right handles only (no top/bottom) */}
+
+          {/* Left handle */}
           <div
             className="absolute top-1/2 -left-3 -translate-y-1/2 cursor-ew-resize bg-white shadow-md group/handle"
             style={{
@@ -599,15 +607,17 @@ export function ResizableElement({
               boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
-              transition: "background 0.15s"
+              transition: "background 0.15s",
+              background: leftBorderHover ? "var(--handle-hover)" : "#fff"
             }}
             onMouseDown={(e) => handleResizeStart(e, "w")}
             onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
             onMouseLeave={e => {
-              e.currentTarget.style.background = "#fff"
+              e.currentTarget.style.background = leftBorderHover ? "var(--handle-hover)" : "#fff"
               e.currentTarget.style.border = "1px solid var(--handle-border)"
             }}
           />
+          {/* Right handle */}
           <div
             className="absolute top-1/2 -right-3 -translate-y-1/2 cursor-ew-resize bg-white shadow-md group/handle"
             style={{
@@ -617,14 +627,41 @@ export function ResizableElement({
               boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
-              transition: "background 0.15s"
+              transition: "background 0.15s",
+              background: rightBorderHover ? "var(--handle-hover)" : "#fff"
             }}
             onMouseDown={(e) => handleResizeStart(e, "e")}
             onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
             onMouseLeave={e => {
-              e.currentTarget.style.background = "#fff"
+              e.currentTarget.style.background = rightBorderHover ? "var(--handle-hover)" : "#fff"
               e.currentTarget.style.border = "1px solid var(--handle-border)"
             }}
+          />
+
+          {/* Wide invisible resize zones for left/right borders */}
+          <div
+            className="absolute top-0 left-0 h-full"
+            style={{
+              width: 16, // 16px wide zone
+              cursor: "ew-resize",
+              zIndex: 5,
+              background: "transparent"
+            }}
+            onMouseDown={(e) => handleResizeStart(e, "w")}
+            onMouseEnter={() => setLeftBorderHover(true)}
+            onMouseLeave={() => setLeftBorderHover(false)}
+          />
+          <div
+            className="absolute top-0 right-0 h-full"
+            style={{
+              width: 16, // 16px wide zone
+              cursor: "ew-resize",
+              zIndex: 5,
+              background: "transparent"
+            }}
+            onMouseDown={(e) => handleResizeStart(e, "e")}
+            onMouseEnter={() => setRightBorderHover(true)}
+            onMouseLeave={() => setRightBorderHover(false)}
           />
         </>
       )}
