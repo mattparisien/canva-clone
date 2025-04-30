@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { LayoutGrid, Type, Upload, Folder, Crown, ImageIcon, Shapes, Sparkles } from "lucide-react"
+import { LayoutGrid, Type, Upload, Folder, Crown, Shapes, Sparkles, Search, Settings, AppWindow } from "lucide-react"
 import { useCanvas } from "@/context/canvas-context"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -15,26 +15,27 @@ export function Sidebar() {
     { id: "design", icon: LayoutGrid, label: "Design" },
     { id: "elements", icon: Shapes, label: "Elements" },
     { id: "text", icon: Type, label: "Text" },
-    { id: "images", icon: ImageIcon, label: "Images" },
-    { id: "uploads", icon: Upload, label: "Uploads" },
     { id: "brand", icon: Crown, label: "Brand" },
+    { id: "uploads", icon: Upload, label: "Uploads" },
+    { id: "tools", icon: Settings, label: "Tools" },
     { id: "projects", icon: Folder, label: "Projects" },
+    { id: "apps", icon: AppWindow, label: "Apps" },
   ]
 
-  // Helper function to estimate text width based on content and font size
+  // Update the estimateTextWidth function to be more accurate
   const estimateTextWidth = (text: string, fontSize: number): number => {
-    // This is a more accurate approximation for most fonts
+    // More accurate approximation based on character count and font size
     // Different characters have different widths, but this is a reasonable average
-    // We add a bit of padding to ensure text fits comfortably
-    return Math.max(text.length * fontSize * 0.6, fontSize * 4) + 20
+    return Math.max(text.length * fontSize * 0.5, fontSize * 2)
   }
 
-  const handleAddText = (fontSize = 24, content = "Add your text here", fontWeight = "normal") => {
+  // Update the handleAddText function to use a larger default font size
+  const handleAddText = (fontSize = 36, content = "Add your text here", fontWeight = "normal") => {
     // Estimate width based on content and font size
     const estimatedWidth = estimateTextWidth(content, fontSize)
 
     // Height is typically 1.2-1.5 times the font size for line height
-    const height = fontSize * 1.5
+    const height = fontSize * 1.2
 
     addElement({
       type: "text",
@@ -51,7 +52,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full">
       {/* Main sidebar with icons */}
-      <div className="flex h-full w-[72px] flex-col border-r border-gray-100 bg-white">
+      <div className="flex h-full w-[72px] flex-col border-r border-gray-200 bg-white">
         {tabs.map((tab) => (
           <div
             key={tab.id}
@@ -67,88 +68,102 @@ export function Sidebar() {
             <span className="text-[11px]">{tab.label}</span>
           </div>
         ))}
+
+        {/* Magic button at bottom */}
+        <div className="mt-auto mb-4 flex justify-center">
+          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200">
+            <Sparkles className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
-      {/* Secondary sidebar with content */}
+      {/* Secondary sidebar with content - floating style */}
       {activeTab === "text" && (
-        <div className="w-[280px] border-r border-gray-100 bg-white p-5 shadow-soft">
-          <div className="mb-5">
-            <Input
-              type="text"
-              placeholder="Search fonts and combinations"
-              className="h-10 border-gray-200 bg-gray-50 text-sm"
-            />
-          </div>
+        <div className="relative z-10 ml-4 mt-4 mb-4 w-[320px] rounded-xl bg-white shadow-md flex flex-col h-[calc(100vh-8rem)]">
+          <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
+            <div className="mb-5">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search fonts and combinations"
+                  className="h-10 border-gray-200 bg-gray-50 pl-10 pr-4 text-sm rounded-lg"
+                />
+              </div>
+            </div>
 
-          <Button
-            className="mb-4 w-full bg-primary hover:bg-primary-700 text-white h-12 rounded-lg"
-            onClick={() => handleAddText(24, "Add a text box")}
-          >
-            <Type className="mr-2 h-5 w-5" />
-            Add a text box
-          </Button>
-
-          <Button
-            variant="outline"
-            className="mb-6 w-full border-gray-200 text-gray-700 h-12 rounded-lg"
-            onClick={() => handleAddText(24, "Magic Write", "bold")}
-          >
-            <Sparkles className="mr-2 h-5 w-5" />
-            Magic Write
-          </Button>
-
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-800">Brand Kit</h3>
-            <Button variant="ghost" className="h-8 text-xs text-primary hover:bg-primary-50">
-              Edit
+            <Button
+              className="mb-4 w-full bg-purple-600 hover:bg-purple-700 text-white h-12 rounded-lg flex items-center justify-center gap-2"
+              onClick={() => handleAddText(36, "Add a text box")}
+            >
+              <Type className="h-5 w-5" />
+              <span className="font-medium">Add a text box</span>
             </Button>
-          </div>
 
-          <div className="space-y-3">
-            <div
-              className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
-              onClick={() => handleAddText(32, "Title", "bold")}
-            >
-              <p className="text-2xl font-bold">Title</p>
+            <div className="mb-6 w-full">
+              <Button
+                variant="outline"
+                className="w-full border-gray-200 text-gray-700 h-12 rounded-lg flex items-center justify-center gap-2"
+                onClick={() => handleAddText(36, "Magic Write", "bold")}
+              >
+                <Sparkles className="h-5 w-5" />
+                <span className="font-medium">Magic Write</span>
+              </Button>
             </div>
 
-            <div
-              className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
-              onClick={() => handleAddText(24, "Heading", "semibold")}
-            >
-              <p className="text-xl font-semibold">Heading</p>
-            </div>
-          </div>
-
-          <div className="mt-6 mb-3">
-            <h3 className="text-sm font-medium text-gray-800">Default text styles</h3>
-          </div>
-
-          <div className="space-y-3">
-            <div
-              className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
-              onClick={() => handleAddText(18, "Add a subheading")}
-            >
-              <p className="text-lg">Add a subheading</p>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-gray-800">Brand Kit</h3>
+              <Button variant="ghost" className="h-8 text-xs text-primary hover:bg-primary-50">
+                Edit
+              </Button>
             </div>
 
-            <div
-              className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
-              onClick={() => handleAddText(14, "Add a little bit of body text")}
-            >
-              <p className="text-sm">Add a little bit of body text</p>
-            </div>
-          </div>
+            <div className="space-y-3 mb-8">
+              <div
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
+                onClick={() => handleAddText(32, "Title", "bold")}
+              >
+                <p className="text-2xl font-bold">Title</p>
+              </div>
 
-          <div className="mt-6 mb-3">
-            <h3 className="text-sm font-medium text-gray-800">Dynamic text</h3>
-          </div>
-
-          <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-primary-200 hover:shadow-soft flex items-center">
-            <div className="h-12 w-12 rounded bg-gradient-to-br from-primary-600 to-primary-400 flex items-center justify-center text-white font-bold mr-3">
-              1
+              <div
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
+                onClick={() => handleAddText(24, "Heading", "semibold")}
+              >
+                <p className="text-xl font-semibold">Heading</p>
+              </div>
             </div>
-            <span className="text-sm font-medium">Page numbers</span>
+
+            <div className="mt-6 mb-3">
+              <h3 className="text-sm font-semibold text-gray-800">Default text styles</h3>
+            </div>
+
+            <div className="space-y-3 mb-8">
+              <div
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
+                onClick={() => handleAddText(18, "Add a subheading")}
+              >
+                <p className="text-lg">Add a subheading</p>
+              </div>
+
+              <div
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
+                onClick={() => handleAddText(14, "Add a little bit of body text")}
+              >
+                <p className="text-sm">Add a little bit of body text</p>
+              </div>
+            </div>
+
+            <div className="mt-6 mb-3">
+              <h3 className="text-sm font-semibold text-gray-800">Dynamic text</h3>
+            </div>
+
+            <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-primary-200 hover:shadow-soft flex items-center">
+              <div className="h-12 w-12 rounded bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold mr-3">
+                1
+              </div>
+              <span className="text-sm font-medium">Page numbers</span>
+            </div>
           </div>
         </div>
       )}

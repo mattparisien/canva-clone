@@ -4,17 +4,24 @@ import { useRef, useState, useEffect, type WheelEvent, type MouseEvent } from "r
 import { useCanvas } from "@/context/canvas-context"
 import { ResizableElement } from "@/components/resizable-element"
 import { AlignmentGuides } from "@/components/alignment-guides"
-import { Button } from "@/components/ui/button"
+import { TextToolbar } from "@/components/text-toolbar"
 import { Slider } from "@/components/ui/slider"
-import { Plus, ChevronUp, ChevronDown, Minus, ZoomIn, Search, Lock, Eye, Layers } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Plus, PenLine, LayoutGrid, Maximize, HelpCircle } from "lucide-react"
 
 export function Canvas() {
   /* ------------------------------------------------------------------
    * Context / refs
    * ------------------------------------------------------------------ */
-  const { elements, selectedElement, selectElement, canvasSize, availableSizes, sizeCategories, changeCanvasSize } =
-    useCanvas()
+  const {
+    elements,
+    selectedElement,
+    selectElement,
+    canvasSize,
+    availableSizes,
+    sizeCategories,
+    changeCanvasSize,
+    updateElement,
+  } = useCanvas()
 
   const containerRef = useRef<HTMLDivElement>(null) // the scrollable viewport
   const scaleWrapperRef = useRef<HTMLDivElement>(null) // wrapper that gets the CSS scale()
@@ -23,7 +30,7 @@ export function Canvas() {
   /* ------------------------------------------------------------------
    * State
    * ------------------------------------------------------------------ */
-  const [zoom, setZoom] = useState(100) // 25 – 400 %
+  const [zoom, setZoom] = useState(100) // 25 – 200 %
   const [showSizeMenu, setShowSizeMenu] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [activeDragElement, setActiveDragElement] = useState<string | null>(null)
@@ -32,6 +39,10 @@ export function Canvas() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isInitialRender, setIsInitialRender] = useState(true)
+
+  // Define min and max zoom levels
+  const MIN_ZOOM = 25
+  const MAX_ZOOM = 200
 
   /* ------------------------------------------------------------------
    * Helpers
@@ -108,9 +119,11 @@ export function Canvas() {
       e.stopPropagation()
 
       // Calculate the new zoom level based on the wheel delta
-      // Use a smaller multiplier for smoother zooming
-      const zoomDelta = e.deltaY * 0.05
-      const next = Math.round(Math.min(400, Math.max(25, zoom - zoomDelta)))
+      // Increased multiplier for faster zoom response (from 0.05 to 0.25)
+      const zoomDelta = e.deltaY * 0.25
+
+      // Apply the zoom change with a larger step for faster response
+      const next = Math.round(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom - zoomDelta)))
       setZoom(next)
 
       return false
@@ -148,6 +161,20 @@ export function Canvas() {
     setDebugInfo("")
   }
 
+  // Handle font size change
+  const handleFontSizeChange = (size: number) => {
+    if (selectedElement && selectedElement.type === "text") {
+      updateElement(selectedElement.id, { fontSize: size })
+    }
+  }
+
+  // Handle font family change
+  const handleFontFamilyChange = (family: string) => {
+    if (selectedElement && selectedElement.type === "text") {
+      updateElement(selectedElement.id, { fontFamily: family })
+    }
+  }
+
   // Filter sizes based on search term and active category
   const filteredSizes = availableSizes.filter((size) => {
     const matchesSearch = searchTerm === "" || size.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -161,166 +188,15 @@ export function Canvas() {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-1 flex-col items-center overflow-hidden bg-gray-50 p-4"
+      className="relative flex flex-1 flex-col items-center overflow-hidden bg-[#EDF1F5] p-4"
       onWheel={handleWheel}
     >
-      {/* -------------------------------- Size Dropdown ------------------------------ */}
-      <div className="absolute left-4 top-4 z-10">
-        <Button
-          variant="outline"
-          className="flex items-center gap-1 bg-white border-gray-200 hover:border-primary hover:bg-primary-50 shadow-soft"
-          onClick={() => setShowSizeMenu(!showSizeMenu)}
-        >
-          <span>{canvasSize.name}</span>
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-        {showSizeMenu && (
-          <div className="absolute mt-2 w-80 max-h-[80vh] overflow-y-auto rounded-lg border border-gray-100 bg-white p-4 shadow-medium">
-            <h3 className="mb-3 font-medium text-gray-800">Canvas size</h3>
-
-            {/* Search input */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search sizes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-md border border-gray-200 bg-gray-50 py-2 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-
-            {/* Category tabs */}
-            <div className="mb-4 flex flex-wrap gap-1.5">
-              <button
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  activeCategory === null
-                    ? "bg-primary-100 text-primary-700"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-                onClick={() => setActiveCategory(null)}
-              >
-                All
-              </button>
-              {sizeCategories.map((category) => (
-                <button
-                  key={category}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    activeCategory === category
-                      ? "bg-primary-100 text-primary-700"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                  onClick={() => setActiveCategory(category)}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-
-            {/* Size list */}
-            <div className="max-h-80 overflow-y-auto rounded-md border border-gray-100">
-              {filteredSizes.length === 0 ? (
-                <p className="p-4 text-center text-sm text-gray-500">No sizes match your search</p>
-              ) : (
-                filteredSizes.map((size) => (
-                  <div
-                    key={`${size.category}-${size.name}`}
-                    className="flex cursor-pointer items-center justify-between border-b border-gray-100 px-3 py-2.5 hover:bg-gray-50"
-                    onClick={() => {
-                      changeCanvasSize(size)
-                      setShowSizeMenu(false)
-                    }}
-                  >
-                    <div>
-                      <span className="text-sm font-medium text-gray-800">{size.name}</span>
-                      <span className="ml-2 text-xs text-gray-500">{size.category}</span>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {size.width} × {size.height}px
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* -------------------------------- Canvas Tools ------------------------------ */}
-      <div className="absolute left-1/2 top-4 z-10 -translate-x-1/2 flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-1 py-1 shadow-soft">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
-                <Lock className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Lock element</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
-                <Eye className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Toggle visibility</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <div className="h-6 w-px bg-gray-200 mx-1"></div>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600 hover:bg-gray-100">
-                <Layers className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Layers</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-
-      {/* -------------------------------- Zoom controls ------------------------------ */}
-      <div className="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2 py-1 shadow-soft">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-gray-600 hover:bg-gray-100"
-          onClick={() => setZoom(Math.max(25, zoom - 10))}
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-        <div className="flex items-center gap-2">
-          <Slider value={[zoom]} min={25} max={400} step={5} className="w-24" onValueChange={([v]) => setZoom(v)} />
-          <span className="min-w-12 text-center text-xs font-medium">{zoom}%</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-gray-600 hover:bg-gray-100"
-          onClick={() => setZoom(Math.min(400, zoom + 10))}
-        >
-          <ZoomIn className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="ml-1 text-xs font-medium text-primary hover:bg-primary-50"
-          onClick={fitCanvasToView}
-        >
-          Fit
-        </Button>
-      </div>
+      {/* Text Formatting Toolbar */}
+      <TextToolbar
+        selectedElement={selectedElement}
+        onFontSizeChange={handleFontSizeChange}
+        onFontFamilyChange={handleFontFamilyChange}
+      />
 
       {/* -------------------------------- Scaled canvas ------------------------------ */}
       <div className="flex h-full w-full items-center justify-center overflow-auto">
@@ -331,8 +207,13 @@ export function Canvas() {
         >
           <div
             ref={canvasRef}
-            className="relative bg-white shadow-medium"
-            style={{ width: canvasSize.width, height: canvasSize.height, border: "1px solid #e5e7eb" }}
+            className="relative bg-white"
+            style={{
+              width: canvasSize.width,
+              height: canvasSize.height,
+              boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08)",
+              border: "1px solid rgba(0, 0, 0, 0.05)",
+            }}
             onClick={handleCanvasClick}
           >
             {/* Guides - always render them when dragging */}
@@ -366,20 +247,75 @@ export function Canvas() {
         </div>
       </div>
 
-      {/* -------------------------------- Page controls ------------------------------ */}
-      <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 shadow-soft">
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-600 hover:bg-gray-100">
-          <ChevronUp className="h-4 w-4" />
-        </Button>
-        <span className="text-sm font-medium text-gray-800">Page 1</span>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-600 hover:bg-gray-100">
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-        <div className="mx-2 h-4 w-px bg-gray-200" />
-        <Button variant="ghost" size="sm" className="text-sm text-gray-700 hover:bg-gray-100">
-          <Plus className="mr-1.5 h-4 w-4" />
-          Add page
-        </Button>
+      {/* -------------------------------- Add Page Button ------------------------------ */}
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
+        <button className="px-6 h-10 flex items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white/80 text-sm text-gray-500 hover:bg-white hover:text-gray-700 transition-colors">
+          <Plus className="h-4 w-4" />
+          <span>Add page</span>
+        </button>
+      </div>
+
+      {/* -------------------------------- Bottom Bar ------------------------------ */}
+      <div className="absolute bottom-0 left-0 right-0 h-12 flex items-center justify-between px-4 bg-[#EDF1F5]">
+        {/* Left side - Notes button */}
+        <div className="flex items-center">
+          <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
+            <PenLine className="h-5 w-5" />
+            <span className="font-medium">Notes</span>
+          </button>
+        </div>
+
+        {/* Right side - Zoom controls and page info */}
+        <div className="flex items-center gap-6">
+          {/* Zoom slider */}
+          <div className="flex items-center gap-3">
+            <div className="w-36 h-1 bg-gray-300 rounded-full relative">
+              <div
+                className="absolute top-1/2 -translate-y-1/2 h-3 w-3 rounded-full bg-white border border-gray-300 cursor-pointer"
+                style={{ left: `${((zoom - MIN_ZOOM) / (MAX_ZOOM - MIN_ZOOM)) * 100}%` }}
+              ></div>
+              <Slider
+                value={[zoom]}
+                min={MIN_ZOOM}
+                max={MAX_ZOOM}
+                step={1}
+                className="absolute inset-0 opacity-0"
+                onValueChange={([v]) => setZoom(v)}
+              />
+            </div>
+            <span className="text-sm text-gray-700 font-medium">{zoom}%</span>
+          </div>
+
+          {/* Pages button */}
+          <div className="flex items-center gap-1">
+            <button className="flex items-center gap-1 text-gray-700 hover:text-gray-900">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
+                <path d="M8 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path d="M8 14H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <span className="font-medium">Pages</span>
+            </button>
+          </div>
+
+          {/* Page counter */}
+          <span className="text-sm text-gray-700">1 / 1</span>
+
+          {/* Grid view */}
+          <button className="text-gray-700 hover:text-gray-900">
+            <LayoutGrid className="h-5 w-5" />
+          </button>
+
+          {/* Fullscreen */}
+          <button className="text-gray-700 hover:text-gray-900">
+            <Maximize className="h-5 w-5" />
+          </button>
+
+          {/* Help */}
+          <button className="text-gray-700 hover:text-gray-900">
+            <HelpCircle className="h-5 w-5" />
+          </button>
+        </div>
       </div>
     </div>
   )

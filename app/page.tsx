@@ -43,7 +43,7 @@ export default function CanvaEditor() {
     <CanvasProvider>
       <div className="flex h-screen flex-col bg-white">
         <Navbar />
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden bg-[#EDF1F5]">
           <Sidebar />
           <Canvas />
         </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react"
 
 export type ElementType = "text"
 export type CanvasSize = {
@@ -23,6 +23,13 @@ export interface Element {
   isNew?: boolean // Track if element was just created
 }
 
+// Define the types of actions that can be performed
+export type HistoryAction =
+  | { type: "ADD_ELEMENT"; element: Element }
+  | { type: "UPDATE_ELEMENT"; id: string; before: Partial<Element>; after: Partial<Element> }
+  | { type: "DELETE_ELEMENT"; element: Element }
+  | { type: "CHANGE_CANVAS_SIZE"; before: CanvasSize; after: CanvasSize }
+
 interface CanvasContextType {
   elements: Element[]
   selectedElement: Element | null
@@ -31,11 +38,16 @@ interface CanvasContextType {
   sizeCategories: string[]
   addElement: (element: Omit<Element, "id">) => void
   updateElement: (id: string, updates: Partial<Element>) => void
+  deleteElement: (id: string) => void
   selectElement: (id: string | null) => void
   changeCanvasSize: (size: CanvasSize) => void
   fitCanvasToView: (containerWidth: number, containerHeight: number) => number
   clearNewElementFlag: (id: string) => void
   scaleElement: (element: Element, scaleFactor: number) => Element
+  canUndo: boolean
+  canRedo: boolean
+  undo: () => void
+  redo: () => void
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined)
@@ -43,6 +55,10 @@ const CanvasContext = createContext<CanvasContextType | undefined>(undefined)
 export function CanvasProvider({ children }: { children: ReactNode }) {
   const [elements, setElements] = useState<Element[]>([])
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
+
+  // History stacks for undo/redo
+  const [history, setHistory] = useState<HistoryAction[]>([])
+  const [redoStack, setRedoStack] = useState<HistoryAction[]>([])
 
   // Define available canvas sizes with categories
   const availableSizes: CanvasSize[] = [
@@ -102,85 +118,285 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     console.log("Canvas size set to:", canvasSize)
   }, [canvasSize])
 
-  const addElement = (element: Omit<Element, "id">) => {
-    // Ensure width and height are defined
-    const width = element.width || 200
-    const height = element.height || 50
+  // Helper function to add an action to history
+  const addToHistory = useCallback((action: HistoryAction) => {
+    setHistory((prev) => [...prev, action])
+    // Clear redo stack when a new action is performed
+    setRedoStack([])
+  }, [])
 
-    // Calculate center position
-    const centeredX = (canvasSize.width - width) / 2
-    const centeredY = (canvasSize.height - height) / 2
+  // Update the addElement function to better handle text element sizing and track history
+  const addElement = useCallback(
+    (element: Omit<Element, "id">) => {
+      // For text elements, calculate a more precise width
+      let width = element.width || 200
+      let height = element.height || 50
 
-    const newElement = {
-      ...element,
-      // Ensure we use the calculated width/height
-      width,
-      height,
-      // Set centered position
-      x: centeredX,
-      y: centeredY,
-      id: `element-${Date.now()}`,
-      isNew: true, // Mark as new element
-    }
+      if (element.type === "text" && element.content) {
+        // More precise calculation for text elements
+        const fontSize = element.fontSize || 36
+        const contentLength = element.content.length
 
-    setElements((prev) => [...prev, newElement])
-    setSelectedElement(newElement)
-  }
+        // Adjust width based on content length and font size
+        width = Math.max(contentLength * fontSize * 0.5, fontSize * 2)
 
-  const updateElement = (id: string, updates: Partial<Element>) => {
-    setElements((prev) => prev.map((el) => (el.id === id ? { ...el, ...updates } : el)))
+        // Adjust height based on font size
+        height = fontSize * 1.2
+      }
 
-    if (selectedElement?.id === id) {
-      setSelectedElement((prev) => (prev ? { ...prev, ...updates } : null))
-    }
-  }
+      // Calculate center position
+      const centeredX = (canvasSize.width - width) / 2
+      const centeredY = (canvasSize.height - height) / 2
 
-  const selectElement = (id: string | null) => {
-    if (!id) {
-      setSelectedElement(null)
-      return
-    }
+      const newElement = {
+        ...element,
+        // Use the calculated width/height
+        width,
+        height,
+        // Set centered position
+        x: centeredX,
+        y: centeredY,
+        id: `element-${Date.now()}`,
+        isNew: true, // Mark as new element
+      }
 
-    const element = elements.find((el) => el.id === id)
-    setSelectedElement(element || null)
-  }
+      setElements((prev) => {
+        const newElements = [...prev, newElement]
+        // Add to history
+        addToHistory({
+          type: "ADD_ELEMENT",
+          element: newElement,
+        })
+        return newElements
+      })
 
-  const changeCanvasSize = (size: CanvasSize) => {
-    console.log("Changing canvas size to:", size)
-    setCanvasSize(size)
-  }
+      setSelectedElement(newElement)
+    },
+    [canvasSize, addToHistory],
+  )
 
-  const fitCanvasToView = (containerWidth: number, containerHeight: number) => {
-    // Account for padding and UI elements
-    const availableWidth = containerWidth - 100 // 50px padding on each side
-    const availableHeight = containerHeight - 160 // Account for top and bottom controls + padding
+  const updateElement = useCallback(
+    (id: string, updates: Partial<Element>) => {
+      setElements((prev) => {
+        const element = prev.find((el) => el.id === id)
+        if (!element) return prev
 
-    const widthRatio = availableWidth / canvasSize.width
-    const heightRatio = availableHeight / canvasSize.height
+        // Store the previous state for history
+        const before: Partial<Element> = {}
+        Object.keys(updates).forEach((key) => {
+          before[key as keyof Element] = element[key as keyof Element]
+        })
 
-    // Use the smaller ratio to ensure the canvas fits entirely
-    const fitScale = Math.min(widthRatio, heightRatio, 1) // Cap at 100%
-    return Math.round(fitScale * 100) // Round to integer
-  }
+        // Add to history
+        addToHistory({
+          type: "UPDATE_ELEMENT",
+          id,
+          before,
+          after: updates,
+        })
 
-  const clearNewElementFlag = (id: string) => {
-    setElements((prev) => prev.map((el) => (el.id === id ? { ...el, isNew: false } : el)))
+        return prev.map((el) => (el.id === id ? { ...el, ...updates } : el))
+      })
 
-    if (selectedElement?.id === id) {
-      setSelectedElement((prev) => (prev ? { ...prev, isNew: false } : null))
-    }
-  }
+      if (selectedElement?.id === id) {
+        setSelectedElement((prev) => (prev ? { ...prev, ...updates } : null))
+      }
+    },
+    [selectedElement, addToHistory],
+  )
 
-  const scaleElement = (element: Element, scaleFactor: number) => {
+  const deleteElement = useCallback(
+    (id: string) => {
+      setElements((prev) => {
+        const element = prev.find((el) => el.id === id)
+        if (!element) return prev
+
+        // Add to history
+        addToHistory({
+          type: "DELETE_ELEMENT",
+          element,
+        })
+
+        return prev.filter((el) => el.id !== id)
+      })
+
+      if (selectedElement?.id === id) {
+        setSelectedElement(null)
+      }
+    },
+    [selectedElement, addToHistory],
+  )
+
+  const selectElement = useCallback(
+    (id: string | null) => {
+      if (!id) {
+        setSelectedElement(null)
+        return
+      }
+
+      const element = elements.find((el) => el.id === id)
+      setSelectedElement(element || null)
+    },
+    [elements],
+  )
+
+  const changeCanvasSize = useCallback(
+    (size: CanvasSize) => {
+      console.log("Changing canvas size to:", size)
+
+      // Add to history
+      addToHistory({
+        type: "CHANGE_CANVAS_SIZE",
+        before: canvasSize,
+        after: size,
+      })
+
+      setCanvasSize(size)
+    },
+    [canvasSize, addToHistory],
+  )
+
+  const fitCanvasToView = useCallback(
+    (containerWidth: number, containerHeight: number) => {
+      // Account for padding and UI elements
+      const availableWidth = containerWidth - 100 // 50px padding on each side
+      const availableHeight = containerHeight - 160 // Account for top and bottom controls + padding
+
+      const widthRatio = availableWidth / canvasSize.width
+      const heightRatio = availableHeight / canvasSize.height
+
+      // Use the smaller ratio to ensure the canvas fits entirely
+      const fitScale = Math.min(widthRatio, heightRatio, 1) // Cap at 100%
+      return Math.round(fitScale * 100) // Round to integer
+    },
+    [canvasSize.width, canvasSize.height],
+  )
+
+  const clearNewElementFlag = useCallback(
+    (id: string) => {
+      setElements((prev) => prev.map((el) => (el.id === id ? { ...el, isNew: false } : el)))
+
+      if (selectedElement?.id === id) {
+        setSelectedElement((prev) => (prev ? { ...prev, isNew: false } : null))
+      }
+    },
+    [selectedElement],
+  )
+
+  const scaleElement = useCallback((element: Element, scaleFactor: number) => {
     if (element.type === "text" && element.fontSize) {
-      const newFontSize = Math.max(8, Math.round((element.fontSize || 24) * scaleFactor))
+      const newFontSize = Math.max(8, Math.round((element.fontSize || 36) * scaleFactor))
       return {
         ...element,
         fontSize: newFontSize,
       }
     }
     return element
-  }
+  }, [])
+
+  // Undo functionality
+  const undo = useCallback(() => {
+    if (history.length === 0) return
+
+    // Get the last action from history
+    const lastAction = history[history.length - 1]
+
+    // Remove the last action from history
+    setHistory((prev) => prev.slice(0, -1))
+
+    // Add to redo stack
+    setRedoStack((prev) => [...prev, lastAction])
+
+    // Apply the reverse of the action
+    switch (lastAction.type) {
+      case "ADD_ELEMENT":
+        setElements((prev) => prev.filter((el) => el.id !== lastAction.element.id))
+        if (selectedElement?.id === lastAction.element.id) {
+          setSelectedElement(null)
+        }
+        break
+
+      case "UPDATE_ELEMENT":
+        setElements((prev) => prev.map((el) => (el.id === lastAction.id ? { ...el, ...lastAction.before } : el)))
+        if (selectedElement?.id === lastAction.id) {
+          setSelectedElement((prev) => (prev ? { ...prev, ...lastAction.before } : null))
+        }
+        break
+
+      case "DELETE_ELEMENT":
+        setElements((prev) => [...prev, lastAction.element])
+        break
+
+      case "CHANGE_CANVAS_SIZE":
+        setCanvasSize(lastAction.before)
+        break
+    }
+  }, [history, selectedElement])
+
+  // Redo functionality
+  const redo = useCallback(() => {
+    if (redoStack.length === 0) return
+
+    // Get the last action from redo stack
+    const nextAction = redoStack[redoStack.length - 1]
+
+    // Remove the action from redo stack
+    setRedoStack((prev) => prev.slice(0, -1))
+
+    // Add back to history
+    setHistory((prev) => [...prev, nextAction])
+
+    // Apply the action
+    switch (nextAction.type) {
+      case "ADD_ELEMENT":
+        setElements((prev) => [...prev, nextAction.element])
+        break
+
+      case "UPDATE_ELEMENT":
+        setElements((prev) => prev.map((el) => (el.id === nextAction.id ? { ...el, ...nextAction.after } : el)))
+        if (selectedElement?.id === nextAction.id) {
+          setSelectedElement((prev) => (prev ? { ...prev, ...nextAction.after } : null))
+        }
+        break
+
+      case "DELETE_ELEMENT":
+        setElements((prev) => prev.filter((el) => el.id !== nextAction.element.id))
+        if (selectedElement?.id === nextAction.element.id) {
+          setSelectedElement(null)
+        }
+        break
+
+      case "CHANGE_CANVAS_SIZE":
+        setCanvasSize(nextAction.after)
+        break
+    }
+  }, [redoStack, selectedElement])
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if the target is an input or textarea
+      const target = e.target as HTMLElement
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+        return
+      }
+
+      // Undo: Ctrl/Cmd + Z
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      }
+
+      // Redo: Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y
+      if ((e.ctrlKey || e.metaKey) && ((e.key === "z" && e.shiftKey) || e.key === "y")) {
+        e.preventDefault()
+        redo()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [undo, redo])
 
   return (
     <CanvasContext.Provider
@@ -192,11 +408,16 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         sizeCategories,
         addElement,
         updateElement,
+        deleteElement,
         selectElement,
         changeCanvasSize,
         fitCanvasToView,
         clearNewElementFlag,
         scaleElement,
+        canUndo: history.length > 0,
+        canRedo: redoStack.length > 0,
+        undo,
+        redo,
       }}
     >
       {children}

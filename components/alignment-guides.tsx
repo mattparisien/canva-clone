@@ -33,8 +33,12 @@ export function AlignmentGuides({
       {alignments.horizontal.map((y, index) => (
         <div
           key={`h-${index}-${y}`}
-          className="absolute left-0 z-50 h-[1px] w-full bg-purple-500"
-          style={{ top: `${y}px` }}
+          className="absolute left-0 z-50 h-[2px] w-full bg-purple-500"
+          style={{
+            top: `${y}px`,
+            opacity: 0.8,
+            boxShadow: "0 0 2px rgba(0, 0, 0, 0.2)",
+          }}
         />
       ))}
 
@@ -42,8 +46,12 @@ export function AlignmentGuides({
       {alignments.vertical.map((x, index) => (
         <div
           key={`v-${index}-${x}`}
-          className="absolute top-0 z-50 h-full w-[1px] bg-purple-500"
-          style={{ left: `${x}px` }}
+          className="absolute top-0 z-50 h-full w-[2px] bg-purple-500"
+          style={{
+            left: `${x}px`,
+            opacity: 0.8,
+            boxShadow: "0 0 2px rgba(0, 0, 0, 0.2)",
+          }}
         />
       ))}
     </>

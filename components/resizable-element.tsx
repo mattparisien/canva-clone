@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react"
 import { useCanvas } from "@/context/canvas-context"
 import type { Element } from "@/context/canvas-context"
 import { TextEditor } from "@/components/text-editor"
+import { Trash2 } from "lucide-react"
 
 interface ResizableElementProps {
   element: Element
@@ -21,7 +22,7 @@ interface ResizableElementProps {
 }
 
 // Threshold for alignment snapping in pixels
-const SNAP_THRESHOLD = 5
+const SNAP_THRESHOLD = 8
 
 export function ResizableElement({
   element,
@@ -35,17 +36,26 @@ export function ResizableElement({
   onDrag,
   onDragEnd,
 }: ResizableElementProps) {
-  const { updateElement, selectElement, clearNewElementFlag } = useCanvas()
+  const { updateElement, selectElement, clearNewElementFlag, deleteElement } = useCanvas()
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [resizeDirection, setResizeDirection] = useState<string | null>(null)
   const elementRef = useRef<HTMLDivElement>(null)
+  const [showDeleteButton, setShowDeleteButton] = useState(false)
 
-  // Store original dimensions for aspect ratio preservation
-  const originalDimensions = useRef({ width: element.width, height: element.height })
+  // Store original dimensions and position for aspect ratio preservation
+  const originalState = useRef({
+    width: element.width,
+    height: element.height,
+    x: element.x,
+    y: element.y,
+    aspectRatio: element.width / element.height,
+    fontSize: element.fontSize || 36,
+  })
 
   // Initial position for drag calculations
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const initialMousePos = useRef({ x: 0, y: 0 })
 
   // Handle element selection
   const handleSelect = (e: React.MouseEvent) => {
@@ -68,19 +78,45 @@ export function ResizableElement({
     onDragStart(element)
   }
 
+  // Handle element deletion
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    deleteElement(element.id)
+  }
+
   // Handle element resizing
   const handleResizeStart = (e: React.MouseEvent, direction: string) => {
     e.stopPropagation()
     setIsResizing(true)
     setResizeDirection(direction)
-    setDragStart({ x: e.clientX, y: e.clientY })
 
-    // Store the current dimensions when starting resize
-    originalDimensions.current = {
+    // Store initial mouse position for the entire resize operation
+    initialMousePos.current = {
+      x: e.clientX,
+      y: e.clientY,
+    }
+
+    // Also set dragStart for incremental updates
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+    })
+
+    // Store the current dimensions and position when starting resize
+    originalState.current = {
       width: element.width,
       height: element.height,
+      x: element.x,
+      y: element.y,
+      aspectRatio: element.width / element.height,
+      fontSize: element.fontSize || 36,
     }
   }
+
+  // Show delete button when element is selected
+  useEffect(() => {
+    setShowDeleteButton(isSelected)
+  }, [isSelected])
 
   // Find the closest snap point if within threshold
   const getSnappedPosition = (currentX: number, currentY: number, otherElements: Element[]) => {
@@ -229,98 +265,118 @@ export function ResizableElement({
           y: e.clientY,
         })
       } else if (isResizing && resizeDirection) {
-        // Calculate the delta movement adjusted for scale
-        const deltaX = (e.clientX - dragStart.x) / scale
-        const deltaY = (e.clientY - dragStart.y) / scale
+        // Get original values from ref
+        const {
+          width: origWidth,
+          height: origHeight,
+          x: origX,
+          y: origY,
+          aspectRatio,
+          fontSize: origFontSize,
+        } = originalState.current
 
-        let newWidth = element.width
-        let newHeight = element.height
-        let newX = element.x
-        let newY = element.y
-        let newFontSize = element.fontSize || 24
+        // Calculate the total delta from the initial mouse position
+        // This approach provides smoother resizing by avoiding accumulated errors
+        const totalDeltaX = (e.clientX - initialMousePos.current.x) / scale
+        const totalDeltaY = (e.clientY - initialMousePos.current.y) / scale
 
-        // Store original dimensions for scaling calculation
-        const originalWidth = originalDimensions.current.width
-        const originalHeight = originalDimensions.current.height
-        const originalFontSize = element.fontSize || 24
-        const aspectRatio = originalWidth / originalHeight
+        let newWidth = origWidth
+        let newHeight = origHeight
+        let newX = origX
+        let newY = origY
+        let newFontSize = origFontSize
 
         // Check if we're resizing from a corner (which requires maintaining aspect ratio)
         const isCornerResize = resizeDirection.length > 1
 
         if (isCornerResize) {
-          // For corner resizing, we'll use the larger of the two deltas to determine the scale factor
-          // This ensures the aspect ratio is maintained
-          let scaleFactor = 1
-
-          // Calculate potential new dimensions based on which corner is being dragged
+          // For corner resizing, we'll maintain aspect ratio
           if (resizeDirection === "se") {
-            // Southeast corner - positive deltas for both width and height
-            const widthScale = (originalWidth + deltaX) / originalWidth
-            const heightScale = (originalHeight + deltaY) / originalHeight
-            scaleFactor = Math.max(widthScale, heightScale)
+            // Southeast corner
+            // Calculate both potential dimensions
+            const potentialWidth = Math.max(50, origWidth + totalDeltaX)
+            const potentialHeight = Math.max(20, origHeight + totalDeltaY)
 
-            newWidth = Math.max(50, originalWidth * scaleFactor)
-            newHeight = Math.max(20, originalHeight * scaleFactor)
+            // Choose the dimension that would result in the larger area
+            // This creates a more natural resizing feel
+            if (potentialWidth / origWidth > potentialHeight / origHeight) {
+              newWidth = potentialWidth
+              newHeight = newWidth / aspectRatio
+            } else {
+              newHeight = potentialHeight
+              newWidth = newHeight * aspectRatio
+            }
           } else if (resizeDirection === "sw") {
-            // Southwest corner - negative delta for width, positive for height
-            const widthScale = (originalWidth - deltaX) / originalWidth
-            const heightScale = (originalHeight + deltaY) / originalHeight
-            scaleFactor = Math.max(widthScale, heightScale)
+            // Southwest corner
+            const potentialWidth = Math.max(50, origWidth - totalDeltaX)
+            const potentialHeight = Math.max(20, origHeight + totalDeltaY)
 
-            newWidth = Math.max(50, originalWidth * scaleFactor)
-            newHeight = Math.max(20, originalHeight * scaleFactor)
-            newX = element.x + (originalWidth - newWidth)
+            if (potentialWidth / origWidth > potentialHeight / origHeight) {
+              newWidth = potentialWidth
+              newHeight = newWidth / aspectRatio
+            } else {
+              newHeight = potentialHeight
+              newWidth = newHeight * aspectRatio
+            }
+            newX = origX + (origWidth - newWidth)
           } else if (resizeDirection === "ne") {
-            // Northeast corner - positive delta for width, negative for height
-            const widthScale = (originalWidth + deltaX) / originalWidth
-            const heightScale = (originalHeight - deltaY) / originalHeight
-            scaleFactor = Math.max(widthScale, heightScale)
+            // Northeast corner
+            const potentialWidth = Math.max(50, origWidth + totalDeltaX)
+            const potentialHeight = Math.max(20, origHeight - totalDeltaY)
 
-            newWidth = Math.max(50, originalWidth * scaleFactor)
-            newHeight = Math.max(20, originalHeight * scaleFactor)
-            newY = element.y + (originalHeight - newHeight)
+            if (potentialWidth / origWidth > potentialHeight / origHeight) {
+              newWidth = potentialWidth
+              newHeight = newWidth / aspectRatio
+            } else {
+              newHeight = potentialHeight
+              newWidth = newHeight * aspectRatio
+            }
+            newY = origY + (origHeight - newHeight)
           } else if (resizeDirection === "nw") {
-            // Northwest corner - negative deltas for both width and height
-            const widthScale = (originalWidth - deltaX) / originalWidth
-            const heightScale = (originalHeight - deltaY) / originalHeight
-            scaleFactor = Math.max(widthScale, heightScale)
+            // Northwest corner
+            const potentialWidth = Math.max(50, origWidth - totalDeltaX)
+            const potentialHeight = Math.max(20, origHeight - totalDeltaY)
 
-            newWidth = Math.max(50, originalWidth * scaleFactor)
-            newHeight = Math.max(20, originalHeight * scaleFactor)
-            newX = element.x + (originalWidth - newWidth)
-            newY = element.y + (originalHeight - newHeight)
+            if (potentialWidth / origWidth > potentialHeight / origHeight) {
+              newWidth = potentialWidth
+              newHeight = newWidth / aspectRatio
+            } else {
+              newHeight = potentialHeight
+              newWidth = newHeight * aspectRatio
+            }
+            newX = origX + (origWidth - newWidth)
+            newY = origY + (origHeight - newHeight)
           }
 
-          // Scale the font size proportionally for text elements
+          // Scale the font size proportionally for text elements when using corner handles
           if (element.type === "text" && element.fontSize) {
-            newFontSize = Math.max(8, Math.round(originalFontSize * scaleFactor))
+            const scaleFactor = newWidth / origWidth
+            newFontSize = Math.max(8, Math.round(origFontSize * scaleFactor))
           }
         } else {
           // For edge handles, allow non-uniform scaling
           if (resizeDirection.includes("e")) {
-            newWidth = Math.max(50, element.width + deltaX)
+            newWidth = Math.max(50, origWidth + totalDeltaX)
           }
           if (resizeDirection.includes("w")) {
-            newWidth = Math.max(50, element.width - deltaX)
-            newX = element.x + deltaX
+            newWidth = Math.max(50, origWidth - totalDeltaX)
+            newX = origX + (origWidth - newWidth)
           }
           if (resizeDirection.includes("s")) {
-            newHeight = Math.max(20, element.height + deltaY)
+            newHeight = Math.max(20, origHeight + totalDeltaY)
           }
           if (resizeDirection.includes("n")) {
-            newHeight = Math.max(20, element.height - deltaY)
-            newY = element.y + deltaY
+            newHeight = Math.max(20, origHeight - totalDeltaY)
+            newY = origY + (origHeight - newHeight)
           }
 
-          // For edge handles, only scale font size based on width changes for text elements
-          if (element.type === "text" && element.fontSize && (resizeDirection === "e" || resizeDirection === "w")) {
-            const scaleFactor = newWidth / originalWidth
-            newFontSize = Math.max(8, Math.round(originalFontSize * scaleFactor))
+          // For edge handles, we don't scale the font size
+          if (element.type === "text" && element.fontSize) {
+            newFontSize = origFontSize
           }
         }
 
-        // Update element with new dimensions and font size
+        // Update element with new dimensions, position and font size
         updateElement(element.id, {
           width: newWidth,
           height: newHeight,
@@ -401,52 +457,95 @@ export function ResizableElement({
   return (
     <div
       ref={elementRef}
-      className={`absolute ${isSelected ? "outline outline-2 outline-blue-500" : ""}`}
+      className={`absolute ${isSelected ? "outline outline-2 outline-primary" : ""}`}
       style={{
         left: element.x,
         top: element.y,
         width: element.width,
         height: element.height,
         cursor: isDragging ? "grabbing" : "grab",
+        transform: "none", // Ensure no transforms are applied that could flip the content
       }}
       onClick={handleSelect}
       onMouseDown={handleDragStart}
     >
       {renderElement()}
 
+      {/* Delete button */}
+      {showDeleteButton && (
+        <button
+          className="absolute -top-8 -right-2 p-1.5 bg-white rounded-full shadow-md text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
+
       {isSelected && (
         <>
-          {/* Resize handles */}
+          {/* Resize handles - size inversely proportional to zoom */}
           <div
-            className="absolute -top-1 -left-1 h-2 w-2 cursor-nwse-resize bg-blue-500"
+            className="absolute -top-1 -left-1 cursor-nwse-resize bg-primary"
+            style={{
+              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            }}
             onMouseDown={(e) => handleResizeStart(e, "nw")}
           />
           <div
-            className="absolute -top-1 -right-1 h-2 w-2 cursor-nesw-resize bg-blue-500"
+            className="absolute -top-1 -right-1 cursor-nesw-resize bg-primary"
+            style={{
+              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            }}
             onMouseDown={(e) => handleResizeStart(e, "ne")}
           />
           <div
-            className="absolute -bottom-1 -left-1 h-2 w-2 cursor-nesw-resize bg-blue-500"
+            className="absolute -bottom-1 -left-1 cursor-nesw-resize bg-primary"
+            style={{
+              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            }}
             onMouseDown={(e) => handleResizeStart(e, "sw")}
           />
           <div
-            className="absolute -bottom-1 -right-1 h-2 w-2 cursor-nwse-resize bg-blue-500"
+            className="absolute -bottom-1 -right-1 cursor-nwse-resize bg-primary"
+            style={{
+              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            }}
             onMouseDown={(e) => handleResizeStart(e, "se")}
           />
           <div
-            className="absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 cursor-ns-resize bg-blue-500"
+            className="absolute -top-1 left-1/2 -translate-x-1/2 cursor-ns-resize bg-primary"
+            style={{
+              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            }}
             onMouseDown={(e) => handleResizeStart(e, "n")}
           />
           <div
-            className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 cursor-ns-resize bg-blue-500"
+            className="absolute -bottom-1 left-1/2 -translate-x-1/2 cursor-ns-resize bg-primary"
+            style={{
+              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            }}
             onMouseDown={(e) => handleResizeStart(e, "s")}
           />
           <div
-            className="absolute top-1/2 -left-1 h-2 w-2 -translate-y-1/2 cursor-ew-resize bg-blue-500"
+            className="absolute top-1/2 -left-1 -translate-y-1/2 cursor-ew-resize bg-primary"
+            style={{
+              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            }}
             onMouseDown={(e) => handleResizeStart(e, "w")}
           />
           <div
-            className="absolute top-1/2 -right-1 h-2 w-2 -translate-y-1/2 cursor-ew-resize bg-blue-500"
+            className="absolute top-1/2 -right-1 -translate-y-1/2 cursor-ew-resize bg-primary"
+            style={{
+              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            }}
             onMouseDown={(e) => handleResizeStart(e, "e")}
           />
         </>

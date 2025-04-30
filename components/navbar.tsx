@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function Navbar() {
-  const { canvasSize } = useCanvas()
+  const { canvasSize, canUndo, canRedo, undo, redo } = useCanvas()
   const [documentName, setDocumentName] = useState("Untitled Design")
 
   return (
@@ -38,12 +38,18 @@ export function Navbar() {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-primary hover:bg-primary-50">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`${canUndo ? "text-gray-700" : "text-gray-300"} hover:text-primary hover:bg-primary-50`}
+                onClick={undo}
+                disabled={!canUndo}
+              >
                 <Undo className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Undo</p>
+              <p>Undo (Ctrl+Z)</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -51,12 +57,18 @@ export function Navbar() {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-primary hover:bg-primary-50">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`${canRedo ? "text-gray-700" : "text-gray-300"} hover:text-primary hover:bg-primary-50`}
+                onClick={redo}
+                disabled={!canRedo}
+              >
                 <Redo className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Redo</p>
+              <p>Redo (Ctrl+Y)</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
