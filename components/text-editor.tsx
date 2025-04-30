@@ -6,7 +6,7 @@
    "use client";
 
    import type React from "react";
-   import { useState, useEffect, useRef } from "react";
+   import { useState, useEffect, useRef, useLayoutEffect } from "react";
    
    /* ------------------------------------------------------------------
       Types
@@ -137,6 +137,17 @@
        document.addEventListener("mousedown", handleOutsideClick);
        return () => document.removeEventListener("mousedown", handleOutsideClick);
      }, [isEditing]);
+   
+     /* ----------------------------------------------------------------
+        Recalculate and report height on content or width change
+        ---------------------------------------------------------------- */
+     useLayoutEffect(() => {
+       if (!editorRef.current || !onHeightChange) return;
+       // Reset height to auto to allow shrinking, then read scrollHeight
+       editorRef.current.style.height = "auto";
+       const newHeight = editorRef.current.scrollHeight;
+       onHeightChange(newHeight);
+     }, [localContent, fontSize, fontFamily, textAlign]);
    
      /* ----------------------------------------------------------------
         Common style object shared by read-only and edit states

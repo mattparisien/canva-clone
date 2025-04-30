@@ -108,14 +108,14 @@ export function TextToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center bg-white rounded-lg shadow-md px-2 py-1.5"
+      className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center bg-white rounded-xl shadow-lg px-4 py-2 gap-2 border border-gray-100"
       onMouseEnter={handleToolbarMouseEnter}
       onMouseLeave={handleToolbarMouseLeave}
     >
       {/* Font Family Dropdown */}
       <div className="relative">
         <button
-          className="flex items-center gap-1 px-2 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded"
+          className="flex items-center gap-1 rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm"
           onClick={() => setShowFontDropdown(!showFontDropdown)}
         >
           <span>{fontFamily}</span>
@@ -146,7 +146,7 @@ export function TextToolbar({
       {/* Font Size Controls */}
       <div className="flex items-center">
         <button
-          className="p-1 text-gray-700 hover:bg-gray-100 rounded"
+          className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm"
           onClick={() => handleFontSizeChange(Math.max(8, fontSize - 1))}
         >
           <Minus className="h-4 w-4" />
@@ -156,11 +156,11 @@ export function TextToolbar({
           type="number"
           value={fontSize}
           onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-          className="w-12 text-center border-none text-sm font-medium focus:outline-none"
+          className="rounded-md border border-gray-200 px-2 py-1 text-sm font-medium focus:ring-2 focus:ring-purple-400 focus:outline-none"
         />
 
         <button
-          className="p-1 text-gray-700 hover:bg-gray-100 rounded"
+          className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm"
           onClick={() => handleFontSizeChange(Math.min(72, fontSize + 1))}
         >
           <Plus className="h-4 w-4" />
@@ -170,7 +170,7 @@ export function TextToolbar({
       <div className="h-6 w-px bg-gray-200 mx-1"></div>
 
       {/* Text Color (placeholder) */}
-      <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+      <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
         <Type className="h-4 w-4" />
       </button>
 
@@ -178,16 +178,16 @@ export function TextToolbar({
 
       {/* Text Formatting */}
       <div className="flex items-center">
-        <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+        <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
           <Bold className="h-4 w-4" />
         </button>
-        <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+        <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
           <Italic className="h-4 w-4" />
         </button>
-        <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+        <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
           <Underline className="h-4 w-4" />
         </button>
-        <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+        <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
           <Strikethrough className="h-4 w-4" />
         </button>
       </div>
@@ -197,25 +197,25 @@ export function TextToolbar({
       {/* Text Alignment */}
       <div className="flex items-center">
         <button
-          className={cn("p-1 text-gray-700 hover:bg-gray-100 rounded", textAlign === "left" && "bg-gray-200")}
+          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", textAlign === "left" && "bg-gray-200")}
           onClick={() => handleTextAlignChange("left")}
         >
           <AlignLeft className="h-4 w-4" />
         </button>
         <button
-          className={cn("p-1 text-gray-700 hover:bg-gray-100 rounded", textAlign === "center" && "bg-gray-200")}
+          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", textAlign === "center" && "bg-gray-200")}
           onClick={() => handleTextAlignChange("center")}
         >
           <AlignCenter className="h-4 w-4" />
         </button>
         <button
-          className={cn("p-1 text-gray-700 hover:bg-gray-100 rounded", textAlign === "right" && "bg-gray-200")}
+          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", textAlign === "right" && "bg-gray-200")}
           onClick={() => handleTextAlignChange("right")}
         >
           <AlignRight className="h-4 w-4" />
         </button>
         <button
-          className={cn("p-1 text-gray-700 hover:bg-gray-100 rounded", textAlign === "justify" && "bg-gray-200")}
+          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", textAlign === "justify" && "bg-gray-200")}
           onClick={() => handleTextAlignChange("justify")}
         >
           <AlignJustify className="h-4 w-4" />
@@ -225,9 +225,9 @@ export function TextToolbar({
       <div className="h-6 w-px bg-gray-200 mx-1"></div>
 
       {/* Effects and Position */}
-      <button className="px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">Effects</button>
+      <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">Effects</button>
 
-      <button className="px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded">Position</button>
+      <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">Position</button>
     </div>
   )
 }

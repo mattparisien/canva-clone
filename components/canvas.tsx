@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect, type WheelEvent, type MouseEvent } from "react"
+import { useRef, useState, useEffect, useCallback, type WheelEvent, type MouseEvent } from "react"
 import { useCanvas } from "@/context/canvas-context"
 import { ResizableElement } from "@/components/resizable-element"
 import { AlignmentGuides } from "@/components/alignment-guides"
@@ -136,59 +136,67 @@ export function Canvas() {
   /* ------------------------------------------------------------------
    * Canvas click → deselect
    * ------------------------------------------------------------------ */
-  const handleCanvasClick = (e: MouseEvent<HTMLDivElement>) => {
+  const handleCanvasClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (e.target === canvasRef.current) selectElement(null)
-  }
+  }, [selectElement, canvasRef])
 
   /* ------------------------------------------------------------------
    * Drag handlers (logical units)
    * ------------------------------------------------------------------ */
-  const handleDragStart = (element: any) => {
+  const handleDragStart = useCallback((element: any) => {
     console.log("Drag started")
     setIsDragging(true)
     setActiveDragElement(element.id)
     setAlignments({ horizontal: [], vertical: [] })
-  }
+  }, [])
 
-  const handleDrag = (element: any, x: number, y: number, newAlignments: typeof alignments) => {
+  const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments) => {
     console.log("Dragging with alignments:", newAlignments)
     setAlignments(newAlignments)
     setDebugInfo(`Horizontal: ${newAlignments.horizontal.length}, Vertical: ${newAlignments.vertical.length}`)
-  }
+  }, [])
 
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     console.log("Drag ended")
     setIsDragging(false)
     setActiveDragElement(null)
     setAlignments({ horizontal: [], vertical: [] })
     setDebugInfo("")
-  }
+  }, [])
 
   // Handle element hover
-  const handleElementHover = (id: string | null) => {
+  const handleElementHover = useCallback((id: string | null) => {
     setHoveredElementId(id)
-  }
+    if (id) {
+      setIsCanvasHovering(false)
+    } else {
+      // Only show canvas hover if not dragging and no element is selected
+      if (!isDragging) {
+        setIsCanvasHovering(true)
+      }
+    }
+  }, [selectedElement, isDragging])
 
   // Handle font size change
-  const handleFontSizeChange = (size: number) => {
+  const handleFontSizeChange = useCallback((size: number) => {
     if (selectedElement && selectedElement.type === "text") {
       updateElement(selectedElement.id, { fontSize: size })
     }
-  }
+  }, [selectedElement, updateElement])
 
   // Handle font family change
-  const handleFontFamilyChange = (family: string) => {
+  const handleFontFamilyChange = useCallback((family: string) => {
     if (selectedElement && selectedElement.type === "text") {
       updateElement(selectedElement.id, { fontFamily: family })
     }
-  }
+  }, [selectedElement, updateElement])
 
   // Handle text alignment change
-  const handleTextAlignChange = (align: "left" | "center" | "right" | "justify") => {
+  const handleTextAlignChange = useCallback((align: "left" | "center" | "right" | "justify") => {
     if (selectedElement && selectedElement.type === "text") {
       updateElement(selectedElement.id, { textAlign: align })
     }
-  }
+  }, [selectedElement, updateElement])
 
   // Filter sizes based on search term and active category
   const filteredSizes = availableSizes.filter((size) => {
@@ -203,7 +211,7 @@ export function Canvas() {
   return (
     <div
       ref={containerRef}
-      className="relative flex flex-1 flex-col items-center overflow-hidden bg-[#EDF1F5] p-4"
+      className="relative flex flex-1 flex-col items-center overflow-hidden bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200 p-8"
       onWheel={handleWheel}
     >
       {/* Text Formatting Toolbar */}
@@ -213,7 +221,7 @@ export function Canvas() {
         onFontSizeChange={handleFontSizeChange}
         onFontFamilyChange={handleFontFamilyChange}
         onTextAlignChange={handleTextAlignChange}
-        isHovering={false}
+        isHovering={!!hoveredElementId}
         elementId={selectedElement?.id || null}
       />}
 
@@ -222,21 +230,21 @@ export function Canvas() {
         <div
           ref={scaleWrapperRef}
           style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
-          className="flex items-center justify-center p-10"
+          className="flex items-center justify-center p-12"
         >
           <div
             ref={canvasRef}
-            className={`relative bg-white overflow-hidden${isCanvasHovering ? " outline outline-primary" : ""}`}
+            className={`relative bg-white overflow-hidden rounded-2xl shadow-2xl border border-gray-200${isCanvasHovering ? " outline outline-primary" : ""}`}
             style={{
               width: canvasSize.width,
               height: canvasSize.height,
-              boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08)",
+              boxShadow: "0 4px 32px 0 rgba(80, 60, 180, 0.08)",
               border: "1px solid rgba(0, 0, 0, 0.05)",
-              outlineWidth: isCanvasHovering ? `${Math.max(2, 2 / scale)}px` : undefined,
+              outlineWidth: isCanvasHovering ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
               outlineStyle: isCanvasHovering ? "solid" : undefined,
             }}
             onClick={handleCanvasClick}
-            onMouseEnter={() => setIsCanvasHovering(true)}
+            onMouseEnter={() => { if (!hoveredElementId) setIsCanvasHovering(true) }}
             onMouseLeave={() => setIsCanvasHovering(false)}
           >
             {/* Guides - always render them when dragging */}

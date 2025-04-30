@@ -501,7 +501,7 @@ export function ResizableElement({
         height: element.height,
         cursor: isDragging ? "grabbing" : "grab",
         transform: "none",
-        outlineWidth: (isSelected || isHovering) ? `${Math.max(2, 2 / scale)}px` : undefined,
+        outlineWidth: (isSelected || isHovering) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
         outlineStyle: (isSelected || isHovering) ? "solid" : undefined,
         // Let Tailwind class handle outline color
       }}

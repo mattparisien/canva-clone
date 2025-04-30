@@ -12,28 +12,25 @@ export function Navbar() {
   const [documentName, setDocumentName] = useState("Untitled Design")
 
   return (
-    <div className="flex h-16 items-center border-b border-gray-100 bg-white px-4 shadow-sm">
+    <div className="flex h-14 items-center px-4 shadow bg-gradient-to-r from-[#2ec4e6] via-[#5e60ce] to-[#7c3aed] border-b border-[#e0e7ef]">
       <div className="flex items-center">
-        <Button variant="ghost" size="icon" className="text-gray-500 hover:text-primary hover:bg-primary-50">
+        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
           <Menu className="h-5 w-5" />
         </Button>
-
         <div className="ml-4 flex items-center">
-          <img src="/abstract-logo.png" alt="Logo" className="h-8 w-8 rounded" />
+          <img src="/abstract-logo.png" alt="Logo" className="h-9 w-9 rounded shadow-md bg-white" />
         </div>
       </div>
-
       <div className="ml-6 flex items-center gap-2">
         <div className="relative">
           <input
             type="text"
             value={documentName}
             onChange={(e) => setDocumentName(e.target.value)}
-            className="h-9 rounded-md border border-gray-200 bg-white px-3 text-sm font-medium outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
+            className="h-10 rounded-lg border-none bg-white/80 px-4 text-lg font-semibold text-gray-900 shadow focus:ring-2 focus:ring-purple-400 focus:outline-none transition-all"
           />
         </div>
-
-        <div className="h-6 w-px bg-gray-200 mx-2"></div>
+        <div className="h-6 w-px bg-white/30 mx-4"></div>
 
         <TooltipProvider>
           <Tooltip>
@@ -41,7 +38,7 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`${canUndo ? "text-gray-700" : "text-gray-300"} hover:text-primary hover:bg-primary-50`}
+                className={`${canUndo ? "text-white" : "text-white/50"} hover:bg-white/10 rounded-full`}
                 onClick={undo}
                 disabled={!canUndo}
               >
@@ -60,7 +57,7 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`${canRedo ? "text-gray-700" : "text-gray-300"} hover:text-primary hover:bg-primary-50`}
+                className={`${canRedo ? "text-white" : "text-white/50"} hover:bg-white/10 rounded-full`}
                 onClick={redo}
                 disabled={!canRedo}
               >
@@ -76,7 +73,7 @@ export function Navbar() {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-gray-500 hover:text-primary hover:bg-primary-50">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full">
                 <Save className="h-5 w-5" />
               </Button>
             </TooltipTrigger>
@@ -86,28 +83,27 @@ export function Navbar() {
           </Tooltip>
         </TooltipProvider>
       </div>
-
       <div className="ml-auto flex items-center gap-2">
-        <Button variant="ghost" className="text-gray-600 hover:text-primary hover:bg-primary-50">
+        <Button variant="ghost" className="text-white hover:bg-white/10 rounded-full">
           <Download className="mr-2 h-4 w-4" />
           <span>Download</span>
         </Button>
 
-        <Button className="bg-primary hover:bg-primary-700 text-white">
+        <Button className="bg-white/20 hover:bg-white/30 text-white rounded-full">
           <Share2 className="mr-2 h-4 w-4" />
           <span>Share</span>
         </Button>
 
         <div className="ml-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-gray-500 hover:text-primary hover:bg-primary-50">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full">
             <Settings className="h-5 w-5" />
           </Button>
 
-          <Button variant="ghost" size="icon" className="text-gray-500 hover:text-primary hover:bg-primary-50">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full">
             <HelpCircle className="h-5 w-5" />
           </Button>
 
-          <Avatar className="h-8 w-8 border border-gray-200">
+          <Avatar className="h-8 w-8 border border-white/30">
             <AvatarImage src="/abstract-geometric-shapes.png" />
             <AvatarFallback>US</AvatarFallback>
           </Avatar>
