@@ -190,7 +190,11 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         // Store the previous state for history
         const before: Partial<Element> = {}
         Object.keys(updates).forEach((key) => {
-          before[key as keyof Element] = element[key as keyof Element]
+          const value = element[key as keyof Element]
+          // Only assign if value is defined
+          if (value !== undefined) {
+            (before as any)[key] = value
+          }
         })
 
         // Add to history
