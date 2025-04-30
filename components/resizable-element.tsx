@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useLayoutEffect } from "react"
 import { useCanvas } from "@/context/canvas-context"
 import type { Element } from "@/context/canvas-context"
 import { TextEditor } from "@/components/text-editor"
@@ -23,7 +23,12 @@ interface ResizableElementProps {
 }
 
 // Threshold for alignment snapping in pixels
-const SNAP_THRESHOLD = 8
+const SNAP_THRESHOLD = 20
+
+// Use a smaller max size and a higher min size for better scaling
+const HANDLE_BASE_SIZE = 18;
+const HANDLE_MIN_SIZE = 12;
+const HANDLE_MAX_SIZE = 24;
 
 export function ResizableElement({
   element,
@@ -60,24 +65,15 @@ export function ResizableElement({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const initialMousePos = useRef({ x: 0, y: 0 })
 
-  // Handle element selection
-  const handleSelect = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    selectElement(element.id)
-  }
-
   // Handle element dragging
   const handleDragStart = (e: React.MouseEvent) => {
     e.stopPropagation()
+    selectElement(element.id) // Select on mouse down
     setIsDragging(true)
-
-    // Store the initial mouse position
     setDragStart({
       x: e.clientX,
       y: e.clientY,
     })
-
-    // Notify parent component
     onDragStart(element)
   }
 
@@ -100,7 +96,7 @@ export function ResizableElement({
 
   // Handle text height change
   const handleHeightChange = (newHeight: number) => {
-    if (element.type === "text" && Math.abs(element.height - newHeight) > 1) {
+    if (element.type === "text") {
       updateElement(element.id, { height: newHeight })
     }
   }
@@ -449,6 +445,16 @@ export function ResizableElement({
     onDragEnd,
   ])
 
+  // Track width for text elements to trigger height recalculation
+  const [textEditorKey, setTextEditorKey] = useState(0)
+  useLayoutEffect(() => {
+    if (element.type === "text") {
+      setTextEditorKey((k) => k + 1)
+    }
+    // Only run when width changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [element.width])
+
   // Render the appropriate element based on type
   const renderElement = () => {
     switch (element.type) {
@@ -456,6 +462,7 @@ export function ResizableElement({
         return (
           <div className="w-full h-full text-element">
             <TextEditor
+              key={textEditorKey}
               content={element.content || ""}
               fontSize={element.fontSize}
               fontFamily={element.fontFamily}
@@ -470,7 +477,7 @@ export function ResizableElement({
                 }
               }}
               onHeightChange={handleHeightChange}
-              width={element.width}
+              textAlign={element.textAlign || "center"}
             />
           </div>
         )
@@ -482,16 +489,15 @@ export function ResizableElement({
   return (
     <div
       ref={elementRef}
-      className={`absolute ${isSelected ? "outline outline-2 outline-primary" : ""}`}
+      className={`absolute ${isSelected ? "outline outline-4 outline-primary" : isHovering ? "outline outline-4 outline-primary" : ""}`}
       style={{
         left: element.x,
         top: element.y,
         width: element.width,
         height: element.height,
         cursor: isDragging ? "grabbing" : "grab",
-        transform: "none", // Ensure no transforms are applied that could flip the content
+        transform: "none",
       }}
-      onClick={handleSelect}
       onMouseDown={handleDragStart}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -510,70 +516,115 @@ export function ResizableElement({
 
       {isSelected && (
         <>
-          {/* Resize handles - size inversely proportional to zoom */}
+          {/* Corner handles */}
           <div
-            className="absolute -top-1 -left-1 cursor-nwse-resize bg-primary"
+            className="absolute -top-3 -left-3 cursor-nwse-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              border: "1px solid var(--handle-border)",
+              zIndex: 10,
+              transition: "background 0.15s"
             }}
             onMouseDown={(e) => handleResizeStart(e, "nw")}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "#fff"
+              e.currentTarget.style.border = "1px solid var(--handle-border)"
+            }}
           />
           <div
-            className="absolute -top-1 -right-1 cursor-nesw-resize bg-primary"
+            className="absolute -top-3 -right-3 cursor-nesw-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              border: "1px solid var(--handle-border)",
+              zIndex: 10,
+              transition: "background 0.15s"
             }}
             onMouseDown={(e) => handleResizeStart(e, "ne")}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "#fff"
+              e.currentTarget.style.border = "1px solid var(--handle-border)"
+            }}
           />
           <div
-            className="absolute -bottom-1 -left-1 cursor-nesw-resize bg-primary"
+            className="absolute -bottom-3 -left-3 cursor-nesw-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              border: "1px solid var(--handle-border)",
+              zIndex: 10,
+              transition: "background 0.15s"
             }}
             onMouseDown={(e) => handleResizeStart(e, "sw")}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "#fff"
+              e.currentTarget.style.border = "1px solid var(--handle-border)"
+            }}
           />
           <div
-            className="absolute -bottom-1 -right-1 cursor-nwse-resize bg-primary"
+            className="absolute -bottom-3 -right-3 cursor-nwse-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              border: "1px solid var(--handle-border)",
+              zIndex: 10,
+              transition: "background 0.15s"
             }}
             onMouseDown={(e) => handleResizeStart(e, "se")}
-          />
-          <div
-            className="absolute -top-1 left-1/2 -translate-x-1/2 cursor-ns-resize bg-primary"
-            style={{
-              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+            onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "#fff"
+              e.currentTarget.style.border = "1px solid var(--handle-border)"
             }}
-            onMouseDown={(e) => handleResizeStart(e, "n")}
           />
+          {/* Left/right handles only (no top/bottom) */}
           <div
-            className="absolute -bottom-1 left-1/2 -translate-x-1/2 cursor-ns-resize bg-primary"
+            className="absolute top-1/2 -left-3 -translate-y-1/2 cursor-ew-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-            }}
-            onMouseDown={(e) => handleResizeStart(e, "s")}
-          />
-          <div
-            className="absolute top-1/2 -left-1 -translate-y-1/2 cursor-ew-resize bg-primary"
-            style={{
-              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              border: "1px solid var(--handle-border)",
+              zIndex: 10,
+              transition: "background 0.15s"
             }}
             onMouseDown={(e) => handleResizeStart(e, "w")}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "#fff"
+              e.currentTarget.style.border = "1px solid var(--handle-border)"
+            }}
           />
           <div
-            className="absolute top-1/2 -right-1 -translate-y-1/2 cursor-ew-resize bg-primary"
+            className="absolute top-1/2 -right-3 -translate-y-1/2 cursor-ew-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.min(8, Math.max(2, 4 / scale))}px`,
-              height: `${Math.min(8, Math.max(2, 4 / scale))}px`,
+              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              borderRadius: "50%",
+              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              border: "1px solid var(--handle-border)",
+              zIndex: 10,
+              transition: "background 0.15s"
             }}
             onMouseDown={(e) => handleResizeStart(e, "e")}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "#fff"
+              e.currentTarget.style.border = "1px solid var(--handle-border)"
+            }}
           />
         </>
       )}

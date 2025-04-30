@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { LayoutGrid, Type, Upload, Folder, Crown, Shapes, Sparkles, Search, Settings, AppWindow } from "lucide-react"
 import { useCanvas } from "@/context/canvas-context"
 import { cn } from "@/lib/utils"
@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 
 export function Sidebar() {
   const [activeTab, setActiveTab] = useState<string>("text")
+  const [textTabHovered, setTextTabHovered] = useState(false)
+  const [popoverHovered, setPopoverHovered] = useState(false)
   const { addElement, canvasSize } = useCanvas()
 
   const tabs = [
@@ -21,6 +23,21 @@ export function Sidebar() {
     { id: "projects", icon: Folder, label: "Projects" },
     { id: "apps", icon: AppWindow, label: "Apps" },
   ]
+
+  // Find the sidebar's left offset for popover positioning
+  const [sidebarRef, setSidebarRef] = useState<HTMLDivElement | null>(null)
+  const [sidebarLeft, setSidebarLeft] = useState(0)
+  // Update sidebarLeft on mount and window resize
+  useEffect(() => {
+    if (!sidebarRef) return
+    const updateLeft = () => {
+      const rect = sidebarRef.getBoundingClientRect()
+      setSidebarLeft(rect.right)
+    }
+    updateLeft()
+    window.addEventListener('resize', updateLeft)
+    return () => window.removeEventListener('resize', updateLeft)
+  }, [sidebarRef])
 
   // Update the estimateTextWidth function to be more accurate
   const estimateTextWidth = (text: string, fontSize: number): number => {
@@ -52,7 +69,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full">
       {/* Main sidebar with icons */}
-      <div className="flex h-full w-[72px] flex-col border-r border-gray-200 bg-white">
+      <div ref={setSidebarRef} className="flex h-full w-[72px] flex-col border-r border-gray-200 bg-white">
         {tabs.map((tab) => (
           <div
             key={tab.id}
@@ -63,6 +80,8 @@ export function Sidebar() {
                 : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
             )}
             onClick={() => setActiveTab(tab.id)}
+            onMouseEnter={tab.id === "text" ? () => setTextTabHovered(true) : undefined}
+            onMouseLeave={tab.id === "text" ? () => setTextTabHovered(false) : undefined}
           >
             <tab.icon className="mb-1.5 h-5 w-5" />
             <span className="text-[11px]">{tab.label}</span>
@@ -76,10 +95,14 @@ export function Sidebar() {
           </button>
         </div>
       </div>
-
-      {/* Secondary sidebar with content - floating style */}
-      {activeTab === "text" && (
-        <div className="relative z-10 ml-4 mt-4 mb-4 w-[320px] rounded-xl bg-white shadow-md flex flex-col h-[calc(100vh-8rem)]">
+      {/* The popover is now absolutely positioned and overlays the canvas */}
+      {activeTab === "text" && (textTabHovered || popoverHovered) && (
+        <div
+          className="fixed z-30 mt-4 mb-4 w-[320px] rounded-xl bg-white shadow-md flex flex-col h-[calc(100vh-8rem)]"
+          style={{ left: sidebarLeft, top: '4rem' }} // 4rem = 64px, matches typical header height
+          onMouseEnter={() => setPopoverHovered(true)}
+          onMouseLeave={() => setPopoverHovered(false)}
+        >
           <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
             <div className="mb-5">
               <div className="relative">

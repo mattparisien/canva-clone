@@ -22,6 +22,7 @@ interface TextToolbarProps {
   selectedElement: Element | null
   onFontSizeChange: (size: number) => void
   onFontFamilyChange: (family: string) => void
+  onTextAlignChange: (align: "left" | "center" | "right" | "justify") => void
   isHovering: boolean
   elementId: string | null
 }
@@ -30,13 +31,16 @@ export function TextToolbar({
   selectedElement,
   onFontSizeChange,
   onFontFamilyChange,
-  isHovering,
+  onTextAlignChange,
   elementId,
 }: TextToolbarProps) {
   const [fontSize, setFontSize] = useState(selectedElement?.fontSize || 36)
   const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || "Inter")
   const [showFontDropdown, setShowFontDropdown] = useState(false)
   const [isToolbarHovered, setIsToolbarHovered] = useState(false)
+  const [textAlign, setTextAlign] = useState<"left" | "center" | "right" | "justify">(
+    selectedElement?.textAlign || "left"
+  )
   const toolbarRef = useRef<HTMLDivElement>(null)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -45,6 +49,7 @@ export function TextToolbar({
     if (selectedElement?.type === "text") {
       setFontSize(selectedElement.fontSize || 36)
       setFontFamily(selectedElement.fontFamily || "Inter")
+      setTextAlign(selectedElement.textAlign || "left")
     }
   }, [selectedElement])
 
@@ -59,6 +64,11 @@ export function TextToolbar({
     setFontFamily(newFamily)
     onFontFamilyChange(newFamily)
     setShowFontDropdown(false)
+  }
+
+  const handleTextAlignChange = (align: "left" | "center" | "right" | "justify") => {
+    setTextAlign(align)
+    onTextAlignChange(align)
   }
 
   // Handle mouse enter/leave for the toolbar itself
@@ -82,11 +92,6 @@ export function TextToolbar({
       }
     }
   }, [])
-
-  // Only show toolbar for text elements that are being hovered or when the toolbar itself is hovered
-  if (!selectedElement || selectedElement.type !== "text" || (!isHovering && !isToolbarHovered)) {
-    return null
-  }
 
   const fontFamilies = [
     "Inter",
@@ -191,16 +196,28 @@ export function TextToolbar({
 
       {/* Text Alignment */}
       <div className="flex items-center">
-        <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+        <button
+          className={cn("p-1 text-gray-700 hover:bg-gray-100 rounded", textAlign === "left" && "bg-gray-200")}
+          onClick={() => handleTextAlignChange("left")}
+        >
           <AlignLeft className="h-4 w-4" />
         </button>
-        <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+        <button
+          className={cn("p-1 text-gray-700 hover:bg-gray-100 rounded", textAlign === "center" && "bg-gray-200")}
+          onClick={() => handleTextAlignChange("center")}
+        >
           <AlignCenter className="h-4 w-4" />
         </button>
-        <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+        <button
+          className={cn("p-1 text-gray-700 hover:bg-gray-100 rounded", textAlign === "right" && "bg-gray-200")}
+          onClick={() => handleTextAlignChange("right")}
+        >
           <AlignRight className="h-4 w-4" />
         </button>
-        <button className="p-1 text-gray-700 hover:bg-gray-100 rounded">
+        <button
+          className={cn("p-1 text-gray-700 hover:bg-gray-100 rounded", textAlign === "justify" && "bg-gray-200")}
+          onClick={() => handleTextAlignChange("justify")}
+        >
           <AlignJustify className="h-4 w-4" />
         </button>
       </div>

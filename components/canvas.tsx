@@ -21,6 +21,7 @@ export function Canvas() {
     sizeCategories,
     changeCanvasSize,
     updateElement,
+    addElement,
   } = useCanvas()
 
   const containerRef = useRef<HTMLDivElement>(null) // the scrollable viewport
@@ -181,6 +182,13 @@ export function Canvas() {
     }
   }
 
+  // Handle text alignment change
+  const handleTextAlignChange = (align: "left" | "center" | "right" | "justify") => {
+    if (selectedElement && selectedElement.type === "text") {
+      updateElement(selectedElement.id, { textAlign: align })
+    }
+  }
+
   // Filter sizes based on search term and active category
   const filteredSizes = availableSizes.filter((size) => {
     const matchesSearch = searchTerm === "" || size.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -198,13 +206,15 @@ export function Canvas() {
       onWheel={handleWheel}
     >
       {/* Text Formatting Toolbar */}
+      {selectedElement && selectedElement.type === "text" &&
       <TextToolbar
         selectedElement={selectedElement}
         onFontSizeChange={handleFontSizeChange}
         onFontFamilyChange={handleFontFamilyChange}
-        isHovering={hoveredElementId === selectedElement?.id}
+        onTextAlignChange={handleTextAlignChange}
+        isHovering={false}
         elementId={selectedElement?.id || null}
-      />
+      />}
 
       {/* -------------------------------- Scaled canvas ------------------------------ */}
       <div className="flex h-full w-full items-center justify-center overflow-auto">
@@ -215,7 +225,7 @@ export function Canvas() {
         >
           <div
             ref={canvasRef}
-            className="relative bg-white"
+            className="relative bg-white overflow-hidden"
             style={{
               width: canvasSize.width,
               height: canvasSize.height,
@@ -242,7 +252,7 @@ export function Canvas() {
                 element={el}
                 isSelected={selectedElement?.id === el.id}
                 scale={scale}
-                canvasRef={canvasRef}
+                canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
                 allElements={elements}
                 canvasWidth={canvasSize.width}
                 canvasHeight={canvasSize.height}

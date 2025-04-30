@@ -20,6 +20,7 @@ export interface Element {
   content?: string
   fontSize?: number
   fontFamily?: string
+  textAlign?: "left" | "center" | "right" | "justify"
   isNew?: boolean // Track if element was just created
 }
 
@@ -375,7 +376,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Check if the target is an input or textarea
+      // Check if the target is an input or textarea or contentEditable
       const target = e.target as HTMLElement
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
         return
@@ -392,11 +393,29 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         e.preventDefault()
         redo()
       }
+
+      // Add text element: T key (no modifiers)
+      if (
+        (e.key === "t" || e.key === "T") &&
+        !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey
+      ) {
+        e.preventDefault()
+        addElement({
+          type: "text",
+          x: 0,
+          y: 0,
+          width: 200,
+          height: 44,
+          content: "Add your text here",
+          fontSize: 36,
+          fontFamily: "Inter",
+        })
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [undo, redo])
+  }, [undo, redo, addElement])
 
   return (
     <CanvasContext.Provider
