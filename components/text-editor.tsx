@@ -1,21 +1,39 @@
-"use client"
+/* --------------------------------------------------------------
+   TextEditor.tsx
+   A lightweight, fully‑controlled content‑editable text editor.
+   -------------------------------------------------------------- */
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
 
-import { useState, useEffect, useRef } from "react"
-
+/* ------------------------------------------------------------------
+   Types
+   ------------------------------------------------------------------ */
 interface TextEditorProps {
-  content: string
-  fontSize?: number
-  fontFamily?: string
-  isSelected: boolean
-  isNew?: boolean
-  onChange: (content: string) => void
-  onFontSizeChange: (fontSize: number) => void
-  onFontFamilyChange: (fontFamily: string) => void
-  onEditingStart?: () => void
+  /** The source of truth for the text shown in the editor */
+  content: string;
+  /** Font‑size in px (default: 36) */
+  fontSize?: number;
+  /** Font‑family for the text (default: Inter) */
+  fontFamily?: string;
+  /** Whether the surrounding element is currently selected */
+  isSelected: boolean;
+  /** If true the editor starts in editing mode */
+  isNew?: boolean;
+  /** Propagates content changes to the parent */
+  onChange: (content: string) => void;
+  /** Propagates font‑size changes to the parent */
+  onFontSizeChange: (fontSize: number) => void;
+  /** Propagates font‑family changes to the parent */
+  onFontFamilyChange: (fontFamily: string) => void;
+  /** Notifies the parent the user began editing */
+  onEditingStart?: () => void;
 }
 
+/* ------------------------------------------------------------------
+   Component
+   ------------------------------------------------------------------ */
 export function TextEditor({
   content,
   fontSize = 36,
@@ -27,135 +45,122 @@ export function TextEditor({
   onFontFamilyChange,
   onEditingStart,
 }: TextEditorProps) {
-  const [isEditing, setIsEditing] = useState(isNew)
-  const editorRef = useRef<HTMLDivElement>(null)
-  const [localContent, setLocalContent] = useState(content)
+  /* ----------------------------------------------------------------
+     Local state & refs
+     ---------------------------------------------------------------- */
+  const [isEditing, setIsEditing] = useState<boolean>(isNew);
+  const [localContent, setLocalContent] = useState<string>(content);
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  // Update local content when prop changes
+  /* ----------------------------------------------------------------
+     Sync incoming `content` prop → local state when not editing
+     ---------------------------------------------------------------- */
   useEffect(() => {
-    setLocalContent(content)
-  }, [content])
+    if (!isEditing) {
+      setLocalContent(content);
+    }
+  }, [content, isEditing]);
 
-  // Handle double click to enter edit mode
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    startEditing()
-  }
-
-  // Start editing mode
+  /* ----------------------------------------------------------------
+     Enter editing mode on double‑click
+     ---------------------------------------------------------------- */
   const startEditing = () => {
-    setIsEditing(true)
-    if (onEditingStart) {
-      onEditingStart()
-    }
+    if (onEditingStart) onEditingStart();
+    setIsEditing(true);
+  };
 
-    // We'll select all text when the editor is focused in the useEffect
-  }
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    startEditing();
+  };
 
-  // Handle content changes
-  const handleContentChange = (e: React.FormEvent<HTMLDivElement>) => {
-    if (editorRef.current) {
-      const newContent = editorRef.current.innerText
-      setLocalContent(newContent)
-      onChange(newContent)
-    }
-  }
+  /* ----------------------------------------------------------------
+     Handle user typing inside the contentEditable div
+     ---------------------------------------------------------------- */
+  const handleInput: React.FormEventHandler<HTMLDivElement> = () => {
+    if (!editorRef.current) return;
+    const newValue = editorRef.current.innerText;
+    setLocalContent(newValue);
+    onChange(newValue);
+  };
 
-  // Focus the editor when entering edit mode
+  /* ----------------------------------------------------------------
+     Focus the editor the moment we switch to editing mode.
+     We *do not* select all text again after every keystroke.
+     ---------------------------------------------------------------- */
   useEffect(() => {
-    if (isEditing && editorRef.current) {
-      // Set content explicitly
-      editorRef.current.innerText = localContent
+    if (!isEditing || !editorRef.current) return;
 
-      // Focus the editor
-      editorRef.current.focus()
+    // Push the latest localContent into the DOM (once) before focus
+    editorRef.current.innerText = localContent;
+    editorRef.current.focus();
 
-      // Select all text when entering edit mode
-      const range = document.createRange()
-      const selection = window.getSelection()
+    // Select all text only on the very first focus event
+    const range = document.createRange();
+    range.selectNodeContents(editorRef.current);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  }, [isEditing]);
 
-      // Select all content
-      range.selectNodeContents(editorRef.current)
-
-      selection?.removeAllRanges()
-      selection?.addRange(range)
-    }
-  }, [isEditing, localContent])
-
-  // Exit edit mode when clicking outside
+  /* ----------------------------------------------------------------
+     Exit editing when clicking anywhere outside the editor
+     ---------------------------------------------------------------- */
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    if (!isEditing) return;
+
+    const handleOutsideClick = (e: MouseEvent) => {
       if (editorRef.current && !editorRef.current.contains(e.target as Node)) {
-        setIsEditing(false)
+        setIsEditing(false);
       }
-    }
+    };
 
-    if (isEditing) {
-      document.addEventListener("mousedown", handleClickOutside)
-    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [isEditing]);
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isEditing])
+  /* ----------------------------------------------------------------
+     Common style object shared by read‑only and edit states
+     ---------------------------------------------------------------- */
+  const baseStyle: React.CSSProperties = {
+    fontSize: `${fontSize}px`,
+    fontFamily,
+    whiteSpace: "normal",
+    lineHeight: 1.2,
+    wordBreak: "break-word",
+    overflow: "hidden",
+    width: "100%",
+    height: "100%",
+    padding: 0,
+    boxSizing: "border-box",
+    direction: "ltr",
+    textAlign: "center",
+  };
 
+  /* ----------------------------------------------------------------
+     Render
+     ---------------------------------------------------------------- */
   return (
     <div className="flex h-full w-full items-center justify-center">
       {isEditing ? (
         <div
           ref={editorRef}
-          contentEditable={true}
-          suppressContentEditableWarning
-          onInput={handleContentChange}
-          onBlur={() => setIsEditing(false)}
           className="h-full w-full outline-none text-center"
-          style={{
-            fontSize: `${fontSize}px`,
-            fontFamily,
-            cursor: "text",
-            userSelect: "text",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            lineHeight: "1.2",
-            wordBreak: "break-word",
-            overflow: "hidden",
-            width: "100%",
-            height: "100%",
-            padding: "0", // Remove padding
-            boxSizing: "border-box",
-            direction: "ltr",
-            transform: "none",
-            textAlign: "center",
-          }}
+          style={{ ...baseStyle, cursor: "text" }}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleInput}
+          onBlur={() => setIsEditing(false)}
         />
       ) : (
         <div
           className="h-full w-full outline-none text-center"
-          style={{
-            fontSize: `${fontSize}px`,
-            fontFamily,
-            cursor: "grab",
-            userSelect: "none",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            lineHeight: "1.2",
-            wordBreak: "break-word",
-            overflow: "hidden",
-            width: "100%",
-            height: "100%",
-            padding: "0", // Remove padding
-            boxSizing: "border-box",
-            direction: "ltr",
-            transform: "none",
-            textAlign: "center",
-          }}
+          style={{ ...baseStyle, cursor: "grab", userSelect: "none" }}
           onDoubleClick={handleDoubleClick}
         >
           {localContent}
         </div>
       )}
     </div>
-  )
+  );
 }

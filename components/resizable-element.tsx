@@ -19,6 +19,7 @@ interface ResizableElementProps {
   onDragStart: (element: Element) => void
   onDrag: (element: Element, x: number, y: number, alignments: { horizontal: number[]; vertical: number[] }) => void
   onDragEnd: () => void
+  onHover: (id: string | null) => void
 }
 
 // Threshold for alignment snapping in pixels
@@ -35,6 +36,7 @@ export function ResizableElement({
   onDragStart,
   onDrag,
   onDragEnd,
+  onHover,
 }: ResizableElementProps) {
   const { updateElement, selectElement, clearNewElementFlag, deleteElement } = useCanvas()
   const [isDragging, setIsDragging] = useState(false)
@@ -42,6 +44,7 @@ export function ResizableElement({
   const [resizeDirection, setResizeDirection] = useState<string | null>(null)
   const elementRef = useRef<HTMLDivElement>(null)
   const [showDeleteButton, setShowDeleteButton] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
 
   // Store original dimensions and position for aspect ratio preservation
   const originalState = useRef({
@@ -82,6 +85,24 @@ export function ResizableElement({
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation()
     deleteElement(element.id)
+  }
+
+  // Handle mouse enter/leave
+  const handleMouseEnter = () => {
+    setIsHovering(true)
+    onHover(element.id)
+  }
+
+  const handleMouseLeave = () => {
+    setIsHovering(false)
+    onHover(null)
+  }
+
+  // Handle text height change
+  const handleHeightChange = (newHeight: number) => {
+    if (element.type === "text" && Math.abs(element.height - newHeight) > 1) {
+      updateElement(element.id, { height: newHeight })
+    }
   }
 
   // Handle element resizing
@@ -433,21 +454,25 @@ export function ResizableElement({
     switch (element.type) {
       case "text":
         return (
-          <TextEditor
-            content={element.content || ""}
-            fontSize={element.fontSize}
-            fontFamily={element.fontFamily}
-            isSelected={isSelected}
-            isNew={element.isNew}
-            onChange={(content) => updateElement(element.id, { content })}
-            onFontSizeChange={(fontSize) => updateElement(element.id, { fontSize })}
-            onFontFamilyChange={(fontFamily) => updateElement(element.id, { fontFamily })}
-            onEditingStart={() => {
-              if (element.isNew) {
-                clearNewElementFlag(element.id)
-              }
-            }}
-          />
+          <div className="w-full h-full text-element">
+            <TextEditor
+              content={element.content || ""}
+              fontSize={element.fontSize}
+              fontFamily={element.fontFamily}
+              isSelected={isSelected}
+              isNew={element.isNew}
+              onChange={(content) => updateElement(element.id, { content })}
+              onFontSizeChange={(fontSize) => updateElement(element.id, { fontSize })}
+              onFontFamilyChange={(fontFamily) => updateElement(element.id, { fontFamily })}
+              onEditingStart={() => {
+                if (element.isNew) {
+                  clearNewElementFlag(element.id)
+                }
+              }}
+              onHeightChange={handleHeightChange}
+              width={element.width}
+            />
+          </div>
         )
       default:
         return null
@@ -468,6 +493,8 @@ export function ResizableElement({
       }}
       onClick={handleSelect}
       onMouseDown={handleDragStart}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {renderElement()}
 

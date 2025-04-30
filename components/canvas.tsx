@@ -39,6 +39,7 @@ export function Canvas() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isInitialRender, setIsInitialRender] = useState(true)
+  const [hoveredElementId, setHoveredElementId] = useState<string | null>(null)
 
   // Define min and max zoom levels
   const MIN_ZOOM = 25
@@ -161,6 +162,11 @@ export function Canvas() {
     setDebugInfo("")
   }
 
+  // Handle element hover
+  const handleElementHover = (id: string | null) => {
+    setHoveredElementId(id)
+  }
+
   // Handle font size change
   const handleFontSizeChange = (size: number) => {
     if (selectedElement && selectedElement.type === "text") {
@@ -196,6 +202,8 @@ export function Canvas() {
         selectedElement={selectedElement}
         onFontSizeChange={handleFontSizeChange}
         onFontFamilyChange={handleFontFamilyChange}
+        isHovering={hoveredElementId === selectedElement?.id}
+        elementId={selectedElement?.id || null}
       />
 
       {/* -------------------------------- Scaled canvas ------------------------------ */}
@@ -241,6 +249,7 @@ export function Canvas() {
                 onDragStart={handleDragStart}
                 onDrag={handleDrag}
                 onDragEnd={handleDragEnd}
+                onHover={handleElementHover}
               />
             ))}
           </div>

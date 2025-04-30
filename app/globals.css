@@ -131,3 +131,16 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
 }
+
+/* Text element styling */
+.text-element {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-element [contenteditable="true"] {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}

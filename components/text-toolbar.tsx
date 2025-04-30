@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   Bold,
   Italic,
@@ -22,17 +22,28 @@ interface TextToolbarProps {
   selectedElement: Element | null
   onFontSizeChange: (size: number) => void
   onFontFamilyChange: (family: string) => void
+  isHovering: boolean
+  elementId: string | null
 }
 
-export function TextToolbar({ selectedElement, onFontSizeChange, onFontFamilyChange }: TextToolbarProps) {
-  const [fontSize, setFontSize] = useState(selectedElement?.fontSize || 24)
+export function TextToolbar({
+  selectedElement,
+  onFontSizeChange,
+  onFontFamilyChange,
+  isHovering,
+  elementId,
+}: TextToolbarProps) {
+  const [fontSize, setFontSize] = useState(selectedElement?.fontSize || 36)
   const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || "Inter")
   const [showFontDropdown, setShowFontDropdown] = useState(false)
+  const [isToolbarHovered, setIsToolbarHovered] = useState(false)
+  const toolbarRef = useRef<HTMLDivElement>(null)
+  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Update local state when selected element changes
   useEffect(() => {
     if (selectedElement?.type === "text") {
-      setFontSize(selectedElement.fontSize || 24)
+      setFontSize(selectedElement.fontSize || 36)
       setFontFamily(selectedElement.fontFamily || "Inter")
     }
   }, [selectedElement])
@@ -50,8 +61,30 @@ export function TextToolbar({ selectedElement, onFontSizeChange, onFontFamilyCha
     setShowFontDropdown(false)
   }
 
-  // Only show toolbar for text elements
-  if (!selectedElement || selectedElement.type !== "text") {
+  // Handle mouse enter/leave for the toolbar itself
+  const handleToolbarMouseEnter = () => {
+    setIsToolbarHovered(true)
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current)
+      hideTimeoutRef.current = null
+    }
+  }
+
+  const handleToolbarMouseLeave = () => {
+    setIsToolbarHovered(false)
+  }
+
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Only show toolbar for text elements that are being hovered or when the toolbar itself is hovered
+  if (!selectedElement || selectedElement.type !== "text" || (!isHovering && !isToolbarHovered)) {
     return null
   }
 
@@ -68,7 +101,12 @@ export function TextToolbar({ selectedElement, onFontSizeChange, onFontFamilyCha
   ]
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center bg-white rounded-lg shadow-md px-2 py-1.5">
+    <div
+      ref={toolbarRef}
+      className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center bg-white rounded-lg shadow-md px-2 py-1.5"
+      onMouseEnter={handleToolbarMouseEnter}
+      onMouseLeave={handleToolbarMouseLeave}
+    >
       {/* Font Family Dropdown */}
       <div className="relative">
         <button
