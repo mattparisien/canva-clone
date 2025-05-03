@@ -2,11 +2,12 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect, useLayoutEffect } from "react"
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react"
 import { useCanvas } from "@/context/canvas-context"
 import type { Element } from "@/context/canvas-context"
 import { TextEditor } from "@/components/text-editor"
 import { Trash2 } from "lucide-react"
+import { SNAP_THRESHOLD, HANDLE_BASE_SIZE, HANDLE_MIN_SIZE, HANDLE_MAX_SIZE } from "@/lib/constants/editor"
 
 interface ResizableElementProps {
   element: Element
@@ -21,14 +22,6 @@ interface ResizableElementProps {
   onDragEnd: () => void
   onHover: (id: string | null) => void
 }
-
-// Threshold for alignment snapping in pixels
-const SNAP_THRESHOLD = 10
-
-// Use a smaller max size and a higher min size for better scaling
-const HANDLE_BASE_SIZE = 18;
-const HANDLE_MIN_SIZE = 12;
-const HANDLE_MAX_SIZE = 24;
 
 export function ResizableElement({
   element,
@@ -103,20 +96,6 @@ export function ResizableElement({
     if (element.type === "text") {
       updateElement(element.id, { height: newHeight })
     }
-  }
-
-  // Handle text formatting
-  const handleFormatChange = (format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => {
-    if (element.type !== "text") return
-    
-    // Create updates object with only the properties that are present in the format object
-    const updates: Partial<Element> = {}
-    if (format.bold !== undefined) updates.isBold = format.bold
-    if (format.italic !== undefined) updates.isItalic = format.italic
-    if (format.underline !== undefined) updates.isUnderlined = format.underline
-    if (format.strikethrough !== undefined) updates.isStrikethrough = format.strikethrough
-    
-    updateElement(element.id, updates)
   }
 
   // Handle text alignment change

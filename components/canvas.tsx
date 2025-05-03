@@ -7,6 +7,7 @@ import { AlignmentGuides } from "@/components/alignment-guides"
 import { TextToolbar } from "@/components/text-toolbar"
 import { Slider } from "@/components/ui/slider"
 import { Plus, PenLine, LayoutGrid, Maximize, HelpCircle } from "lucide-react"
+import { MIN_ZOOM, MAX_ZOOM } from "@/lib/constants/editor"
 
 export function Canvas() {
   /* ------------------------------------------------------------------
@@ -44,8 +45,6 @@ export function Canvas() {
   const [isCanvasHovering, setIsCanvasHovering] = useState(false)
 
   // Define min and max zoom levels
-  const MIN_ZOOM = 25
-  const MAX_ZOOM = 200
 
   /* ------------------------------------------------------------------
    * Helpers

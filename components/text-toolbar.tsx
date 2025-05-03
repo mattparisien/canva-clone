@@ -17,12 +17,20 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Element } from "@/context/canvas-context"
+import { 
+  FONT_FAMILIES, 
+  DEFAULT_FONT_SIZE, 
+  MIN_FONT_SIZE, 
+  MAX_FONT_SIZE,
+  DEFAULT_TEXT_ALIGN,
+  type TextAlignment
+} from "@/lib/constants/editor"
 
 interface TextToolbarProps {
   selectedElement: Element | null
   onFontSizeChange: (size: number) => void
   onFontFamilyChange: (family: string) => void
-  onTextAlignChange: (align: "left" | "center" | "right" | "justify") => void
+  onTextAlignChange: (align: TextAlignment) => void
   onFormatChange?: (format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => void
   isHovering: boolean
   elementId: string | null
@@ -36,12 +44,12 @@ export function TextToolbar({
   onFormatChange,
   elementId,
 }: TextToolbarProps) {
-  const [fontSize, setFontSize] = useState(selectedElement?.fontSize || 36)
-  const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || "Inter")
+  const [fontSize, setFontSize] = useState(selectedElement?.fontSize || DEFAULT_FONT_SIZE)
+  const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || FONT_FAMILIES[0])
   const [showFontDropdown, setShowFontDropdown] = useState(false)
   const [isToolbarHovered, setIsToolbarHovered] = useState(false)
-  const [textAlign, setTextAlign] = useState<"left" | "center" | "right" | "justify">(
-    selectedElement?.textAlign || "center"
+  const [textAlign, setTextAlign] = useState<TextAlignment>(
+    selectedElement?.textAlign || DEFAULT_TEXT_ALIGN
   )
   // Add text formatting states
   const [isBold, setIsBold] = useState(selectedElement?.isBold || false)
@@ -55,9 +63,9 @@ export function TextToolbar({
   // Update local state when selected element changes
   useEffect(() => {
     if (selectedElement?.type === "text") {
-      setFontSize(selectedElement.fontSize || 36)
-      setFontFamily(selectedElement.fontFamily || "Inter")
-      setTextAlign(selectedElement.textAlign || "center")
+      setFontSize(selectedElement.fontSize || DEFAULT_FONT_SIZE)
+      setFontFamily(selectedElement.fontFamily || FONT_FAMILIES[0])
+      setTextAlign(selectedElement.textAlign || DEFAULT_TEXT_ALIGN)
       setIsBold(selectedElement.isBold || false)
       setIsItalic(selectedElement.isItalic || false)
       setIsUnderlined(selectedElement.isUnderlined || false)
@@ -78,7 +86,7 @@ export function TextToolbar({
     setShowFontDropdown(false)
   }
 
-  const handleTextAlignChange = (align: "left" | "center" | "right" | "justify") => {
+  const handleTextAlignChange = (align: TextAlignment) => {
     setTextAlign(align)
     onTextAlignChange(align)
   }
@@ -138,18 +146,6 @@ export function TextToolbar({
     }
   }, [])
 
-  const fontFamilies = [
-    "Inter",
-    "Arial",
-    "Helvetica",
-    "Times New Roman",
-    "Courier New",
-    "Georgia",
-    "Verdana",
-    "Comic Sans MS",
-    "Impact",
-  ]
-
   return (
     <div
       ref={toolbarRef}
@@ -169,7 +165,7 @@ export function TextToolbar({
 
         {showFontDropdown && (
           <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
-            {fontFamilies.map((font) => (
+            {FONT_FAMILIES.map((font) => (
               <button
                 key={font}
                 className={cn(
@@ -192,7 +188,7 @@ export function TextToolbar({
       <div className="flex items-center">
         <button
           className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm"
-          onClick={() => handleFontSizeChange(Math.max(8, fontSize - 1))}
+          onClick={() => handleFontSizeChange(Math.max(MIN_FONT_SIZE, fontSize - 1))}
         >
           <Minus className="h-4 w-4" />
         </button>
@@ -206,7 +202,7 @@ export function TextToolbar({
 
         <button
           className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm"
-          onClick={() => handleFontSizeChange(Math.min(72, fontSize + 1))}
+          onClick={() => handleFontSizeChange(Math.min(MAX_FONT_SIZE, fontSize + 1))}
         >
           <Plus className="h-4 w-4" />
         </button>

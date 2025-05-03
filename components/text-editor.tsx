@@ -7,6 +7,11 @@
 
 import type React from "react";
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { 
+  DEFAULT_FONT_SIZE, 
+  DEFAULT_TEXT_ALIGN, 
+  type TextAlignment 
+} from "@/lib/constants/editor";
 
 /* ------------------------------------------------------------------
    Types
@@ -32,8 +37,8 @@ interface TextEditorProps {
   onEditingStart?: () => void;
   /** Sends the actual pixel height of the node to the parent */
   onHeightChange?: (height: number) => void;
-  textAlign?: "left" | "center" | "right" | "justify";
-  onTextAlignChange?: (align: "left" | "center" | "right" | "justify") => void;
+  textAlign?: TextAlignment;
+  onTextAlignChange?: (align: TextAlignment) => void;
   /** Text formatting options */
   isBold?: boolean;
   isItalic?: boolean;
@@ -46,7 +51,7 @@ interface TextEditorProps {
    ------------------------------------------------------------------ */
 export function TextEditor({
   content,
-  fontSize = 36,
+  fontSize = DEFAULT_FONT_SIZE,
   fontFamily = "Inter",
   isSelected,
   isNew = false,
@@ -55,7 +60,7 @@ export function TextEditor({
   onFontFamilyChange,
   onEditingStart,
   onHeightChange,
-  textAlign = "center", // default to center
+  textAlign = DEFAULT_TEXT_ALIGN,
   isBold = false,
   isItalic = false,
   isUnderlined = false,
