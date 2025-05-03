@@ -74,9 +74,18 @@ export function TextToolbar({
   }, [selectedElement])
 
   // Handle font size change
-  const handleFontSizeChange = (newSize: number) => {
-    setFontSize(newSize)
-    onFontSizeChange(newSize)
+  const handleFontSizeChange = (newSize: number | string) => {
+    // If empty string, just update the input value but don't apply the change
+    if (newSize === '') {
+      setFontSize('' as unknown as number);
+      return;
+    }
+    
+    // Convert to number and clamp value between min and max
+    const sizeAsNumber = Number(newSize);
+    const clampedSize = Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, sizeAsNumber));
+    setFontSize(clampedSize);
+    onFontSizeChange(clampedSize);
   }
 
   // Handle font family change
@@ -149,28 +158,28 @@ export function TextToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center bg-white rounded-xl shadow-lg px-4 py-2 gap-2 border border-gray-100"
+      className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center bg-white/95 backdrop-blur-sm rounded-md shadow-toolbar-float px-2.5 py-1.5 gap-1 border border-gray-100"
       onMouseEnter={handleToolbarMouseEnter}
       onMouseLeave={handleToolbarMouseLeave}
     >
       {/* Font Family Dropdown */}
       <div className="relative">
         <button
-          className="flex items-center gap-1 rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm"
+          className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition font-medium text-sm w-[100px]"
           onClick={() => setShowFontDropdown(!showFontDropdown)}
         >
-          <span>{fontFamily}</span>
-          <ChevronDown className="h-3 w-3" />
+          <span className="truncate">{fontFamily}</span>
+          <ChevronDown className="h-3 w-3 opacity-70 flex-shrink-0" />
         </button>
 
         {showFontDropdown && (
-          <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-100">
             {FONT_FAMILIES.map((font) => (
               <button
                 key={font}
                 className={cn(
-                  "w-full text-left px-4 py-2 text-sm hover:bg-gray-100",
-                  fontFamily === font ? "bg-gray-50 font-medium text-primary-700" : "",
+                  "w-full text-left px-4 py-2 text-sm hover:bg-gray-50",
+                  fontFamily === font ? "bg-gray-50 font-medium text-purple-600" : "",
                 )}
                 style={{ fontFamily: font }}
                 onClick={() => handleFontFamilyChange(font)}
@@ -182,109 +191,122 @@ export function TextToolbar({
         )}
       </div>
 
-      <div className="h-6 w-px bg-gray-200 mx-1"></div>
+      <div className="h-5 w-px bg-gray-200 mx-1"></div>
 
       {/* Font Size Controls */}
       <div className="flex items-center">
-        <button
-          className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm"
-          onClick={() => handleFontSizeChange(Math.max(MIN_FONT_SIZE, fontSize - 1))}
-        >
-          <Minus className="h-4 w-4" />
-        </button>
+        <div className="flex items-stretch rounded-xl overflow-hidden border border-gray-200">
+          <button
+            className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-purple-600 transition flex items-center justify-center border-r border-gray-200"
+            onClick={() => handleFontSizeChange(fontSize - 1)}
+          >
+            <Minus className="h-3.5 w-3.5" />
+          </button>
 
-        <input
-          type="number"
-          value={fontSize}
-          onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-          className="rounded-md border border-gray-200 px-2 py-1 text-sm font-medium focus:ring-2 focus:ring-purple-400 focus:outline-none"
-        />
+          <input
+            type="number"
+            value={fontSize}
+            min={MIN_FONT_SIZE}
+            max={MAX_FONT_SIZE}
+            placeholder="– –"
+            onChange={(e) => handleFontSizeChange(e.target.value)}
+            className="w-12 px-1.5 py-0.5 text-sm font-medium focus:ring-1 focus:ring-purple-400 focus:outline-none text-center border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
 
-        <button
-          className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm"
-          onClick={() => handleFontSizeChange(Math.min(MAX_FONT_SIZE, fontSize + 1))}
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+          <button
+            className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-purple-600 transition flex items-center justify-center border-l border-gray-200"
+            onClick={() => handleFontSizeChange(fontSize + 1)}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
-      <div className="h-6 w-px bg-gray-200 mx-1"></div>
+      <div className="h-5 w-px bg-gray-200 mx-1"></div>
 
       {/* Text Color (placeholder) */}
-      <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
-        <Type className="h-4 w-4" />
+      <button className="rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition">
+        <Type className="h-3.5 w-3.5" />
       </button>
 
-      <div className="h-6 w-px bg-gray-200 mx-1"></div>
+      <div className="h-5 w-px bg-gray-200 mx-1"></div>
 
       {/* Text Formatting */}
       <div className="flex items-center">
         <button 
-          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", 
-            isBold && "bg-purple-100 text-purple-700")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+            isBold && "bg-purple-50 text-purple-600")}
           onClick={handleBoldChange}
         >
-          <Bold className="h-4 w-4" />
+          <Bold className="h-3.5 w-3.5" />
         </button>
         <button 
-          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", 
-            isItalic && "bg-purple-100 text-purple-700")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+            isItalic && "bg-purple-50 text-purple-600")}
           onClick={handleItalicChange}
         >
-          <Italic className="h-4 w-4" />
+          <Italic className="h-3.5 w-3.5" />
         </button>
         <button 
-          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", 
-            isUnderlined && "bg-purple-100 text-purple-700")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+            isUnderlined && "bg-purple-50 text-purple-600")}
           onClick={handleUnderlineChange}
         >
-          <Underline className="h-4 w-4" />
+          <Underline className="h-3.5 w-3.5" />
         </button>
         <button 
-          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", 
-            isStrikethrough && "bg-purple-100 text-purple-700")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+            isStrikethrough && "bg-purple-50 text-purple-600")}
           onClick={handleStrikethroughChange}
         >
-          <Strikethrough className="h-4 w-4" />
+          <Strikethrough className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      <div className="h-6 w-px bg-gray-200 mx-1"></div>
+      <div className="h-5 w-px bg-gray-200 mx-1"></div>
 
       {/* Text Alignment */}
       <div className="flex items-center">
         <button
-          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", textAlign === "left" && "bg-gray-200")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+            textAlign === "left" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("left")}
         >
-          <AlignLeft className="h-4 w-4" />
+          <AlignLeft className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", textAlign === "center" && "bg-gray-200")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+            textAlign === "center" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("center")}
         >
-          <AlignCenter className="h-4 w-4" />
+          <AlignCenter className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", textAlign === "right" && "bg-gray-200")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+            textAlign === "right" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("right")}
         >
-          <AlignRight className="h-4 w-4" />
+          <AlignRight className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", textAlign === "justify" && "bg-gray-200")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+            textAlign === "justify" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("justify")}
         >
-          <AlignJustify className="h-4 w-4" />
+          <AlignJustify className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      <div className="h-6 w-px bg-gray-200 mx-1"></div>
+      <div className="h-5 w-px bg-gray-200 mx-1"></div>
 
       {/* Effects and Position */}
-      <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">Effects</button>
-
-      <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">Position</button>
+      <div className="flex items-center">
+        <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium">Effects</button>
+  
+        <div className="h-5 w-px bg-gray-200 mx-1"></div>
+  
+        <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium">Position</button>
+      </div>
     </div>
   )
 }

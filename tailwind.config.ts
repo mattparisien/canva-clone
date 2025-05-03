@@ -86,6 +86,7 @@ const config: Config = {
       boxShadow: {
         soft: "0 2px 10px rgba(0, 0, 0, 0.05)",
         medium: "0 4px 20px rgba(0, 0, 0, 0.08)",
+        "toolbar-float": "0px 0px 0px 1px rgba(64,87,109,.04),0px 6px 20px -4px rgba(64,87,109,.3)",
       },
     },
   },

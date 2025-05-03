@@ -156,11 +156,26 @@ export function Canvas() {
     setAlignments({ horizontal: [], vertical: [] })
   }, [])
 
-  const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments) => {
+  const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments, isDragSelection: boolean = false) => {
     console.log("Dragging with alignments:", newAlignments)
     setAlignments(newAlignments)
     setDebugInfo(`Horizontal: ${newAlignments.horizontal.length}, Vertical: ${newAlignments.vertical.length}`)
-  }, [])
+    
+    // When dragging multiple elements, update their positions
+    if (isDragSelection && selectedElementIds.length > 1) {
+      // Calculate the delta movement
+      const deltaX = x - element.x;
+      const deltaY = y - element.y;
+      
+      // Update positions of all selected elements
+      updateMultipleElements((prev) => {
+        return {
+          x: prev.x + deltaX,
+          y: prev.y + deltaY
+        };
+      });
+    }
+  }, [selectedElementIds, updateMultipleElements])
 
   const handleDragEnd = useCallback(() => {
     console.log("Drag ended")

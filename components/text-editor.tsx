@@ -180,7 +180,7 @@ export function TextEditor({
     boxSizing: "border-box",
     direction: "ltr",
     textAlign: textAlign,
-    cursor: isEditing ? "text" : "grab",
+    cursor: isEditing ? "text" : "move",
     fontWeight: isBold ? "bold" : "normal",
     fontStyle: isItalic ? "italic" : "normal",
     textDecoration: `${isUnderlined ? "underline" : ""} ${isStrikethrough ? "line-through" : ""}`.trim() || "none",

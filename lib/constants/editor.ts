@@ -9,15 +9,16 @@ export const MAX_ZOOM = 200;
 // Resizable element constants
 export const SNAP_THRESHOLD = 10; // Threshold for alignment snapping in pixels
 
-// Resize handle dimensions
+// Resize handle dimensions - simple base size that will be divided by scale
 export const HANDLE_BASE_SIZE = 18;
-export const HANDLE_MIN_SIZE = 12;
-export const HANDLE_MAX_SIZE = 24;
+// The min/max size constraints are no longer needed as we're using direct scaling
+// export const HANDLE_MIN_SIZE = 12;
+// export const HANDLE_MAX_SIZE = 24;
 
 // Font sizes
 export const DEFAULT_FONT_SIZE = 36;
-export const MIN_FONT_SIZE = 8;
-export const MAX_FONT_SIZE = 72;
+export const MIN_FONT_SIZE = 1;
+export const MAX_FONT_SIZE = 800;
 
 // Font lists
 export const FONT_FAMILIES = [

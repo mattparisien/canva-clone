@@ -5,8 +5,7 @@ import type React from "react"
 import { TextEditor } from "@/components/text-editor"
 import type { Element } from "@/context/canvas-context"
 import { useCanvas } from "@/context/canvas-context"
-import { HANDLE_BASE_SIZE, HANDLE_MAX_SIZE, HANDLE_MIN_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
-import { Trash2 } from "lucide-react"
+import { HANDLE_BASE_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 interface ResizableElementProps {
@@ -18,7 +17,7 @@ interface ResizableElementProps {
   canvasWidth: number
   canvasHeight: number
   onDragStart: (element: Element) => void
-  onDrag: (element: Element, x: number, y: number, alignments: { horizontal: number[]; vertical: number[] }) => void
+  onDrag: (element: Element, x: number, y: number, alignments: { horizontal: number[]; vertical: number[] }, isMultiSelectionDrag: boolean) => void
   onDragEnd: () => void
   onHover: (id: string | null) => void
 }
@@ -36,7 +35,7 @@ export function ResizableElement({
   onDragEnd,
   onHover,
 }: ResizableElementProps) {
-  const { updateElement, selectElement, clearNewElementFlag, deleteElement } = useCanvas()
+  const { updateElement, selectElement, clearNewElementFlag, deleteElement, selectedElementIds } = useCanvas()
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [resizeDirection, setResizeDirection] = useState<string | null>(null)
@@ -64,10 +63,10 @@ export function ResizableElement({
   // Handle element dragging
   const handleDragStart = (e: React.MouseEvent) => {
     e.stopPropagation()
-    
+
     // Check if shift key is pressed for multi-selection
     const isShiftPressed = e.shiftKey
-    
+
     selectElement(element.id, isShiftPressed) // Select on mouse down, pass addToSelection flag
     setIsDragging(true)
     setDragStart({
@@ -275,8 +274,11 @@ export function ResizableElement({
           y: snappedY,
         })
 
+        // Check if this is a multi-selection drag
+        const isMultiSelectionDrag = selectedElementIds.length > 1 && selectedElementIds.includes(element.id);
+
         // Notify parent component
-        onDrag(element, snappedX, snappedY, newAlignments)
+        onDrag(element, snappedX, snappedY, newAlignments, isMultiSelectionDrag)
 
         // Update drag start position for next move
         setDragStart({
@@ -445,6 +447,7 @@ export function ResizableElement({
     canvasHeight,
     onDrag,
     onDragEnd,
+    selectedElementIds,
   ])
 
   // Track width for text elements to trigger height recalculation
@@ -503,7 +506,7 @@ export function ResizableElement({
         top: element.y,
         width: element.width,
         height: element.height,
-        cursor: isDragging ? "grabbing" : "grab",
+        cursor: isDragging ? "grabbing" : "move",
         transform: "none",
         outlineWidth: (isSelected || isHovering) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
         outlineStyle: (isSelected || isHovering) ? "solid" : undefined,
@@ -521,10 +524,10 @@ export function ResizableElement({
           <div
             className="absolute -top-3 -left-3 cursor-nwse-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
-              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              width: `${HANDLE_BASE_SIZE / scale}px`,
+              height: `${HANDLE_BASE_SIZE / scale}px`,
               borderRadius: "50%",
-              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
               transition: "background 0.15s"
@@ -539,10 +542,10 @@ export function ResizableElement({
           <div
             className="absolute -top-3 -right-3 cursor-nesw-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
-              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              width: `${HANDLE_BASE_SIZE / scale}px`,
+              height: `${HANDLE_BASE_SIZE / scale}px`,
               borderRadius: "50%",
-              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
               transition: "background 0.15s"
@@ -557,10 +560,10 @@ export function ResizableElement({
           <div
             className="absolute -bottom-3 -left-3 cursor-nesw-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
-              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              width: `${HANDLE_BASE_SIZE / scale}px`,
+              height: `${HANDLE_BASE_SIZE / scale}px`,
               borderRadius: "50%",
-              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
               transition: "background 0.15s"
@@ -575,10 +578,10 @@ export function ResizableElement({
           <div
             className="absolute -bottom-3 -right-3 cursor-nwse-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
-              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              width: `${HANDLE_BASE_SIZE / scale}px`,
+              height: `${HANDLE_BASE_SIZE / scale}px`,
               borderRadius: "50%",
-              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
               transition: "background 0.15s"
@@ -595,10 +598,10 @@ export function ResizableElement({
           <div
             className="absolute top-1/2 -left-3 -translate-y-1/2 cursor-ew-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
-              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              width: `${HANDLE_BASE_SIZE / scale}px`,
+              height: `${HANDLE_BASE_SIZE / scale}px`,
               borderRadius: "50%",
-              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
               transition: "background 0.15s",
@@ -615,10 +618,10 @@ export function ResizableElement({
           <div
             className="absolute top-1/2 -right-3 -translate-y-1/2 cursor-ew-resize bg-white shadow-md group/handle"
             style={{
-              width: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
-              height: `${Math.max(HANDLE_MIN_SIZE, Math.min(HANDLE_MAX_SIZE, HANDLE_BASE_SIZE / scale))}px`,
+              width: `${HANDLE_BASE_SIZE / scale}px`,
+              height: `${HANDLE_BASE_SIZE / scale}px`,
               borderRadius: "50%",
-              boxShadow: "0 2px 8px 0 rgba(0,0,0,0.10)",
+              boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
               transition: "background 0.15s",

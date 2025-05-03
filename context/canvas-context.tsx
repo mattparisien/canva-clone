@@ -44,7 +44,7 @@ interface CanvasContextType {
   sizeCategories: string[]
   addElement: (element: Omit<Element, "id">) => void
   updateElement: (id: string, updates: Partial<Element>) => void
-  updateMultipleElements: (updates: Partial<Element>) => void // New method for updating multiple elements
+  updateMultipleElements: (updates: Partial<Element> | ((element: Element) => Partial<Element>)) => void // New method for updating multiple elements
   deleteElement: (id: string) => void
   deleteSelectedElements: () => void // New method for deleting multiple elements
   selectElement: (id: string | null, addToSelection?: boolean) => void // Modified for multi-selection
@@ -227,34 +227,39 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
   )
 
   const updateMultipleElements = useCallback(
-    (updates: Partial<Element>) => {
+    (updates: Partial<Element> | ((element: Element) => Partial<Element>)) => {
       setElements((prev) => {
         const updatedElements = prev.map((el) => {
           if (selectedElementIds.includes(el.id)) {
+            // Process updates based on whether it's a function or an object
+            const updatesToApply = typeof updates === 'function' 
+              ? updates(el) 
+              : updates;
+            
             // Store the previous state for history
-            const before: Partial<Element> = {}
-            Object.keys(updates).forEach((key) => {
-              const value = el[key as keyof Element]
+            const before: Partial<Element> = {};
+            Object.keys(updatesToApply).forEach((key) => {
+              const value = el[key as keyof Element];
               // Only assign if value is defined
               if (value !== undefined) {
-                (before as any)[key] = value
+                (before as any)[key] = value;
               }
-            })
+            });
 
             // Add to history
             addToHistory({
               type: "UPDATE_ELEMENT",
               id: el.id,
               before,
-              after: updates,
-            })
+              after: updatesToApply,
+            });
 
-            return { ...el, ...updates }
+            return { ...el, ...updatesToApply };
           }
-          return el
-        })
-        return updatedElements
-      })
+          return el;
+        });
+        return updatedElements;
+      });
     },
     [selectedElementIds, addToHistory],
   )
