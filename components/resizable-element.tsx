@@ -41,6 +41,9 @@ export function ResizableElement({
   const [resizeDirection, setResizeDirection] = useState<string | null>(null)
   const elementRef = useRef<HTMLDivElement>(null)
   const [isHovering, setIsHovering] = useState(false)
+  // Track when we just finished resizing to prevent immediate deselect
+  const justFinishedResizing = useRef(false)
+  const resizeEndTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Track hover state for left/right borders to highlight the handle
   const [leftBorderHover, setLeftBorderHover] = useState(false)
@@ -59,6 +62,7 @@ export function ResizableElement({
   // Initial position for drag calculations
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const initialMousePos = useRef({ x: 0, y: 0 })
+  const [isAltKeyPressed, setIsAltKeyPressed] = useState(false) // Track Alt/Option key state
 
   // Handle element dragging
   const handleDragStart = (e: React.MouseEvent) => {
@@ -89,6 +93,11 @@ export function ResizableElement({
   }
 
   const handleMouseLeave = () => {
+    if (justFinishedResizing.current) {
+      // If we just finished resizing, prevent immediate deselect
+      setIsHovering(false)
+      return
+    }
     setIsHovering(false)
     onHover(null)
   }
@@ -245,6 +254,22 @@ export function ResizableElement({
 
   // Handle mouse move for dragging and resizing
   useEffect(() => {
+    // Track Alt/Option key state
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Alt' || e.key === 'Option') {
+        setIsAltKeyPressed(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Alt' || e.key === 'Option') {
+        setIsAltKeyPressed(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!canvasRef.current) return
 
@@ -327,6 +352,12 @@ export function ResizableElement({
               newHeight = potentialHeight
               newWidth = newHeight * aspectRatio
             }
+            
+            // If Alt/Option key is pressed, resize from center
+            if (isAltKeyPressed) {
+              newX = origX - (newWidth - origWidth) / 2
+              newY = origY - (newHeight - origHeight) / 2
+            }
           } else if (resizeDirection === "sw") {
             // Southwest corner
             const potentialWidth = Math.max(50, origWidth - totalDeltaX)
@@ -339,7 +370,15 @@ export function ResizableElement({
               newHeight = potentialHeight
               newWidth = newHeight * aspectRatio
             }
-            newX = origX + (origWidth - newWidth)
+            
+            if (isAltKeyPressed) {
+              // When alt is pressed, resize from center
+              const widthDelta = origWidth - newWidth
+              newX = origX + widthDelta / 2
+              newY = origY - (newHeight - origHeight) / 2
+            } else {
+              newX = origX + (origWidth - newWidth)
+            }
           } else if (resizeDirection === "ne") {
             // Northeast corner
             const potentialWidth = Math.max(50, origWidth + totalDeltaX)
@@ -352,7 +391,15 @@ export function ResizableElement({
               newHeight = potentialHeight
               newWidth = newHeight * aspectRatio
             }
-            newY = origY + (origHeight - newHeight)
+            
+            if (isAltKeyPressed) {
+              // When alt is pressed, resize from center
+              newX = origX - (newWidth - origWidth) / 2
+              const heightDelta = origHeight - newHeight
+              newY = origY + heightDelta / 2
+            } else {
+              newY = origY + (origHeight - newHeight)
+            }
           } else if (resizeDirection === "nw") {
             // Northwest corner
             const potentialWidth = Math.max(50, origWidth - totalDeltaX)
@@ -365,8 +412,17 @@ export function ResizableElement({
               newHeight = potentialHeight
               newWidth = newHeight * aspectRatio
             }
-            newX = origX + (origWidth - newWidth)
-            newY = origY + (origHeight - newHeight)
+            
+            if (isAltKeyPressed) {
+              // When alt is pressed, resize from center
+              const widthDelta = origWidth - newWidth
+              const heightDelta = origHeight - newHeight
+              newX = origX + widthDelta / 2
+              newY = origY + heightDelta / 2
+            } else {
+              newX = origX + (origWidth - newWidth)
+              newY = origY + (origHeight - newHeight)
+            }
           }
 
           // Scale the font size proportionally for text elements when using corner handles
@@ -378,22 +434,45 @@ export function ResizableElement({
           // For edge handles, allow non-uniform scaling
           if (resizeDirection.includes("e")) {
             newWidth = Math.max(50, origWidth + totalDeltaX)
+            
+            // If Alt/Option key is pressed, make the opposite side resize equally
+            if (isAltKeyPressed) {
+              newX = origX - totalDeltaX / 2;
+              newWidth = Math.max(50, origWidth + totalDeltaX);
+            }
           }
           if (resizeDirection.includes("w")) {
             newWidth = Math.max(50, origWidth - totalDeltaX)
-            newX = origX + (origWidth - newWidth)
+            
+            // If Alt/Option key is pressed, make the opposite side resize equally
+            if (isAltKeyPressed) {
+              const widthDelta = origWidth - newWidth;
+              newX = origX + widthDelta / 2;
+              newWidth = Math.max(50, origWidth + widthDelta);
+            } else {
+              newX = origX + (origWidth - newWidth)
+            }
           }
           if (resizeDirection.includes("s")) {
             newHeight = Math.max(20, origHeight + totalDeltaY)
+            
+            // If Alt/Option key is pressed, make the opposite side resize equally
+            if (isAltKeyPressed) {
+              newY = origY - totalDeltaY / 2;
+              newHeight = Math.max(20, origHeight + totalDeltaY);
+            }
           }
           if (resizeDirection.includes("n")) {
             newHeight = Math.max(20, origHeight - totalDeltaY)
-            newY = origY + (origHeight - newHeight)
-          }
-
-          // For edge handles, we don't scale the font size
-          if (element.type === "text" && element.fontSize) {
-            newFontSize = origFontSize
+            
+            // If Alt/Option key is pressed, make the opposite side resize equally
+            if (isAltKeyPressed) {
+              const heightDelta = origHeight - newHeight;
+              newY = origY + heightDelta / 2;
+              newHeight = Math.max(20, origHeight + heightDelta);
+            } else {
+              newY = origY + (origHeight - newHeight)
+            }
           }
         }
 
@@ -419,9 +498,25 @@ export function ResizableElement({
         onDragEnd()
       }
 
+      // We're ending the drag/resize operation but need to keep the element selected
       setIsDragging(false)
       setIsResizing(false)
       setResizeDirection(null)
+      
+      // Make sure the element stays selected by calling selectElement with true to maintain selection
+      if (isResizing) {
+        // Only call when ending a resize operation, with false to not toggle selection
+        selectElement(element.id, false);
+        // Set the flag to prevent immediate deselect
+        justFinishedResizing.current = true
+        // Clear the flag after a short delay
+        if (resizeEndTimeoutRef.current) {
+          clearTimeout(resizeEndTimeoutRef.current)
+        }
+        resizeEndTimeoutRef.current = setTimeout(() => {
+          justFinishedResizing.current = false
+        }, 200)
+      }
     }
 
     if (isDragging || isResizing) {
@@ -432,6 +527,8 @@ export function ResizableElement({
     return () => {
       document.removeEventListener("mousemove", handleMouseMove)
       document.removeEventListener("mouseup", handleMouseUp)
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
     }
   }, [
     isDragging,
