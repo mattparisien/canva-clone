@@ -219,6 +219,13 @@ export function Canvas() {
     }
   }, [selectedElement, updateElement]);
 
+  // Handle position change
+  const handlePositionChange = useCallback((position: { x?: number, y?: number }) => {
+    if (selectedElement) {
+      updateElement(selectedElement.id, position);
+    }
+  }, [selectedElement, updateElement]);
+
   // Filter sizes based on search term and active category
   const filteredSizes = availableSizes.filter((size) => {
     const matchesSearch = searchTerm === "" || size.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -243,8 +250,10 @@ export function Canvas() {
         onFontFamilyChange={handleFontFamilyChange}
         onTextAlignChange={handleTextAlignChange}
         onFormatChange={handleFormatChange}
+        onPositionChange={handlePositionChange}
         isHovering={!!hoveredElementId}
         elementId={selectedElement?.id || null}
+        canvasWidth={canvasSize.width}
       />}
 
       {/* -------------------------------- Scaled canvas ------------------------------ */}

@@ -14,6 +14,9 @@ import {
   Minus,
   Plus,
   Type,
+  AlignStartHorizontal,
+  AlignCenterHorizontal,
+  AlignEndHorizontal,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Element } from "@/context/canvas-context"
@@ -25,6 +28,7 @@ import {
   DEFAULT_TEXT_ALIGN,
   type TextAlignment
 } from "@/lib/constants/editor"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface TextToolbarProps {
   selectedElement: Element | null
@@ -32,8 +36,10 @@ interface TextToolbarProps {
   onFontFamilyChange: (family: string) => void
   onTextAlignChange: (align: TextAlignment) => void
   onFormatChange?: (format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => void
+  onPositionChange?: (position: { x?: number; y?: number }) => void
   isHovering: boolean
   elementId: string | null
+  canvasWidth: number
 }
 
 export function TextToolbar({
@@ -42,7 +48,9 @@ export function TextToolbar({
   onFontFamilyChange,
   onTextAlignChange,
   onFormatChange,
+  onPositionChange,
   elementId,
+  canvasWidth,
 }: TextToolbarProps) {
   const [fontSize, setFontSize] = useState(selectedElement?.fontSize || DEFAULT_FONT_SIZE)
   const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || FONT_FAMILIES[0])
@@ -56,6 +64,8 @@ export function TextToolbar({
   const [isItalic, setIsItalic] = useState(selectedElement?.isItalic || false)
   const [isUnderlined, setIsUnderlined] = useState(selectedElement?.isUnderlined || false)
   const [isStrikethrough, setIsStrikethrough] = useState(selectedElement?.isStrikethrough || false)
+  // Add position state
+  const [isPositionPopoverOpen, setIsPositionPopoverOpen] = useState(false)
   
   const toolbarRef = useRef<HTMLDivElement>(null)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -131,6 +141,24 @@ export function TextToolbar({
     if (onFormatChange) {
       onFormatChange({ strikethrough: newValue })
     }
+  }
+
+  // Handle horizontal positioning changes
+  const handleAlignStart = () => {
+    if (!selectedElement || !onPositionChange) return;
+    onPositionChange({ x: 0 });
+  }
+  
+  const handleAlignCenter = () => {
+    if (!selectedElement || !onPositionChange) return;
+    const centerX = (canvasWidth - selectedElement.width) / 2;
+    onPositionChange({ x: centerX });
+  }
+  
+  const handleAlignEnd = () => {
+    if (!selectedElement || !onPositionChange) return;
+    const endX = canvasWidth - selectedElement.width;
+    onPositionChange({ x: endX });
   }
 
   // Handle mouse enter/leave for the toolbar itself
@@ -305,7 +333,27 @@ export function TextToolbar({
   
         <div className="h-5 w-px bg-gray-200 mx-1"></div>
   
-        <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium">Position</button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium">Position</button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto bg-white border border-gray-100 rounded-xl shadow-lg p-2">
+            <div className="flex flex-col gap-1">
+              <button className="flex items-center gap-2 px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium" onClick={handleAlignStart}>
+                <AlignStartHorizontal className="h-4 w-4" />
+                <span>Align Start</span>
+              </button>
+              <button className="flex items-center gap-2 px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium" onClick={handleAlignCenter}>
+                <AlignCenterHorizontal className="h-4 w-4" />
+                <span>Align Center</span>
+              </button>
+              <button className="flex items-center gap-2 px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium" onClick={handleAlignEnd}>
+                <AlignEndHorizontal className="h-4 w-4" />
+                <span>Align End</span>
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   )
