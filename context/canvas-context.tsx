@@ -128,11 +128,6 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
   const [canvasSize, setCanvasSize] = useState<CanvasSize>(availableSizes[0])
 
-  // Debug log when canvas size changes
-  useEffect(() => {
-    console.log("Canvas size set to:", canvasSize)
-  }, [canvasSize])
-
   // Helper function to add an action to history
   const addToHistory = useCallback((action: HistoryAction) => {
     setHistory((prev) => [...prev, action])
@@ -332,7 +327,6 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
   const changeCanvasSize = useCallback(
     (size: CanvasSize) => {
-      console.log("Changing canvas size to:", size)
 
       // Add to history
       addToHistory({

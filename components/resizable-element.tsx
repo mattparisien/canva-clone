@@ -797,6 +797,7 @@ export function ResizableElement({
               zIndex: 5,
               background: "transparent"
             }}
+            onMouseUp={(e) => { console.log("Mouse up") }}
             onMouseDown={(e) => handleResizeStart(e, "e")}
             onMouseEnter={() => {
               if (!isResizing && !rightBorderHover) {

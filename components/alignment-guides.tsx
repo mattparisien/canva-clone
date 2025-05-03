@@ -21,11 +21,7 @@ export function AlignmentGuides({
   canvasHeight,
   alignments,
 }: AlignmentGuidesProps) {
-  // Debug log the dimensions and alignments
-  useEffect(() => {
-    console.log("AlignmentGuides received canvas dimensions:", canvasWidth, "x", canvasHeight)
-    console.log("Alignment guides:", alignments)
-  }, [canvasWidth, canvasHeight, alignments])
+
 
   return (
     <>

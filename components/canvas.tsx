@@ -83,15 +83,7 @@ export function Canvas() {
 
     // Use the smaller ratio to ensure the canvas fits entirely
     const fitScale = Math.min(widthRatio, heightRatio, 1) // Cap at 100%
-
-    console.log("Fitting canvas:", {
-      containerSize: { width: containerWidth, height: containerHeight },
-      availableSize: { width: availableWidth, height: availableHeight },
-      canvasSize: { width: canvasSize.width, height: canvasSize.height },
-      ratios: { width: widthRatio, height: heightRatio },
-      fitScale,
-    })
-
+    
     // Set the zoom level
     setZoom(Math.round(fitScale * 100))
   }
@@ -150,16 +142,13 @@ export function Canvas() {
    * Drag handlers (logical units)
    * ------------------------------------------------------------------ */
   const handleDragStart = useCallback((element: any) => {
-    console.log("Drag started")
     setIsDragging(true)
     setActiveDragElement(element.id)
     setAlignments({ horizontal: [], vertical: [] })
   }, [])
 
   const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments, isDragSelection: boolean = false) => {
-    console.log("Dragging with alignments:", newAlignments)
     setAlignments(newAlignments)
-    setDebugInfo(`Horizontal: ${newAlignments.horizontal.length}, Vertical: ${newAlignments.vertical.length}`)
     
     // When dragging multiple elements, update their positions
     if (isDragSelection && selectedElementIds.length > 1) {
@@ -178,7 +167,6 @@ export function Canvas() {
   }, [selectedElementIds, updateMultipleElements])
 
   const handleDragEnd = useCallback(() => {
-    console.log("Drag ended")
     setIsDragging(false)
     setActiveDragElement(null)
     setAlignments({ horizontal: [], vertical: [] })
