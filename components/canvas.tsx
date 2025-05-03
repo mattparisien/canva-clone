@@ -39,6 +39,7 @@ export function Canvas() {
   const [isDragging, setIsDragging] = useState(false)
   const [activeDragElement, setActiveDragElement] = useState<string | null>(null)
   const [alignments, setAlignments] = useState({ horizontal: [] as number[], vertical: [] as number[] })
+  const [lastDragPos, setLastDragPos] = useState<{ x: number, y: number } | null>(null) // Track last drag position
   const [debugInfo, setDebugInfo] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
@@ -52,16 +53,6 @@ export function Canvas() {
    * Helpers
    * ------------------------------------------------------------------ */
   const scale = zoom / 100
-
-  /** Convert a client‑space coordinate to logical canvas units */
-  const toLogical = (clientX: number, clientY: number) => {
-    if (!canvasRef.current) return { x: 0, y: 0 }
-    const rect = canvasRef.current.getBoundingClientRect()
-    return {
-      x: (clientX - rect.left) / scale,
-      y: (clientY - rect.top) / scale,
-    }
-  }
 
   /* ------------------------------------------------------------------
    * Fit canvas to container on mount / resize
@@ -145,6 +136,7 @@ export function Canvas() {
     setIsDragging(true)
     setActiveDragElement(element.id)
     setAlignments({ horizontal: [], vertical: [] })
+    setLastDragPos({ x: element.x, y: element.y }) // Initialize last drag position
   }, [])
 
   const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments, isDragSelection: boolean = false) => {
@@ -152,25 +144,31 @@ export function Canvas() {
     
     // When dragging multiple elements, update their positions
     if (isDragSelection && selectedElementIds.length > 1) {
-      // Calculate the delta movement
-      const deltaX = x - element.x;
-      const deltaY = y - element.y;
-      
-      // Update positions of all selected elements
-      updateMultipleElements((prev) => {
-        return {
-          x: prev.x + deltaX,
-          y: prev.y + deltaY
-        };
-      });
+      if (lastDragPos) {
+        // Calculate the delta movement
+        const deltaX = x - lastDragPos.x;
+        const deltaY = y - lastDragPos.y;
+        
+        // Update positions of all selected elements
+        updateMultipleElements((prev) => {
+          return {
+            x: prev.x + deltaX,
+            y: prev.y + deltaY
+          };
+        });
+
+        // Update last drag position
+        setLastDragPos({ x, y });
+      }
     }
-  }, [selectedElementIds, updateMultipleElements])
+  }, [selectedElementIds, updateMultipleElements, lastDragPos])
 
   const handleDragEnd = useCallback(() => {
     setIsDragging(false)
     setActiveDragElement(null)
     setAlignments({ horizontal: [], vertical: [] })
     setDebugInfo("")
+    setLastDragPos(null) // Reset last drag position
   }, [])
 
   // Handle element hover
@@ -184,7 +182,7 @@ export function Canvas() {
         setIsCanvasHovering(true)
       }
     }
-  }, [selectedElement, isDragging])
+  }, [isDragging])
 
   // Handle font size change
   const handleFontSizeChange = useCallback((size: number) => {
