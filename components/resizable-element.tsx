@@ -2,12 +2,12 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from "react"
-import { useCanvas } from "@/context/canvas-context"
-import type { Element } from "@/context/canvas-context"
 import { TextEditor } from "@/components/text-editor"
+import type { Element } from "@/context/canvas-context"
+import { useCanvas } from "@/context/canvas-context"
+import { HANDLE_BASE_SIZE, HANDLE_MAX_SIZE, HANDLE_MIN_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
 import { Trash2 } from "lucide-react"
-import { SNAP_THRESHOLD, HANDLE_BASE_SIZE, HANDLE_MIN_SIZE, HANDLE_MAX_SIZE } from "@/lib/constants/editor"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 
 interface ResizableElementProps {
   element: Element
@@ -486,7 +486,7 @@ export function ResizableElement({
               isItalic={element.isItalic}
               isUnderlined={element.isUnderlined}
               isStrikethrough={element.isStrikethrough}
-            
+
             />
           </div>
         )
