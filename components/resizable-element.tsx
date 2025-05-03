@@ -522,7 +522,7 @@ export function ResizableElement({
         <>
           {/* Corner handles */}
           <div
-            className="absolute -top-3 -left-3 cursor-nwse-resize bg-white shadow-md group/handle"
+            className="absolute cursor-nwse-resize bg-white shadow-md group/handle"
             style={{
               width: `${HANDLE_BASE_SIZE / scale}px`,
               height: `${HANDLE_BASE_SIZE / scale}px`,
@@ -530,7 +530,10 @@ export function ResizableElement({
               boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
-              transition: "background 0.15s"
+              transition: "background 0.15s",
+              top: 0,
+              left: 0,
+              transform: `translate(-50%, -50%) scale(${1})`
             }}
             onMouseDown={(e) => handleResizeStart(e, "nw")}
             onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
@@ -540,7 +543,7 @@ export function ResizableElement({
             }}
           />
           <div
-            className="absolute -top-3 -right-3 cursor-nesw-resize bg-white shadow-md group/handle"
+            className="absolute cursor-nesw-resize bg-white shadow-md group/handle"
             style={{
               width: `${HANDLE_BASE_SIZE / scale}px`,
               height: `${HANDLE_BASE_SIZE / scale}px`,
@@ -548,7 +551,10 @@ export function ResizableElement({
               boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
-              transition: "background 0.15s"
+              transition: "background 0.15s",
+              top: 0,
+              right: 0,
+              transform: `translate(50%, -50%) scale(${1})`
             }}
             onMouseDown={(e) => handleResizeStart(e, "ne")}
             onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
@@ -558,7 +564,7 @@ export function ResizableElement({
             }}
           />
           <div
-            className="absolute -bottom-3 -left-3 cursor-nesw-resize bg-white shadow-md group/handle"
+            className="absolute cursor-nesw-resize bg-white shadow-md group/handle"
             style={{
               width: `${HANDLE_BASE_SIZE / scale}px`,
               height: `${HANDLE_BASE_SIZE / scale}px`,
@@ -566,7 +572,10 @@ export function ResizableElement({
               boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
-              transition: "background 0.15s"
+              transition: "background 0.15s",
+              bottom: 0,
+              left: 0,
+              transform: `translate(-50%, 50%) scale(${1})`
             }}
             onMouseDown={(e) => handleResizeStart(e, "sw")}
             onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
@@ -576,7 +585,7 @@ export function ResizableElement({
             }}
           />
           <div
-            className="absolute -bottom-3 -right-3 cursor-nwse-resize bg-white shadow-md group/handle"
+            className="absolute cursor-nwse-resize bg-white shadow-md group/handle"
             style={{
               width: `${HANDLE_BASE_SIZE / scale}px`,
               height: `${HANDLE_BASE_SIZE / scale}px`,
@@ -584,7 +593,10 @@ export function ResizableElement({
               boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
               border: "1px solid var(--handle-border)",
               zIndex: 10,
-              transition: "background 0.15s"
+              transition: "background 0.15s",
+              bottom: 0,
+              right: 0,
+              transform: `translate(50%, 50%) scale(${1})`
             }}
             onMouseDown={(e) => handleResizeStart(e, "se")}
             onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
@@ -596,7 +608,7 @@ export function ResizableElement({
 
           {/* Left handle */}
           <div
-            className="absolute top-1/2 -left-3 -translate-y-1/2 cursor-ew-resize bg-white shadow-md group/handle"
+            className="absolute cursor-ew-resize bg-white shadow-md group/handle"
             style={{
               width: `${HANDLE_BASE_SIZE / scale}px`,
               height: `${HANDLE_BASE_SIZE / scale}px`,
@@ -605,7 +617,10 @@ export function ResizableElement({
               border: "1px solid var(--handle-border)",
               zIndex: 10,
               transition: "background 0.15s",
-              background: leftBorderHover ? "var(--handle-hover)" : "#fff"
+              background: leftBorderHover ? "var(--handle-hover)" : "#fff",
+              left: 0,
+              top: "50%",
+              transform: `translate(-50%, -50%) scale(${1})`
             }}
             onMouseDown={(e) => handleResizeStart(e, "w")}
             onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
@@ -616,7 +631,7 @@ export function ResizableElement({
           />
           {/* Right handle */}
           <div
-            className="absolute top-1/2 -right-3 -translate-y-1/2 cursor-ew-resize bg-white shadow-md group/handle"
+            className="absolute cursor-ew-resize bg-white shadow-md group/handle"
             style={{
               width: `${HANDLE_BASE_SIZE / scale}px`,
               height: `${HANDLE_BASE_SIZE / scale}px`,
@@ -625,7 +640,10 @@ export function ResizableElement({
               border: "1px solid var(--handle-border)",
               zIndex: 10,
               transition: "background 0.15s",
-              background: rightBorderHover ? "var(--handle-hover)" : "#fff"
+              background: rightBorderHover ? "var(--handle-hover)" : "#fff",
+              right: 0,
+              top: "50%",
+              transform: `translate(50%, -50%) scale(${1})`
             }}
             onMouseDown={(e) => handleResizeStart(e, "e")}
             onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
