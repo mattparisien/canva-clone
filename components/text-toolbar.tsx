@@ -23,6 +23,7 @@ interface TextToolbarProps {
   onFontSizeChange: (size: number) => void
   onFontFamilyChange: (family: string) => void
   onTextAlignChange: (align: "left" | "center" | "right" | "justify") => void
+  onFormatChange?: (format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => void
   isHovering: boolean
   elementId: string | null
 }
@@ -32,6 +33,7 @@ export function TextToolbar({
   onFontSizeChange,
   onFontFamilyChange,
   onTextAlignChange,
+  onFormatChange,
   elementId,
 }: TextToolbarProps) {
   const [fontSize, setFontSize] = useState(selectedElement?.fontSize || 36)
@@ -41,6 +43,12 @@ export function TextToolbar({
   const [textAlign, setTextAlign] = useState<"left" | "center" | "right" | "justify">(
     selectedElement?.textAlign || "left"
   )
+  // Add text formatting states
+  const [isBold, setIsBold] = useState(selectedElement?.isBold || false)
+  const [isItalic, setIsItalic] = useState(selectedElement?.isItalic || false)
+  const [isUnderlined, setIsUnderlined] = useState(selectedElement?.isUnderlined || false)
+  const [isStrikethrough, setIsStrikethrough] = useState(selectedElement?.isStrikethrough || false)
+  
   const toolbarRef = useRef<HTMLDivElement>(null)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -50,6 +58,10 @@ export function TextToolbar({
       setFontSize(selectedElement.fontSize || 36)
       setFontFamily(selectedElement.fontFamily || "Inter")
       setTextAlign(selectedElement.textAlign || "left")
+      setIsBold(selectedElement.isBold || false)
+      setIsItalic(selectedElement.isItalic || false)
+      setIsUnderlined(selectedElement.isUnderlined || false)
+      setIsStrikethrough(selectedElement.isStrikethrough || false)
     }
   }, [selectedElement])
 
@@ -69,6 +81,39 @@ export function TextToolbar({
   const handleTextAlignChange = (align: "left" | "center" | "right" | "justify") => {
     setTextAlign(align)
     onTextAlignChange(align)
+  }
+
+  // Handle text formatting changes
+  const handleBoldChange = () => {
+    const newValue = !isBold
+    setIsBold(newValue)
+    if (onFormatChange) {
+      onFormatChange({ bold: newValue })
+    }
+  }
+
+  const handleItalicChange = () => {
+    const newValue = !isItalic
+    setIsItalic(newValue)
+    if (onFormatChange) {
+      onFormatChange({ italic: newValue })
+    }
+  }
+
+  const handleUnderlineChange = () => {
+    const newValue = !isUnderlined
+    setIsUnderlined(newValue)
+    if (onFormatChange) {
+      onFormatChange({ underline: newValue })
+    }
+  }
+
+  const handleStrikethroughChange = () => {
+    const newValue = !isStrikethrough
+    setIsStrikethrough(newValue)
+    if (onFormatChange) {
+      onFormatChange({ strikethrough: newValue })
+    }
   }
 
   // Handle mouse enter/leave for the toolbar itself
@@ -178,16 +223,32 @@ export function TextToolbar({
 
       {/* Text Formatting */}
       <div className="flex items-center">
-        <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
+        <button 
+          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", 
+            isBold && "bg-purple-100 text-purple-700")}
+          onClick={handleBoldChange}
+        >
           <Bold className="h-4 w-4" />
         </button>
-        <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
+        <button 
+          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", 
+            isItalic && "bg-purple-100 text-purple-700")}
+          onClick={handleItalicChange}
+        >
           <Italic className="h-4 w-4" />
         </button>
-        <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
+        <button 
+          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", 
+            isUnderlined && "bg-purple-100 text-purple-700")}
+          onClick={handleUnderlineChange}
+        >
           <Underline className="h-4 w-4" />
         </button>
-        <button className="rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm">
+        <button 
+          className={cn("rounded-lg px-3 py-2 text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition font-medium shadow-sm", 
+            isStrikethrough && "bg-purple-100 text-purple-700")}
+          onClick={handleStrikethroughChange}
+        >
           <Strikethrough className="h-4 w-4" />
         </button>
       </div>

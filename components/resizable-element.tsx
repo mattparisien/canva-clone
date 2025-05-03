@@ -23,7 +23,7 @@ interface ResizableElementProps {
 }
 
 // Threshold for alignment snapping in pixels
-const SNAP_THRESHOLD = 20
+const SNAP_THRESHOLD = 10
 
 // Use a smaller max size and a higher min size for better scaling
 const HANDLE_BASE_SIZE = 18;
@@ -103,6 +103,26 @@ export function ResizableElement({
     if (element.type === "text") {
       updateElement(element.id, { height: newHeight })
     }
+  }
+
+  // Handle text formatting
+  const handleFormatChange = (format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => {
+    if (element.type !== "text") return
+    
+    // Create updates object with only the properties that are present in the format object
+    const updates: Partial<Element> = {}
+    if (format.bold !== undefined) updates.isBold = format.bold
+    if (format.italic !== undefined) updates.isItalic = format.italic
+    if (format.underline !== undefined) updates.isUnderlined = format.underline
+    if (format.strikethrough !== undefined) updates.isStrikethrough = format.strikethrough
+    
+    updateElement(element.id, updates)
+  }
+
+  // Handle text alignment change
+  const handleTextAlignChange = (align: "left" | "center" | "right" | "justify") => {
+    if (element.type !== "text") return
+    updateElement(element.id, { textAlign: align })
   }
 
   // Handle element resizing
@@ -482,6 +502,12 @@ export function ResizableElement({
               }}
               onHeightChange={handleHeightChange}
               textAlign={element.textAlign || "center"}
+              onTextAlignChange={(align) => handleTextAlignChange(align)}
+              isBold={element.isBold}
+              isItalic={element.isItalic}
+              isUnderlined={element.isUnderlined}
+              isStrikethrough={element.isStrikethrough}
+              onFormatChange={handleFormatChange}
             />
           </div>
         )

@@ -198,6 +198,20 @@ export function Canvas() {
     }
   }, [selectedElement, updateElement])
 
+  // Handle text formatting change
+  const handleFormatChange = useCallback((format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => {
+    if (selectedElement && selectedElement.type === "text") {
+      const updates: Partial<typeof selectedElement> = {};
+      
+      if (format.bold !== undefined) updates.isBold = format.bold;
+      if (format.italic !== undefined) updates.isItalic = format.italic;
+      if (format.underline !== undefined) updates.isUnderlined = format.underline;
+      if (format.strikethrough !== undefined) updates.isStrikethrough = format.strikethrough;
+      
+      updateElement(selectedElement.id, updates);
+    }
+  }, [selectedElement, updateElement]);
+
   // Filter sizes based on search term and active category
   const filteredSizes = availableSizes.filter((size) => {
     const matchesSearch = searchTerm === "" || size.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -221,6 +235,7 @@ export function Canvas() {
         onFontSizeChange={handleFontSizeChange}
         onFontFamilyChange={handleFontFamilyChange}
         onTextAlignChange={handleTextAlignChange}
+        onFormatChange={handleFormatChange}
         isHovering={!!hoveredElementId}
         elementId={selectedElement?.id || null}
       />}

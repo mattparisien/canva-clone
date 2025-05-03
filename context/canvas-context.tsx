@@ -22,6 +22,10 @@ export interface Element {
   fontFamily?: string
   textAlign?: "left" | "center" | "right" | "justify"
   isNew?: boolean // Track if element was just created
+  isBold?: boolean // Bold formatting
+  isItalic?: boolean // Italic formatting
+  isUnderlined?: boolean // Underline formatting
+  isStrikethrough?: boolean // Strikethrough formatting
 }
 
 // Define the types of actions that can be performed
