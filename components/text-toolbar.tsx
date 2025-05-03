@@ -41,7 +41,7 @@ export function TextToolbar({
   const [showFontDropdown, setShowFontDropdown] = useState(false)
   const [isToolbarHovered, setIsToolbarHovered] = useState(false)
   const [textAlign, setTextAlign] = useState<"left" | "center" | "right" | "justify">(
-    selectedElement?.textAlign || "left"
+    selectedElement?.textAlign || "center"
   )
   // Add text formatting states
   const [isBold, setIsBold] = useState(selectedElement?.isBold || false)
@@ -57,7 +57,7 @@ export function TextToolbar({
     if (selectedElement?.type === "text") {
       setFontSize(selectedElement.fontSize || 36)
       setFontFamily(selectedElement.fontFamily || "Inter")
-      setTextAlign(selectedElement.textAlign || "left")
+      setTextAlign(selectedElement.textAlign || "center")
       setIsBold(selectedElement.isBold || false)
       setIsItalic(selectedElement.isItalic || false)
       setIsUnderlined(selectedElement.isUnderlined || false)

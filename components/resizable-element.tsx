@@ -507,7 +507,7 @@ export function ResizableElement({
               isItalic={element.isItalic}
               isUnderlined={element.isUnderlined}
               isStrikethrough={element.isStrikethrough}
-              onFormatChange={handleFormatChange}
+            
             />
           </div>
         )
