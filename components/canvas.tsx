@@ -16,12 +16,14 @@ export function Canvas() {
   const {
     elements,
     selectedElement,
+    selectedElementIds,
     selectElement,
     canvasSize,
     availableSizes,
     sizeCategories,
     changeCanvasSize,
     updateElement,
+    updateMultipleElements,
     addElement,
   } = useCanvas()
 
@@ -136,7 +138,12 @@ export function Canvas() {
    * Canvas click → deselect
    * ------------------------------------------------------------------ */
   const handleCanvasClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
-    if (e.target === canvasRef.current) selectElement(null)
+    if (e.target === canvasRef.current) {
+      // Only clear selection if shift key is not pressed
+      if (!e.shiftKey) {
+        selectElement(null)
+      }
+    }
   }, [selectElement, canvasRef])
 
   /* ------------------------------------------------------------------
@@ -277,7 +284,7 @@ export function Canvas() {
               <ResizableElement
                 key={el.id}
                 element={el}
-                isSelected={selectedElement?.id === el.id}
+                isSelected={selectedElementIds.includes(el.id) || selectedElement?.id === el.id}
                 scale={scale}
                 canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
                 allElements={elements}

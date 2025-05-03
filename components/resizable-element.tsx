@@ -65,7 +65,11 @@ export function ResizableElement({
   // Handle element dragging
   const handleDragStart = (e: React.MouseEvent) => {
     e.stopPropagation()
-    selectElement(element.id) // Select on mouse down
+    
+    // Check if shift key is pressed for multi-selection
+    const isShiftPressed = e.shiftKey
+    
+    selectElement(element.id, isShiftPressed) // Select on mouse down, pass addToSelection flag
     setIsDragging(true)
     setDragStart({
       x: e.clientX,

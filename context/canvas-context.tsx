@@ -38,13 +38,18 @@ export type HistoryAction =
 interface CanvasContextType {
   elements: Element[]
   selectedElement: Element | null
+  selectedElementIds: string[] // New field for multi-selection
   canvasSize: CanvasSize
   availableSizes: CanvasSize[]
   sizeCategories: string[]
   addElement: (element: Omit<Element, "id">) => void
   updateElement: (id: string, updates: Partial<Element>) => void
+  updateMultipleElements: (updates: Partial<Element>) => void // New method for updating multiple elements
   deleteElement: (id: string) => void
-  selectElement: (id: string | null) => void
+  deleteSelectedElements: () => void // New method for deleting multiple elements
+  selectElement: (id: string | null, addToSelection?: boolean) => void // Modified for multi-selection
+  selectMultipleElements: (ids: string[]) => void // New method for selecting multiple elements
+  clearSelection: () => void // New method to clear selection
   changeCanvasSize: (size: CanvasSize) => void
   fitCanvasToView: (containerWidth: number, containerHeight: number) => number
   clearNewElementFlag: (id: string) => void
@@ -53,6 +58,7 @@ interface CanvasContextType {
   canRedo: boolean
   undo: () => void
   redo: () => void
+  isElementSelected: (id: string) => boolean // New helper method
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined)
@@ -63,6 +69,7 @@ const DEFAULT_TEXT_FONT_SIZE_RATIO = 0.09 // 4% of canvas width
 export function CanvasProvider({ children }: { children: ReactNode }) {
   const [elements, setElements] = useState<Element[]>([])
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
+  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]) // New state for multi-selection
 
   // History stacks for undo/redo
   const [history, setHistory] = useState<HistoryAction[]>([])
@@ -219,6 +226,39 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     [selectedElement, addToHistory],
   )
 
+  const updateMultipleElements = useCallback(
+    (updates: Partial<Element>) => {
+      setElements((prev) => {
+        const updatedElements = prev.map((el) => {
+          if (selectedElementIds.includes(el.id)) {
+            // Store the previous state for history
+            const before: Partial<Element> = {}
+            Object.keys(updates).forEach((key) => {
+              const value = el[key as keyof Element]
+              // Only assign if value is defined
+              if (value !== undefined) {
+                (before as any)[key] = value
+              }
+            })
+
+            // Add to history
+            addToHistory({
+              type: "UPDATE_ELEMENT",
+              id: el.id,
+              before,
+              after: updates,
+            })
+
+            return { ...el, ...updates }
+          }
+          return el
+        })
+        return updatedElements
+      })
+    },
+    [selectedElementIds, addToHistory],
+  )
+
   const deleteElement = useCallback(
     (id: string) => {
       setElements((prev) => {
@@ -241,18 +281,49 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     [selectedElement, addToHistory],
   )
 
+  const deleteSelectedElements = useCallback(() => {
+    setElements((prev) => {
+      const elementsToDelete = prev.filter((el) => selectedElementIds.includes(el.id))
+      elementsToDelete.forEach((element) => {
+        // Add to history
+        addToHistory({
+          type: "DELETE_ELEMENT",
+          element,
+        })
+      })
+      return prev.filter((el) => !selectedElementIds.includes(el.id))
+    })
+    setSelectedElement(null)
+    setSelectedElementIds([])
+  }, [selectedElementIds, addToHistory])
+
   const selectElement = useCallback(
-    (id: string | null) => {
+    (id: string | null, addToSelection = false) => {
       if (!id) {
         setSelectedElement(null)
+        setSelectedElementIds([])
         return
       }
 
       const element = elements.find((el) => el.id === id)
-      setSelectedElement(element || null)
+      if (addToSelection) {
+        setSelectedElementIds((prev) => [...prev, id])
+      } else {
+        setSelectedElement(element || null)
+        setSelectedElementIds([id])
+      }
     },
     [elements],
   )
+
+  const selectMultipleElements = useCallback((ids: string[]) => {
+    setSelectedElementIds(ids)
+  }, [])
+
+  const clearSelection = useCallback(() => {
+    setSelectedElement(null)
+    setSelectedElementIds([])
+  }, [])
 
   const changeCanvasSize = useCallback(
     (size: CanvasSize) => {
@@ -425,33 +496,47 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         })
       }
 
-      // Delete selected element: Delete or Backspace key
+      // Delete selected elements: Delete or Backspace key
       if (
         (e.key === "Delete" || e.key === "Backspace") &&
-        selectedElement &&
+        (selectedElement || selectedElementIds.length > 0) &&
         !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey
       ) {
         e.preventDefault()
-        deleteElement(selectedElement.id)
+        if (selectedElementIds.length > 1) {
+          deleteSelectedElements()
+        } else if (selectedElement) {
+          deleteElement(selectedElement.id)
+        }
       }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [undo, redo, addElement, deleteElement, selectedElement])
+  }, [undo, redo, addElement, deleteElement, deleteSelectedElements, selectedElement, selectedElementIds])
+
+  const isElementSelected = useCallback(
+    (id: string) => selectedElementIds.includes(id),
+    [selectedElementIds],
+  )
 
   return (
     <CanvasContext.Provider
       value={{
         elements,
         selectedElement,
+        selectedElementIds,
         canvasSize,
         availableSizes,
         sizeCategories,
         addElement,
         updateElement,
+        updateMultipleElements,
         deleteElement,
+        deleteSelectedElements,
         selectElement,
+        selectMultipleElements,
+        clearSelection,
         changeCanvasSize,
         fitCanvasToView,
         clearNewElementFlag,
@@ -460,6 +545,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         canRedo: redoStack.length > 0,
         undo,
         redo,
+        isElementSelected,
       }}
     >
       {children}
