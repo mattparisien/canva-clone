@@ -41,7 +41,6 @@ export function ResizableElement({
   const [isResizing, setIsResizing] = useState(false)
   const [resizeDirection, setResizeDirection] = useState<string | null>(null)
   const elementRef = useRef<HTMLDivElement>(null)
-  const [showDeleteButton, setShowDeleteButton] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
 
   // Track hover state for left/right borders to highlight the handle
@@ -137,10 +136,6 @@ export function ResizableElement({
     }
   }
 
-  // Show delete button when element is selected
-  useEffect(() => {
-    setShowDeleteButton(isSelected)
-  }, [isSelected])
 
   // Find the closest snap point if within threshold
   const getSnappedPosition = (currentX: number, currentY: number, otherElements: Element[]) => {
@@ -519,16 +514,6 @@ export function ResizableElement({
       onMouseLeave={handleMouseLeave}
     >
       {renderElement()}
-
-      {/* Delete button */}
-      {showDeleteButton && (
-        <button
-          className="absolute -top-8 -right-2 p-1.5 bg-white rounded-full shadow-md text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
-          onClick={handleDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      )}
 
       {isSelected && (
         <>
