@@ -16,7 +16,7 @@ export const HANDLE_BASE_SIZE = 18;
 // export const HANDLE_MAX_SIZE = 24;
 
 // Font sizes
-export const DEFAULT_FONT_SIZE = 36;
+export const DEFAULT_FONT_SIZE = 100;
 export const MIN_FONT_SIZE = 1;
 export const MAX_FONT_SIZE = 800;
 
