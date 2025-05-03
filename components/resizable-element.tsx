@@ -352,7 +352,7 @@ export function ResizableElement({
               newHeight = potentialHeight
               newWidth = newHeight * aspectRatio
             }
-            
+
             // If Alt/Option key is pressed, resize from center
             if (isAltKeyPressed) {
               newX = origX - (newWidth - origWidth) / 2
@@ -370,7 +370,7 @@ export function ResizableElement({
               newHeight = potentialHeight
               newWidth = newHeight * aspectRatio
             }
-            
+
             if (isAltKeyPressed) {
               // When alt is pressed, resize from center
               const widthDelta = origWidth - newWidth
@@ -391,7 +391,7 @@ export function ResizableElement({
               newHeight = potentialHeight
               newWidth = newHeight * aspectRatio
             }
-            
+
             if (isAltKeyPressed) {
               // When alt is pressed, resize from center
               newX = origX - (newWidth - origWidth) / 2
@@ -412,7 +412,7 @@ export function ResizableElement({
               newHeight = potentialHeight
               newWidth = newHeight * aspectRatio
             }
-            
+
             if (isAltKeyPressed) {
               // When alt is pressed, resize from center
               const widthDelta = origWidth - newWidth
@@ -434,7 +434,7 @@ export function ResizableElement({
           // For edge handles, allow non-uniform scaling
           if (resizeDirection.includes("e")) {
             newWidth = Math.max(50, origWidth + totalDeltaX)
-            
+
             // If Alt/Option key is pressed, make the opposite side resize equally
             if (isAltKeyPressed) {
               newX = origX - totalDeltaX / 2;
@@ -443,7 +443,7 @@ export function ResizableElement({
           }
           if (resizeDirection.includes("w")) {
             newWidth = Math.max(50, origWidth - totalDeltaX)
-            
+
             // If Alt/Option key is pressed, make the opposite side resize equally
             if (isAltKeyPressed) {
               const widthDelta = origWidth - newWidth;
@@ -455,7 +455,7 @@ export function ResizableElement({
           }
           if (resizeDirection.includes("s")) {
             newHeight = Math.max(20, origHeight + totalDeltaY)
-            
+
             // If Alt/Option key is pressed, make the opposite side resize equally
             if (isAltKeyPressed) {
               newY = origY - totalDeltaY / 2;
@@ -464,7 +464,7 @@ export function ResizableElement({
           }
           if (resizeDirection.includes("n")) {
             newHeight = Math.max(20, origHeight - totalDeltaY)
-            
+
             // If Alt/Option key is pressed, make the opposite side resize equally
             if (isAltKeyPressed) {
               const heightDelta = origHeight - newHeight;
@@ -502,7 +502,7 @@ export function ResizableElement({
       setIsDragging(false)
       setIsResizing(false)
       setResizeDirection(null)
-      
+
       // Make sure the element stays selected by calling selectElement with true to maintain selection
       if (isResizing) {
         // Only call when ending a resize operation, with false to not toggle selection
@@ -643,7 +643,7 @@ export function ResizableElement({
               e.currentTarget.style.border = "1px solid var(--handle-border)"
             }}
           />
-          
+
           {/* These corner handles only show when element is big enough */}
           {!isTooSmallForAllHandles && (
             <>
@@ -765,28 +765,49 @@ export function ResizableElement({
 
           {/* Wide invisible resize zones for left/right borders - always shown */}
           <div
-            className="absolute top-0 left-0 h-full"
+            className="absolute top-0 left-0 -translate-x-1/2 h-full"
             style={{
-              width: 16, // 16px wide zone
+              width: 40, // 16px wide zone
               cursor: "ew-resize",
               zIndex: 5,
               background: "transparent"
             }}
             onMouseDown={(e) => handleResizeStart(e, "w")}
-            onMouseEnter={() => setLeftBorderHover(true)}
-            onMouseLeave={() => setLeftBorderHover(false)}
+            // onMouseUp={(e) => {
+            //   if (leftBorderHover && !isHovering) {
+            //     setLeftBorderHover(false)
+            //   }
+            // }}
+            onMouseEnter={() => {
+              if (!isResizing && !leftBorderHover) {
+                setLeftBorderHover(true)
+              }
+            }}
+            onMouseLeave={() => {
+              if (!isResizing && leftBorderHover) {
+                setLeftBorderHover(false)
+              }
+            }}
           />
           <div
-            className="absolute top-0 right-0 h-full"
+            className="absolute top-0 right-0 translate-x-1/2 h-full"
             style={{
-              width: 16, // 16px wide zone
+              width: 40, // 16px wide zone
               cursor: "ew-resize",
               zIndex: 5,
               background: "transparent"
             }}
             onMouseDown={(e) => handleResizeStart(e, "e")}
-            onMouseEnter={() => setRightBorderHover(true)}
-            onMouseLeave={() => setRightBorderHover(false)}
+            onMouseEnter={() => {
+              if (!isResizing && !rightBorderHover) {
+                setRightBorderHover(true)
+              }
+            }}
+            onMouseLeave={() => {
+              if (!isResizing && rightBorderHover) {
+                setRightBorderHover(false)
+              }
+            }}
           />
         </>
       )}
