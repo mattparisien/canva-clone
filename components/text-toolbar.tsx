@@ -171,6 +171,11 @@ export function TextToolbar({
     setIsToolbarHovered(false)
   }
 
+  // Function to stop propagation of click events
+  const handleToolbarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   // Clean up timeout on unmount
   useEffect(() => {
     return () => {
@@ -186,6 +191,7 @@ export function TextToolbar({
       className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center bg-white/95 backdrop-blur-sm rounded-md shadow-toolbar-float px-2.5 py-1.5 gap-1 border border-gray-100"
       onMouseEnter={handleToolbarMouseEnter}
       onMouseLeave={handleToolbarMouseLeave}
+      onClick={handleToolbarClick}
     >
       {/* Font Family Dropdown */}
       <div className="relative">

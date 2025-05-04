@@ -179,7 +179,7 @@ export function Canvas({
       <div
         ref={scaleWrapperRef}
         style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
-        className="flex items-center justify-center p-12 canvas-wrapper"
+        className="flex items-center justify-center canvas-wrapper"
       >
         <div
           ref={canvasRef}
