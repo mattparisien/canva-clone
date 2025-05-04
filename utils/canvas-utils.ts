@@ -1,4 +1,4 @@
-import { Element } from "../types/canvas.types"
+import { Element } from "../types/canvas.types";
 
 /**
  * Calculates the width of text based on font size and family
@@ -13,7 +13,7 @@ export const measureTextWidth = (text: string, fontSize: number, fontFamily: str
     // Fallback calculation based on character count and font size
     return Math.max(text.length * fontSize * 0.6, fontSize * 2);
   }
-  
+
   try {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -21,11 +21,11 @@ export const measureTextWidth = (text: string, fontSize: number, fontFamily: str
       // Fallback if canvas context is not available
       return Math.max(text.length * fontSize * 0.6, fontSize * 2);
     }
-    
+
     // Set the font correctly
     context.font = `${fontSize}px ${fontFamily}`;
     const metrics = context.measureText(text);
-    
+
     // Add a small padding buffer for cursor/caret
     return Math.ceil(metrics.width) + 8;
   } catch (error) {

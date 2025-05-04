@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { LayoutGrid, Type, Upload, Folder, Crown, Shapes, Sparkles, Search, Settings, AppWindow } from "lucide-react"
-import { useCanvas } from "@/context/canvas-context"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { useCanvas } from "@/context/canvas-context"
+import { cn } from "@/lib/utils"
+import { AppWindow, Crown, Folder, LayoutGrid, Search, Settings, Shapes, Sparkles, Type, Upload } from "lucide-react"
+import { useEffect, useState } from "react"
 
 export function Sidebar() {
   const [activeTab, setActiveTab] = useState<string>("text")

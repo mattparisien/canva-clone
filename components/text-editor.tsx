@@ -5,13 +5,13 @@
    -------------------------------------------------------------- */
 "use client";
 
-import type React from "react";
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
-import { 
-  DEFAULT_FONT_SIZE, 
-  DEFAULT_TEXT_ALIGN, 
-  type TextAlignment 
+import {
+  DEFAULT_FONT_SIZE,
+  DEFAULT_TEXT_ALIGN,
+  type TextAlignment
 } from "@/lib/constants/editor";
+import type React from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /* ------------------------------------------------------------------
    Types
@@ -154,7 +154,7 @@ export function TextEditor({
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [isEditing]);
-  
+
 
   /* ----------------------------------------------------------------
      Recalculate and report height on content or width change

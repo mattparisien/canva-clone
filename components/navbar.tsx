@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, ArrowRight, ChevronDown, Share2 } from "lucide-react"
 
 export function Navbar() {
-
-
   return (
     <div className="flex h-14 items-center px-4 shadow bg-gradient-to-r from-[#2ec4e6] via-[#5e60ce] to-[#7c3aed] border-b border-[#e0e7ef]">
       {/* Left Section */}

@@ -1,18 +1,13 @@
 "use client"
 
 import { Canvas } from "@/components/canvas"
-import { Plus, PenLine, LayoutGrid, Maximize, HelpCircle } from "lucide-react"
+import { TextToolbar } from "@/components/text-toolbar"
 import { Slider } from "@/components/ui/slider"
-import { MIN_ZOOM, MAX_ZOOM } from "@/lib/constants/editor"
-import { useState, useRef, useCallback } from "react"
 import { useCanvas } from "@/context/canvas-context"
 import { useEditor } from "@/context/editor-context"
-import { TextToolbar } from "@/components/text-toolbar"
-import { 
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
+import { MAX_ZOOM, MIN_ZOOM } from "@/lib/constants/editor"
+import { HelpCircle, LayoutGrid, Maximize, PenLine, Plus } from "lucide-react"
+import { useCallback, useRef, useState } from "react"
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.
@@ -22,23 +17,23 @@ export function Editor() {
     // Reference for the editor container
     const editorContainerRef = useRef<HTMLDivElement>(null)
     const [zoom, setZoom] = useState(100) // 25 – 200 %
-    
+
     // Get editor-level state (pages, navigation)
-    const { 
+    const {
         pages,
         currentPageIndex,
         currentPageId,
         goToPage,
         addPage
     } = useEditor();
-    
+
     // Get canvas-level state (elements, selection)
-    const { 
-        canvasSize, 
-        selectedElement, 
-        updateElement, 
-        selectElement, 
-        clearSelection, 
+    const {
+        canvasSize,
+        selectedElement,
+        updateElement,
+        selectElement,
+        clearSelection,
         selectCanvas
     } = useCanvas();
 
@@ -129,12 +124,11 @@ export function Editor() {
                 <div className="flex items-center gap-2">
                     {pages.map((page, index) => (
                         <div key={page.id} className="group relative">
-                            <div 
-                                className={`relative rounded-md overflow-hidden border-2 ${
-                                    currentPageId === page.id 
-                                        ? 'border-[#8344e1] shadow-sm' 
+                            <div
+                                className={`relative rounded-md overflow-hidden border-2 ${currentPageId === page.id
+                                        ? 'border-[#8344e1] shadow-sm'
                                         : 'border-[#e5e5e5] hover:border-[#d0d0d0]'
-                                } transition-all cursor-pointer`}
+                                    } transition-all cursor-pointer`}
                                 style={{ width: '100px', height: '56px' }}
                                 onClick={() => goToPage(page.id)}
                             >
