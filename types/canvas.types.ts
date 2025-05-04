@@ -42,17 +42,41 @@ export type HistoryAction =
   | { type: "DELETE_PAGE"; page: Page }
   | { type: "REORDER_PAGES"; before: string[]; after: string[] }
 
-export interface CanvasContextType {
+// Editor context handles document-level state and page management
+export interface EditorContextType {
+  // Document metadata
+  documentName: string
+  isDocumentSaved: boolean
+  renameDocument: (name: string) => void
+  saveDocument: () => void
+  
+  // Page management
   pages: Page[]
   currentPageId: string | null
+  currentPage: Page | null
   currentPageIndex: number
+  addPage: () => void
+  deletePage: (id: string) => void
+  goToPage: (id: string) => void
+  goToNextPage: () => void
+  goToPreviousPage: () => void
+  duplicateCurrentPage: () => void
+  
+  // Page content updates (called by CanvasContext)
+  updatePageElements: (pageId: string, elements: Element[]) => void
+  updatePageCanvasSize: (pageId: string, canvasSize: CanvasSize) => void
+}
+
+// Canvas context handles the canvas-specific operations for the current page
+export interface CanvasContextType {
+  // Canvas elements and properties
   elements: Element[] // Elements of the current page
   selectedElement: Element | null
   selectedElementIds: string[]
   isCanvasSelected: boolean
   canvasSize: CanvasSize
-  availableSizes: CanvasSize[]
-  sizeCategories: string[]
+  
+  // Element manipulation
   addElement: (element: Omit<Element, "id">) => void
   updateElement: (id: string, updates: Partial<Element>) => void
   updateMultipleElements: (updates: Partial<Element> | ((element: Element) => Partial<Element>)) => void
@@ -66,17 +90,13 @@ export interface CanvasContextType {
   fitCanvasToView: (containerWidth: number, containerHeight: number) => number
   clearNewElementFlag: (id: string) => void
   scaleElement: (element: Element, scaleFactor: number) => Element
+  
+  // History
   canUndo: boolean
   canRedo: boolean
   undo: () => void
   redo: () => void
-  isElementSelected: (id: string) => boolean
   
-  // Page management
-  addPage: () => void
-  deletePage: (id: string) => void
-  goToPage: (id: string) => void
-  goToNextPage: () => void
-  goToPreviousPage: () => void
-  duplicateCurrentPage: () => void
+  // Utility
+  isElementSelected: (id: string) => boolean
 }

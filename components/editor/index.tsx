@@ -6,7 +6,13 @@ import { Slider } from "@/components/ui/slider"
 import { MIN_ZOOM, MAX_ZOOM } from "@/lib/constants/editor"
 import { useState, useRef, useCallback } from "react"
 import { useCanvas } from "@/context/canvas-context"
+import { useEditor } from "@/context/editor-context"
 import { TextToolbar } from "@/components/text-toolbar"
+import { 
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.
@@ -16,18 +22,24 @@ export function Editor() {
     // Reference for the editor container
     const editorContainerRef = useRef<HTMLDivElement>(null)
     const [zoom, setZoom] = useState(100) // 25 – 200 %
+    
+    // Get editor-level state (pages, navigation)
+    const { 
+        pages,
+        currentPageIndex,
+        currentPageId,
+        goToPage,
+        addPage
+    } = useEditor();
+    
+    // Get canvas-level state (elements, selection)
     const { 
         canvasSize, 
         selectedElement, 
         updateElement, 
         selectElement, 
         clearSelection, 
-        selectCanvas,
-        pages,
-        currentPageId,
-        currentPageIndex,
-        goToPage,
-        addPage
+        selectCanvas
     } = useCanvas();
 
     // Handle clicks outside the canvas to deselect everything
@@ -113,30 +125,42 @@ export function Editor() {
             </div>
 
             {/* Page Navigation Controls */}
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-2">
-                <div className="flex items-center gap-1">
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 py-2">
+                <div className="flex items-center gap-2">
                     {pages.map((page, index) => (
-                        <button 
-                            key={page.id}
-                            className={`flex items-center justify-center h-12 w-16 border ${currentPageId === page.id ? 'border-blue-500 shadow' : 'border-gray-200'} bg-white/80 rounded-md shadow-sm hover:bg-white hover:shadow-md transition-all`}
-                            onClick={() => goToPage(page.id)}
-                        >
-                            <div className="flex items-center justify-center">
-                                <svg viewBox="0 0 24 24" className="h-5 w-5 text-gray-700" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="4" y="6" width="16" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                                    <path d="M8 10H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                    <path d="M8 14H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                </svg>
-                                <span className="text-xs text-gray-700 ml-1">{index + 1}</span>
+                        <div key={page.id} className="group relative">
+                            <div 
+                                className={`relative rounded-md overflow-hidden border-2 ${
+                                    currentPageId === page.id 
+                                        ? 'border-[#8344e1] shadow-sm' 
+                                        : 'border-[#e5e5e5] hover:border-[#d0d0d0]'
+                                } transition-all cursor-pointer`}
+                                style={{ width: '100px', height: '56px' }}
+                                onClick={() => goToPage(page.id)}
+                            >
+                                <div className="absolute inset-0 bg-white flex items-center justify-center">
+                                    <div className="text-[0.6rem] text-gray-600 absolute top-1 right-1 flex items-center">
+                                        <span>{index + 1}</span>
+                                    </div>
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="text-[0.6rem] text-gray-500">Your paragraph text</div>
+                                        <img src="/abstract-geometric-shapes.png" alt="Placeholder" className="mt-0.5 w-4 h-4 opacity-30" />
+                                    </div>
+                                </div>
                             </div>
-                        </button>
+                            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                                Page {index + 1}
+                                <div className="absolute w-2 h-2 bg-gray-900 transform rotate-45 top-full -mt-1 left-1/2 -ml-1"></div>
+                            </div>
+                        </div>
                     ))}
-                    <button 
-                        className="flex items-center justify-center h-12 w-12 border border-gray-200 bg-white/80 rounded-md shadow-sm hover:bg-white hover:shadow-md transition-all"
-                        onClick={addPage}
+                    <div
+                        className="rounded-md flex items-center justify-center bg-[#e2e2e2] hover:bg-[#d0d0d0] transition-colors cursor-pointer"
+                        style={{ width: '100px', height: '56px' }}
+                        onClick={() => addPage()}
                     >
-                        <Plus className="h-5 w-5 text-gray-700" />
-                    </button>
+                        <Plus className="h-5 w-5 text-gray-700" strokeWidth={1.2} />
+                    </div>
                 </div>
             </div>
 

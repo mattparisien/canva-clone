@@ -1,64 +1,32 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo } from "react"
-import { Element, Page, CanvasContextType, CanvasSize } from "../types/canvas.types"
-import { 
-  DEFAULT_TEXT_FONT_SIZE_RATIO, 
-  AVAILABLE_CANVAS_SIZES, 
-  DEFAULT_CANVAS_SIZE 
-} from "../constants/canvas-constants"
-import { 
-  measureTextWidth, 
-  scaleElement as scaleElementUtil, 
-  fitCanvasToView as fitCanvasToViewUtil 
-} from "../utils/canvas-utils"
+import { Element, CanvasContextType, CanvasSize } from "../types/canvas.types"
+import { DEFAULT_TEXT_FONT_SIZE_RATIO } from "../constants/canvas-constants"
+import { scaleElement as scaleElementUtil, fitCanvasToView as fitCanvasToViewUtil } from "../utils/canvas-utils"
 import { useCanvasHistory } from "../hooks/use-canvas-history"
 import { createTextElement } from "../factories/element-factories"
+import { useEditor } from "./editor-context"
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined)
 
 export function CanvasProvider({ children }: { children: ReactNode }) {
-  // Page Management States
-  const [pages, setPages] = useState<Page[]>(() => {
-    // Initialize with a single page
-    const initialPage: Page = {
-      id: `page-${Date.now()}`,
-      elements: [],
-      canvasSize: DEFAULT_CANVAS_SIZE
-    }
-    return [initialPage]
-  })
+  // Get editor context for page management
+  const { 
+    currentPage,
+    currentPageId,
+    updatePageElements,
+    updatePageCanvasSize
+  } = useEditor()
   
-  const [currentPageId, setCurrentPageId] = useState<string | null>(pages[0]?.id || null)
-  const [currentPageIndex, setCurrentPageIndex] = useState<number>(0)
-
-  // Memoize the currentPage to prevent unnecessary recalculations and re-renders
-  const currentPage = useMemo(() => {
-    return pages.find(page => page.id === currentPageId) || pages[0];
-  }, [pages, currentPageId]);
-
-  // Elements and canvas size are derived from the current page
-  // This approach prevents circular updates by removing state that depends on other state
+  // Canvas-specific states
   const [elements, setElements] = useState<Element[]>([])
-  const [canvasSize, setCanvasSize] = useState<CanvasSize>(DEFAULT_CANVAS_SIZE)
+  const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width: 1080, height: 1080 })
   
-  // Initialize elements and canvas size from current page on mount and page change
-  useEffect(() => {
-    if (currentPage) {
-      setElements(currentPage.elements);
-      setCanvasSize(currentPage.canvasSize);
-    }
-  }, [currentPage?.id]); // Only depend on the ID, not the entire object
-
   // Selection states
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([])
   const [isCanvasSelected, setIsCanvasSelected] = useState<boolean>(false)
-
-  // Extract unique categories
-  const sizeCategories = Array.from(
-    new Set(AVAILABLE_CANVAS_SIZES.map((size) => size.category || "Other"))
-  )
   
   const {
     addToHistory,
@@ -68,158 +36,27 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     canRedo
   } = useCanvasHistory()
 
-  // Synchronize elements with the current page
+  // Initialize elements and canvas size from current page
+  useEffect(() => {
+    if (currentPage) {
+      setElements(currentPage.elements || [])
+      setCanvasSize(currentPage.canvasSize)
+      
+      // Clear selection when page changes
+      setSelectedElement(null)
+      setSelectedElementIds([])
+      setIsCanvasSelected(false)
+    }
+  }, [currentPage?.id])
+  
+  // Sync elements back to editor when they change
   useEffect(() => {
     if (currentPageId) {
-      setPages(prevPages => prevPages.map(page => 
-        page.id === currentPageId 
-          ? { ...page, elements: elements } 
-          : page
-      ))
+      updatePageElements(currentPageId, elements)
     }
-  }, [elements, currentPageId])
+  }, [elements, currentPageId, updatePageElements])
 
-  // Page Management Functions
-  const addPage = useCallback(() => {
-    const newPage: Page = {
-      id: `page-${Date.now()}`,
-      elements: [],
-      canvasSize: canvasSize // Use the current canvas size for consistency
-    }
-
-    setPages(prevPages => {
-      const newPages = [...prevPages, newPage]
-      
-      // Add to history
-      addToHistory({
-        type: "ADD_PAGE",
-        page: newPage
-      })
-      
-      return newPages
-    })
-
-    // Switch to the new page
-    setCurrentPageId(newPage.id)
-    setCurrentPageIndex(pages.length)
-    
-    // Clear selection when switching pages
-    setSelectedElement(null)
-    setSelectedElementIds([])
-    setIsCanvasSelected(false)
-  }, [canvasSize, pages.length, addToHistory])
-
-  const deletePage = useCallback((id: string) => {
-    if (pages.length <= 1) {
-      // Don't allow deleting the last page
-      return
-    }
-
-    setPages(prevPages => {
-      const pageToDelete = prevPages.find(page => page.id === id)
-      if (!pageToDelete) return prevPages
-
-      // Add to history
-      addToHistory({
-        type: "DELETE_PAGE",
-        page: pageToDelete
-      })
-
-      const newPages = prevPages.filter(page => page.id !== id)
-      return newPages
-    })
-
-    // If the current page was deleted, switch to the previous page or the first page
-    if (currentPageId === id) {
-      const index = pages.findIndex(page => page.id === id)
-      const newIndex = Math.max(0, index - 1)
-      setCurrentPageId(pages[newIndex]?.id || null)
-      setCurrentPageIndex(newIndex)
-    } else {
-      // Update the current page index
-      setCurrentPageIndex(pages.findIndex(page => page.id === currentPageId))
-    }
-  }, [pages, currentPageId, addToHistory])
-
-  const goToPage = useCallback((id: string) => {
-    const pageIndex = pages.findIndex(page => page.id === id)
-    if (pageIndex !== -1) {
-      setCurrentPageId(id)
-      setCurrentPageIndex(pageIndex)
-      
-      // Clear selection when switching pages
-      setSelectedElement(null)
-      setSelectedElementIds([])
-      setIsCanvasSelected(false)
-    }
-  }, [pages])
-
-  const goToNextPage = useCallback(() => {
-    if (currentPageIndex < pages.length - 1) {
-      const nextPage = pages[currentPageIndex + 1]
-      setCurrentPageId(nextPage.id)
-      setCurrentPageIndex(currentPageIndex + 1)
-      
-      // Clear selection when switching pages
-      setSelectedElement(null)
-      setSelectedElementIds([])
-      setIsCanvasSelected(false)
-    }
-  }, [currentPageIndex, pages])
-
-  const goToPreviousPage = useCallback(() => {
-    if (currentPageIndex > 0) {
-      const prevPage = pages[currentPageIndex - 1]
-      setCurrentPageId(prevPage.id)
-      setCurrentPageIndex(currentPageIndex - 1)
-      
-      // Clear selection when switching pages
-      setSelectedElement(null)
-      setSelectedElementIds([])
-      setIsCanvasSelected(false)
-    }
-  }, [currentPageIndex, pages])
-
-  const duplicateCurrentPage = useCallback(() => {
-    if (currentPage) {
-      // Create deep copy of elements
-      const duplicatedElements = JSON.parse(JSON.stringify(currentPage.elements))
-      
-      const newPage: Page = {
-        id: `page-${Date.now()}`,
-        elements: duplicatedElements,
-        canvasSize: { ...currentPage.canvasSize }
-      }
-
-      setPages(prevPages => {
-        // Find the current index and insert after it
-        const currentIndex = prevPages.findIndex(page => page.id === currentPageId)
-        const newPages = [
-          ...prevPages.slice(0, currentIndex + 1),
-          newPage,
-          ...prevPages.slice(currentIndex + 1)
-        ]
-        
-        // Add to history
-        addToHistory({
-          type: "ADD_PAGE",
-          page: newPage
-        })
-        
-        return newPages
-      })
-
-      // Switch to the new page
-      setCurrentPageId(newPage.id)
-      setCurrentPageIndex(currentPageIndex + 1)
-      
-      // Clear selection when switching pages
-      setSelectedElement(null)
-      setSelectedElementIds([])
-      setIsCanvasSelected(false)
-    }
-  }, [currentPage, currentPageId, currentPageIndex, addToHistory])
-
+  // Element Manipulation Functions
   const addElement = useCallback(
     (elementData: Omit<Element, "id">) => {
       if (!currentPageId) return;
@@ -439,14 +276,10 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
       setCanvasSize(size)
       
-      // Update the size in the current page
-      setPages(prevPages => prevPages.map(page => 
-        page.id === currentPageId 
-          ? { ...page, canvasSize: size } 
-          : page
-      ))
+      // Update the canvas size in the editor context
+      updatePageCanvasSize(currentPageId, size)
     },
-    [canvasSize, addToHistory, currentPageId]
+    [canvasSize, addToHistory, currentPageId, updatePageCanvasSize]
   )
 
   const fitCanvasToView = useCallback(
@@ -483,13 +316,9 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
       setElements,
       selectedElement,
       setSelectedElement,
-      setCanvasSize,
-      pages,
-      setPages,
-      currentPageId,
-      setCurrentPageId
+      setCanvasSize
     )
-  }, [elements, historyUndo, selectedElement, pages, currentPageId])
+  }, [elements, historyUndo, selectedElement])
 
   const redo = useCallback(() => {
     historyRedo(
@@ -497,20 +326,16 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
       setElements,
       selectedElement,
       setSelectedElement,
-      setCanvasSize,
-      pages,
-      setPages,
-      currentPageId,
-      setCurrentPageId
+      setCanvasSize
     )
-  }, [elements, historyRedo, selectedElement, pages, currentPageId])
+  }, [elements, historyRedo, selectedElement])
 
   const isElementSelected = useCallback(
     (id: string) => selectedElementIds.includes(id),
     [selectedElementIds]
   )
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts for canvas-specific operations
   useEffect(() => {
     // Debounce flag to prevent multiple rapid keypresses
     let isProcessingTKey = false;
@@ -586,46 +411,21 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
           deleteElement(selectedElement.id)
         }
       }
-
-      // Next page: Right arrow
-      if (e.key === "ArrowRight" && e.altKey) {
-        e.preventDefault()
-        goToNextPage()
-      }
-
-      // Previous page: Left arrow
-      if (e.key === "ArrowLeft" && e.altKey) {
-        e.preventDefault()
-        goToPreviousPage()
-      }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [undo, redo,  deleteElement, deleteSelectedElements, selectedElement, selectedElementIds, canvasSize.width, goToNextPage, goToPreviousPage])
+  }, [undo, redo, deleteElement, deleteSelectedElements, selectedElement, selectedElementIds, canvasSize.width])
 
   return (
     <CanvasContext.Provider
       value={{
-        // Page management
-        pages,
-        currentPageId,
-        currentPageIndex,
-        addPage,
-        deletePage,
-        goToPage,
-        goToNextPage,
-        goToPreviousPage,
-        duplicateCurrentPage,
-        
         // Canvas elements and properties
         elements,
         selectedElement,
         selectedElementIds,
         isCanvasSelected,
         canvasSize,
-        availableSizes: AVAILABLE_CANVAS_SIZES,
-        sizeCategories,
         
         // Element manipulation
         addElement,

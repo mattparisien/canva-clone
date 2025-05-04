@@ -23,12 +23,10 @@ export function Canvas({
     isCanvasSelected,
     selectCanvas,
     canvasSize,
-    availableSizes,
-    sizeCategories,
-    changeCanvasSize,
     updateElement,
     updateMultipleElements,
     addElement,
+    fitCanvasToView: fitCanvasToViewUtil
   } = useCanvas()
 
   const scaleWrapperRef = useRef<HTMLDivElement>(null) // wrapper that gets the CSS scale()
@@ -42,8 +40,6 @@ export function Canvas({
   const [alignments, setAlignments] = useState({ horizontal: [] as number[], vertical: [] as number[] })
   const [lastDragPos, setLastDragPos] = useState<{ x: number, y: number } | null>(null) // Track last drag position
   const [debugInfo, setDebugInfo] = useState("")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isInitialRender, setIsInitialRender] = useState(true)
 
 
@@ -155,13 +151,6 @@ export function Canvas({
   const handleElementHover = useCallback((id: string | null) => {
     setIsHoveringChild(id !== null)
   }, [])
-
-  // Filter sizes based on search term and active category
-  const filteredSizes = availableSizes.filter((size) => {
-    const matchesSearch = searchTerm === "" || size.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = activeCategory === null || size.category === activeCategory
-    return matchesSearch && matchesCategory
-  })
 
   /* ------------------------------------------------------------------
    * Render
