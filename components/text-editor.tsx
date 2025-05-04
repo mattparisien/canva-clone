@@ -83,6 +83,8 @@ export function TextEditor({
     }
   }, [content, isEditing]);
 
+
+
   /* ----------------------------------------------------------------
      Enter editing mode on double-click
      ---------------------------------------------------------------- */
@@ -152,6 +154,7 @@ export function TextEditor({
     document.addEventListener("mousedown", handleOutsideClick);
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [isEditing]);
+  
 
   /* ----------------------------------------------------------------
      Recalculate and report height on content or width change

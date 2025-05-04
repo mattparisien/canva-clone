@@ -1,15 +1,14 @@
 "use client"
 
-import { useRef, useState, useEffect, useCallback, type MouseEvent } from "react"
-import { useCanvas } from "@/context/canvas-context"
-import { ResizableElement } from "@/components/resizable-element"
 import { AlignmentGuides } from "@/components/alignment-guides"
-import { MIN_ZOOM, MAX_ZOOM } from "@/lib/constants/editor"
+import { ResizableElement } from "@/components/resizable-element"
+import { useCanvas } from "@/context/canvas-context"
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"
 
-export function Canvas({ 
-  zoom, 
-  setZoom 
-}: { 
+export function Canvas({
+  zoom,
+  setZoom
+}: {
   zoom: number;
   setZoom: (zoom: number) => void;
 }) {
@@ -72,7 +71,7 @@ export function Canvas({
 
     // Use the smaller ratio to ensure the canvas fits entirely
     const fitScale = Math.min(widthRatio, heightRatio, 1) // Cap at 100%
-    
+
     // Use the setZoom prop passed from Editor
     setZoom(Math.round(fitScale * 100))
   }, [canvasSize.width, canvasSize.height, setZoom]);
@@ -118,14 +117,14 @@ export function Canvas({
 
   const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments, isDragSelection: boolean = false) => {
     setAlignments(newAlignments)
-    
+
     // When dragging multiple elements, update their positions
     if (isDragSelection && selectedElementIds.length > 1) {
       if (lastDragPos) {
         // Calculate the delta movement
         const deltaX = x - lastDragPos.x;
         const deltaY = y - lastDragPos.y;
-        
+
         // Update positions of all selected elements
         updateMultipleElements((prev) => {
           return {

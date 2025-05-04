@@ -98,7 +98,7 @@ export function Sidebar() {
       {/* The popover is now absolutely positioned and overlays the canvas */}
       {activeTab === "text" && (textTabHovered || popoverHovered) && (
         <div
-          className="fixed z-50 mt-4 mb-4 w-[320px] rounded-xl bg-white shadow-md flex flex-col h-[calc(100vh-8rem)]"
+          className="fixed z-[70] mt-4 mb-4 w-[320px] rounded-xl bg-white shadow-md flex flex-col h-[calc(100vh-8rem)]"
           style={{ left: sidebarLeft, top: '4rem' }} // 4rem = 64px, matches typical header height
           onMouseEnter={() => setPopoverHovered(true)}
           onMouseLeave={() => setPopoverHovered(false)}

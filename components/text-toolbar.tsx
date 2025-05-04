@@ -223,7 +223,7 @@ export function TextToolbar({
 
       {/* Font Size Controls */}
       <div className="flex items-center">
-        <div className="flex items-stretch rounded-xl overflow-hidden border border-gray-200">
+        <div className="flex items-stretch rounded-lg overflow-hidden border border-gray-200">
           <button
             className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-purple-600 transition flex items-center justify-center border-r border-gray-200"
             onClick={() => handleFontSizeChange(fontSize - 1)}
@@ -283,7 +283,7 @@ export function TextToolbar({
           <Underline className="h-3.5 w-3.5" />
         </button>
         <button 
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
             isStrikethrough && "bg-purple-50 text-purple-600")}
           onClick={handleStrikethroughChange}
         >
@@ -296,28 +296,28 @@ export function TextToolbar({
       {/* Text Alignment */}
       <div className="flex items-center">
         <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
             textAlign === "left" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("left")}
         >
           <AlignLeft className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
             textAlign === "center" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("center")}
         >
           <AlignCenter className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
             textAlign === "right" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("right")}
         >
           <AlignRight className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
             textAlign === "justify" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("justify")}
         >

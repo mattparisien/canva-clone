@@ -6,7 +6,7 @@ import { TextEditor } from "@/components/text-editor"
 import type { Element } from "@/context/canvas-context"
 import { useCanvas } from "@/context/canvas-context"
 import { HANDLE_BASE_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react"
 
 interface ResizableElementProps {
   element: Element
@@ -64,9 +64,40 @@ export function ResizableElement({
   const initialMousePos = useRef({ x: 0, y: 0 })
   const [isAltKeyPressed, setIsAltKeyPressed] = useState(false) // Track Alt/Option key state
 
+  // Ref for hidden measurer div
+  const measurerRef = useRef<HTMLDivElement>(null);
+
+  // Helper to measure text height given current width and styles
+  const measureTextHeight = (content: string, width: number) => {
+    if (!measurerRef.current) return 0;
+    measurerRef.current.style.width = width + 'px';
+    measurerRef.current.innerText = content;
+    return measurerRef.current.scrollHeight;
+  };
+
+  // Add state for handle hover
+  const [handleHover, setHandleHover] = useState({
+    nw: false,
+    ne: false,
+    se: false,
+    sw: false,
+    e: false,
+    w: false,
+  });
+
+  // Helper to get handle background
+  const getHandleBg = (dir: string) => {
+    return (handleHover[dir] || (resizeDirection === dir && isResizing)) ? "var(--handle-hover)" : "#fff";
+  };
+
   // Handle element dragging
-  const handleDragStart = (e: React.MouseEvent) => {
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
+
+    // Clear isNew flag on any interaction
+    if (element.isNew) {
+      clearNewElementFlag(element.id)
+    }
 
     // Check if shift key is pressed for multi-selection
     const isShiftPressed = e.shiftKey
@@ -78,21 +109,21 @@ export function ResizableElement({
       y: e.clientY,
     })
     onDragStart(element)
-  }
+  }, [element, selectElement, onDragStart, clearNewElementFlag])
 
   // Handle element deletion
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     deleteElement(element.id)
-  }
+  }, [deleteElement, element.id])
 
   // Handle mouse enter/leave
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     setIsHovering(true)
     onHover(element.id)
-  }
+  }, [onHover, element.id])
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     if (justFinishedResizing.current) {
       // If we just finished resizing, prevent immediate deselect
       setIsHovering(false)
@@ -100,24 +131,28 @@ export function ResizableElement({
     }
     setIsHovering(false)
     onHover(null)
-  }
+  }, [onHover])
 
   // Handle text height change
-  const handleHeightChange = (newHeight: number) => {
+  const handleHeightChange = useCallback((newHeight: number) => {
     if (element.type === "text") {
       updateElement(element.id, { height: newHeight })
     }
-  }
+  }, [element, updateElement])
 
   // Handle text alignment change
-  const handleTextAlignChange = (align: "left" | "center" | "right" | "justify") => {
+  const handleTextAlignChange = useCallback((align: "left" | "center" | "right" | "justify") => {
     if (element.type !== "text") return
     updateElement(element.id, { textAlign: align })
-  }
+  }, [element, updateElement])
 
   // Handle element resizing
-  const handleResizeStart = (e: React.MouseEvent, direction: string) => {
+  const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
     e.stopPropagation()
+    // Clear isNew flag on any interaction
+    if (element.isNew) {
+      clearNewElementFlag(element.id)
+    }
     setIsResizing(true)
     setResizeDirection(direction)
 
@@ -142,7 +177,7 @@ export function ResizableElement({
       aspectRatio: element.width / element.height,
       fontSize: element.fontSize || 36,
     }
-  }
+  }, [element, clearNewElementFlag])
 
 
   // Find the closest snap point if within threshold
@@ -331,6 +366,7 @@ export function ResizableElement({
         let newX = origX
         let newY = origY
         let newFontSize = origFontSize
+        let widthChanged = false;
 
         // Check if we're resizing from a corner (which requires maintaining aspect ratio)
         const isCornerResize = resizeDirection.length > 1
@@ -434,6 +470,7 @@ export function ResizableElement({
           // For edge handles, allow non-uniform scaling
           if (resizeDirection.includes("e")) {
             newWidth = Math.max(50, origWidth + totalDeltaX)
+            widthChanged = true;
 
             // If Alt/Option key is pressed, make the opposite side resize equally
             if (isAltKeyPressed) {
@@ -443,6 +480,7 @@ export function ResizableElement({
           }
           if (resizeDirection.includes("w")) {
             newWidth = Math.max(50, origWidth - totalDeltaX)
+            widthChanged = true;
 
             // If Alt/Option key is pressed, make the opposite side resize equally
             if (isAltKeyPressed) {
@@ -484,6 +522,22 @@ export function ResizableElement({
           y: newY,
           ...(element.type === "text" ? { fontSize: newFontSize } : {}),
         })
+
+        // If resizing a text element horizontally, measure and update height immediately
+        if (element.type === "text" && widthChanged) {
+          const measuredHeight = measureTextHeight(
+            element.content || '',
+            newWidth
+          );
+          if (measuredHeight && measuredHeight !== newHeight) {
+            updateElement(element.id, { height: measuredHeight });
+          }
+        }
+
+        // If resizing a text element horizontally, force TextEditor re-render to recalc height
+        if (element.type === "text" && widthChanged) {
+          setTextEditorKey((k) => k + 1);
+        }
 
         // Update drag start position for next move
         setDragStart({
@@ -559,10 +613,11 @@ export function ResizableElement({
 
   // Calculate if the element is too small to show all corner handles
   const handleSize = HANDLE_BASE_SIZE / scale;
-  const isTooSmallForAllHandles = element.width < handleSize * 2.2 || element.height < handleSize * 2.2;
+  // Increase the multiplier so handles disappear sooner (avoid overlap when zoomed out)
+  const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5;
 
   // Render the appropriate element based on type
-  const renderElement = () => {
+  const renderElement = useCallback(() => {
     switch (element.type) {
       case "text":
         return (
@@ -596,99 +651,65 @@ export function ResizableElement({
       default:
         return null
     }
-  }
+  }, [element, isSelected, textEditorKey, updateElement, clearNewElementFlag, handleHeightChange, handleTextAlignChange])
 
   return (
-    <div
-      ref={elementRef}
-      className={`absolute${isSelected ? " outline outline-primary" : isHovering ? " outline outline-primary" : ""}`}
-      style={{
-        left: element.x,
-        top: element.y,
-        width: element.width,
-        height: element.height,
-        cursor: isDragging ? "grabbing" : "move",
-        transform: "none",
-        outlineWidth: (isSelected || isHovering) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
-        outlineStyle: (isSelected || isHovering) ? "solid" : undefined,
-        // Let Tailwind class handle outline color
-      }}
-      onMouseDown={handleDragStart}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {renderElement()}
+    <>
+      {/* Hidden measurer for text height calculation */}
+      {element.type === 'text' && (
+        <div
+          ref={measurerRef}
+          style={{
+            position: 'absolute',
+            visibility: 'hidden',
+            zIndex: -1,
+            pointerEvents: 'none',
+            whiteSpace: 'normal',
+            lineHeight: 1.2,
+            wordBreak: 'break-word',
+            overflow: 'auto',
+            fontSize: element.fontSize,
+            fontFamily: element.fontFamily,
+            fontWeight: element.isBold ? 'bold' : 'normal',
+            fontStyle: element.isItalic ? 'italic' : 'normal',
+            textDecoration: `${element.isUnderlined ? 'underline' : ''} ${element.isStrikethrough ? 'line-through' : ''}`.trim() || 'none',
+            textAlign: element.textAlign || 'center',
+            padding: 0,
+            boxSizing: 'border-box',
+            minHeight: '1em',
+            left: 0,
+            top: 0,
+            width: element.width,
+            // Any other styles needed to match TextEditor
+          }}
+        >
+          {element.content}
+        </div>
+      )}
+      <div
+        ref={elementRef}
+        className={`absolute${isSelected ? " outline outline-primary" : isHovering ? " outline outline-primary" : ""}`}
+        style={{
+          left: element.x,
+          top: element.y,
+          width: element.width,
+          height: element.height,
+          cursor: isDragging ? "grabbing" : "move",
+          transform: "none",
+          outlineWidth: (isSelected || isHovering) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
+          outlineStyle: (isSelected || isHovering) ? "solid" : undefined,
+          // Let Tailwind class handle outline color
+        }}
+        onMouseDown={handleDragStart}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {renderElement()}
 
-      {isSelected && (
-        <>
-          {/* Top-left corner handle - always shown */}
-          <div
-            className="absolute cursor-nwse-resize bg-white shadow-md group/handle"
-            style={{
-              width: `${handleSize}px`,
-              height: `${handleSize}px`,
-              borderRadius: "50%",
-              boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
-              border: "1px solid var(--handle-border)",
-              zIndex: 10,
-              transition: "background 0.15s",
-              top: 0,
-              left: 0,
-              transform: `translate(-50%, -50%) scale(${1})`
-            }}
-            onMouseDown={(e) => handleResizeStart(e, "nw")}
-            onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "#fff"
-              e.currentTarget.style.border = "1px solid var(--handle-border)"
-            }}
-          />
-
-          {/* These corner handles only show when element is big enough */}
-          {!isTooSmallForAllHandles && (
-            <>
-              <div
-                className="absolute cursor-nesw-resize bg-white shadow-md group/handle"
-                style={{
-                  width: `${handleSize}px`,
-                  height: `${handleSize}px`,
-                  borderRadius: "50%",
-                  boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
-                  border: "1px solid var(--handle-border)",
-                  zIndex: 10,
-                  transition: "background 0.15s",
-                  top: 0,
-                  right: 0,
-                  transform: `translate(50%, -50%) scale(${1})`
-                }}
-                onMouseDown={(e) => handleResizeStart(e, "ne")}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = "#fff"
-                  e.currentTarget.style.border = "1px solid var(--handle-border)"
-                }}
-              />
-              <div
-                className="absolute cursor-nesw-resize bg-white shadow-md group/handle"
-                style={{
-                  width: `${handleSize}px`,
-                  height: `${handleSize}px`,
-                  borderRadius: "50%",
-                  boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
-                  border: "1px solid var(--handle-border)",
-                  zIndex: 10,
-                  transition: "background 0.15s",
-                  bottom: 0,
-                  left: 0,
-                  transform: `translate(-50%, 50%) scale(${1})`
-                }}
-                onMouseDown={(e) => handleResizeStart(e, "sw")}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = "#fff"
-                  e.currentTarget.style.border = "1px solid var(--handle-border)"
-                }}
-              />
+        {isSelected && (
+          <>
+            {/* Top-left corner handle - always shown unless resizing another handle */}
+            {(!isResizing || resizeDirection === "nw") && (
               <div
                 className="absolute cursor-nwse-resize bg-white shadow-md group/handle"
                 style={{
@@ -699,119 +720,177 @@ export function ResizableElement({
                   border: "1px solid var(--handle-border)",
                   zIndex: 10,
                   transition: "background 0.15s",
-                  bottom: 0,
-                  right: 0,
-                  transform: `translate(50%, 50%) scale(${1})`
+                  top: 0,
+                  left: 0,
+                  transform: `translate(-50%, -50%) scale(${1})`,
+                  background: getHandleBg("nw"),
                 }}
-                onMouseDown={(e) => handleResizeStart(e, "se")}
-                onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = "#fff"
-                  e.currentTarget.style.border = "1px solid var(--handle-border)"
-                }}
+                onMouseDown={(e) => handleResizeStart(e, "nw")}
+                onMouseEnter={() => setHandleHover(h => ({ ...h, nw: true }))}
+                onMouseLeave={() => setHandleHover(h => ({ ...h, nw: false }))}
               />
-            </>
-          )}
+            )}
 
-          {/* Right handle - always shown */}
-          <div
-            className="absolute cursor-ew-resize bg-white shadow-md group/handle"
-            style={{
-              width: `${handleSize}px`,
-              height: `${handleSize}px`,
-              borderRadius: "50%",
-              boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
-              border: "1px solid var(--handle-border)",
-              zIndex: 10,
-              transition: "background 0.15s",
-              background: rightBorderHover ? "var(--handle-hover)" : "#fff",
-              right: 0,
-              top: "50%",
-              transform: `translate(50%, -50%) scale(${1})`
-            }}
-            onMouseDown={(e) => handleResizeStart(e, "e")}
-            onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = rightBorderHover ? "var(--handle-hover)" : "#fff"
-              e.currentTarget.style.border = "1px solid var(--handle-border)"
-            }}
-          />
+            {/* These corner handles only show when element is big enough */}
+            {!isTooSmallForAllHandles && (
+              <>
+                {(!isResizing || resizeDirection === "ne") && (
+                  <div
+                    className="absolute cursor-nesw-resize bg-white shadow-md group/handle"
+                    style={{
+                      width: `${handleSize}px`,
+                      height: `${handleSize}px`,
+                      borderRadius: "50%",
+                      boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+                      border: "1px solid var(--handle-border)",
+                      zIndex: 10,
+                      transition: "background 0.15s",
+                      top: 0,
+                      right: 0,
+                      transform: `translate(50%, -50%) scale(${1})`,
+                      background: getHandleBg("ne"),
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, "ne")}
+                    onMouseEnter={() => setHandleHover(h => ({ ...h, ne: true }))}
+                    onMouseLeave={() => setHandleHover(h => ({ ...h, ne: false }))}
+                  />
+                )}
+                {(!isResizing || resizeDirection === "sw") && (
+                  <div
+                    className="absolute cursor-nesw-resize bg-white shadow-md group/handle"
+                    style={{
+                      width: `${handleSize}px`,
+                      height: `${handleSize}px`,
+                      borderRadius: "50%",
+                      boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+                      border: "1px solid var(--handle-border)",
+                      zIndex: 10,
+                      transition: "background 0.15s",
+                      bottom: 0,
+                      left: 0,
+                      transform: `translate(-50%, 50%) scale(${1})`,
+                      background: getHandleBg("sw"),
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, "sw")}
+                    onMouseEnter={() => setHandleHover(h => ({ ...h, sw: true }))}
+                    onMouseLeave={() => setHandleHover(h => ({ ...h, sw: false }))}
+                  />
+                )}
+                {(!isResizing || resizeDirection === "se") && (
+                  <div
+                    className="absolute cursor-nwse-resize bg-white shadow-md group/handle"
+                    style={{
+                      width: `${handleSize}px`,
+                      height: `${handleSize}px`,
+                      borderRadius: "50%",
+                      boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+                      border: "1px solid var(--handle-border)",
+                      zIndex: 10,
+                      transition: "background 0.15s",
+                      bottom: 0,
+                      right: 0,
+                      transform: `translate(50%, 50%) scale(${1})`,
+                      background: getHandleBg("se"),
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, "se")}
+                    onMouseEnter={() => setHandleHover(h => ({ ...h, se: true }))}
+                    onMouseLeave={() => setHandleHover(h => ({ ...h, se: false }))}
+                  />
+                )}
+              </>
+            )}
 
-          {/* Left handle - only shown when element is big enough */}
-          {!isTooSmallForAllHandles && (
+            {/* Right handle - always shown unless resizing another handle */}
+            {(!isResizing || resizeDirection === "e") && (
+              <div
+                className="absolute cursor-ew-resize bg-white shadow-md group/handle"
+                style={{
+                  width: `${handleSize * 0.7}px`,
+                  height: `${Math.min(handleSize * 2.2, element.height)}px`,
+                  borderRadius: `${handleSize * 0.35}px`,
+                  boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+                  border: "1px solid var(--handle-border)",
+                  zIndex: 10,
+                  transition: "background 0.15s",
+                  background: (rightBorderHover || getHandleBg("e")) === "var(--handle-hover)" ? "var(--handle-hover)" : "#fff",
+                  right: 0,
+                  top: `calc(50% + ${(element.height < handleSize * 2.2 ? (element.height - handleSize * 2.2) / 2 : 0)}px)`,
+                  transform: `translate(50%, -50%) scale(${1})`
+                }}
+                onMouseDown={(e) => handleResizeStart(e, "e")}
+                onMouseEnter={() => setHandleHover(h => ({ ...h, e: true }))}
+                onMouseLeave={() => setHandleHover(h => ({ ...h, e: false }))}
+              />
+            )}
+
+            {/* Left handle - only shown when element is big enough and not resizing another handle */}
+            {!isTooSmallForAllHandles && (!isResizing || resizeDirection === "w") && (
+              <div
+                className="absolute cursor-ew-resize bg-white shadow-md group/handle"
+                style={{
+                  width: `${handleSize * 0.7}px`,
+                  height: `${Math.min(handleSize * 2.2, element.height)}px`,
+                  borderRadius: `${handleSize * 0.35}px`,
+                  boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+                  border: "1px solid var(--handle-border)",
+                  zIndex: 10,
+                  transition: "background 0.15s",
+                  background: (leftBorderHover || getHandleBg("w")) === "var(--handle-hover)" ? "var(--handle-hover)" : "#fff",
+                  left: 0,
+                  top: `calc(50% + ${(element.height < handleSize * 2.2 ? (element.height - handleSize * 2.2) / 2 : 0)}px)`,
+                  transform: `translate(-50%, -50%) scale(${1})`
+                }}
+                onMouseDown={(e) => handleResizeStart(e, "w")}
+                onMouseEnter={() => setHandleHover(h => ({ ...h, w: true }))}
+                onMouseLeave={() => setHandleHover(h => ({ ...h, w: false }))}
+              />
+            )}
+
+            {/* Wide invisible resize zones for left/right borders - always shown */}
             <div
-              className="absolute cursor-ew-resize bg-white shadow-md group/handle"
+              className="absolute top-0 left-0 -translate-x-1/2 h-full"
               style={{
-                width: `${handleSize}px`,
-                height: `${handleSize}px`,
-                borderRadius: "50%",
-                boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
-                border: "1px solid var(--handle-border)",
-                zIndex: 10,
-                transition: "background 0.15s",
-                background: leftBorderHover ? "var(--handle-hover)" : "#fff",
-                left: 0,
-                top: "50%",
-                transform: `translate(-50%, -50%) scale(${1})`
+                width: 40, // 16px wide zone
+                cursor: "ew-resize",
+                zIndex: 5,
+                background: "transparent"
               }}
               onMouseDown={(e) => handleResizeStart(e, "w")}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--handle-hover)"}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = leftBorderHover ? "var(--handle-hover)" : "#fff"
-                e.currentTarget.style.border = "1px solid var(--handle-border)"
+              onMouseEnter={() => {
+                if (!isResizing && !leftBorderHover) {
+                  setLeftBorderHover(true)
+                }
+              }}
+              onMouseLeave={() => {
+                if (!isResizing && leftBorderHover) {
+                  setLeftBorderHover(false)
+                }
               }}
             />
-          )}
-
-          {/* Wide invisible resize zones for left/right borders - always shown */}
-          <div
-            className="absolute top-0 left-0 -translate-x-1/2 h-full"
-            style={{
-              width: 40, // 16px wide zone
-              cursor: "ew-resize",
-              zIndex: 5,
-              background: "transparent"
-            }}
-            onMouseDown={(e) => handleResizeStart(e, "w")}
-            // onMouseUp={(e) => {
-            //   if (leftBorderHover && !isHovering) {
-            //     setLeftBorderHover(false)
-            //   }
-            // }}
-            onMouseEnter={() => {
-              if (!isResizing && !leftBorderHover) {
-                setLeftBorderHover(true)
-              }
-            }}
-            onMouseLeave={() => {
-              if (!isResizing && leftBorderHover) {
-                setLeftBorderHover(false)
-              }
-            }}
-          />
-          <div
-            className="absolute top-0 right-0 translate-x-1/2 h-full"
-            style={{
-              width: 40, // 16px wide zone
-              cursor: "ew-resize",
-              zIndex: 5,
-              background: "transparent"
-            }}
-            onMouseUp={(e) => { console.log("Mouse up") }}
-            onMouseDown={(e) => handleResizeStart(e, "e")}
-            onMouseEnter={() => {
-              if (!isResizing && !rightBorderHover) {
-                setRightBorderHover(true)
-              }
-            }}
-            onMouseLeave={() => {
-              if (!isResizing && rightBorderHover) {
-                setRightBorderHover(false)
-              }
-            }}
-          />
-        </>
-      )}
-    </div>
+            <div
+              className="absolute top-0 right-0 translate-x-1/2 h-full"
+              style={{
+                width: 40, // 16px wide zone
+                cursor: "ew-resize",
+                zIndex: 5,
+                background: "transparent"
+              }}
+              onMouseUp={(e) => { console.log("Mouse up") }}
+              onMouseDown={(e) => handleResizeStart(e, "e")}
+              onMouseEnter={() => {
+                if (!isResizing && !rightBorderHover) {
+                  setRightBorderHover(true)
+                }
+              }}
+              onMouseLeave={() => {
+                if (!isResizing && rightBorderHover) {
+                  setRightBorderHover(false)
+                }
+              }}
+            />
+          </>
+        )}
+      </div>
+    </>
   )
 }
