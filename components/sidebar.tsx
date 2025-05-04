@@ -48,21 +48,18 @@ export function Sidebar() {
 
   // Update the handleAddText function to use a larger default font size
   const handleAddText = (fontSize = 36, content = "Add your text here", fontWeight = "normal") => {
-    // Estimate width based on content and font size
-    const estimatedWidth = estimateTextWidth(content, fontSize)
-
-    // Height is typically 1.2-1.5 times the font size for line height
-    const height = fontSize * 1.2
-
+    // Use the proper text measurement function from our utils
     addElement({
       type: "text",
       x: 0, // Will be centered by the context
       y: 0, // Will be centered by the context
-      width: estimatedWidth,
-      height,
+      width: 0, // Will be calculated by the factory using measureTextWidth
+      height: 0, // Will be calculated by the factory
       content,
       fontSize,
       fontFamily: "Inter",
+      // textAlign is not needed as it will use DEFAULT_TEXT_ALIGN
+      isBold: fontWeight === "bold"
     })
   }
 

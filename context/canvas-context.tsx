@@ -1,207 +1,89 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react"
-
-export type ElementType = "text"
-export type CanvasSize = {
-  name: string
-  width: number
-  height: number
-  category?: string
-}
-
-export interface Element {
-  id: string
-  type: ElementType
-  x: number
-  y: number
-  width: number
-  height: number
-  content?: string
-  fontSize?: number
-  fontFamily?: string
-  textAlign?: "left" | "center" | "right" | "justify"
-  isNew?: boolean // Track if element was just created
-  isBold?: boolean // Bold formatting
-  isItalic?: boolean // Italic formatting
-  isUnderlined?: boolean // Underline formatting
-  isStrikethrough?: boolean // Strikethrough formatting
-}
-
-// Define the types of actions that can be performed
-export type HistoryAction =
-  | { type: "ADD_ELEMENT"; element: Element }
-  | { type: "UPDATE_ELEMENT"; id: string; before: Partial<Element>; after: Partial<Element> }
-  | { type: "DELETE_ELEMENT"; element: Element }
-  | { type: "CHANGE_CANVAS_SIZE"; before: CanvasSize; after: CanvasSize }
-
-interface CanvasContextType {
-  elements: Element[]
-  selectedElement: Element | null
-  selectedElementIds: string[] // New field for multi-selection
-  isCanvasSelected: boolean // New field for canvas selection
-  canvasSize: CanvasSize
-  availableSizes: CanvasSize[]
-  sizeCategories: string[]
-  addElement: (element: Omit<Element, "id">) => void
-  updateElement: (id: string, updates: Partial<Element>) => void
-  updateMultipleElements: (updates: Partial<Element> | ((element: Element) => Partial<Element>)) => void // New method for updating multiple elements
-  deleteElement: (id: string) => void
-  deleteSelectedElements: () => void // New method for deleting multiple elements
-  selectElement: (id: string | null, addToSelection?: boolean) => void // Modified for multi-selection
-  selectMultipleElements: (ids: string[]) => void // New method for selecting multiple elements
-  selectCanvas: (select: boolean) => void // New method for selecting the canvas
-  clearSelection: () => void // New method to clear selection
-  changeCanvasSize: (size: CanvasSize) => void
-  fitCanvasToView: (containerWidth: number, containerHeight: number) => number
-  clearNewElementFlag: (id: string) => void
-  scaleElement: (element: Element, scaleFactor: number) => Element
-  canUndo: boolean
-  canRedo: boolean
-  undo: () => void
-  redo: () => void
-  isElementSelected: (id: string) => boolean // New helper method
-}
+import { Element, CanvasContextType, CanvasSize } from "../types/canvas.types"
+import { 
+  DEFAULT_TEXT_FONT_SIZE_RATIO, 
+  AVAILABLE_CANVAS_SIZES, 
+  DEFAULT_CANVAS_SIZE 
+} from "../constants/canvas-constants"
+import { 
+  measureTextWidth, 
+  scaleElement as scaleElementUtil, 
+  fitCanvasToView as fitCanvasToViewUtil 
+} from "../utils/canvas-utils"
+import { useCanvasHistory } from "../hooks/use-canvas-history"
+import { createTextElement } from "../factories/element-factories"
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined)
-
-// Default font size as a percentage of canvas width
-const DEFAULT_TEXT_FONT_SIZE_RATIO = 0.09 // 4% of canvas width
 
 export function CanvasProvider({ children }: { children: ReactNode }) {
   const [elements, setElements] = useState<Element[]>([])
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
-  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]) // New state for multi-selection
-  const [isCanvasSelected, setIsCanvasSelected] = useState<boolean>(false) // New state for canvas selection
-
-  // History stacks for undo/redo
-  const [history, setHistory] = useState<HistoryAction[]>([])
-  const [redoStack, setRedoStack] = useState<HistoryAction[]>([])
-
-  // Define available canvas sizes with categories
-  const availableSizes: CanvasSize[] = [
-    // Social Media - Instagram
-    { name: "Instagram Post", width: 1080, height: 1080, category: "Instagram" },
-    { name: "Instagram Story", width: 1080, height: 1920, category: "Instagram" },
-    { name: "Instagram Reels", width: 1080, height: 1920, category: "Instagram" },
-    { name: "Instagram Profile", width: 320, height: 320, category: "Instagram" },
-
-    // Social Media - Facebook
-    { name: "Facebook Post", width: 1200, height: 630, category: "Facebook" },
-    { name: "Facebook Cover", width: 851, height: 315, category: "Facebook" },
-    { name: "Facebook Story", width: 1080, height: 1920, category: "Facebook" },
-    { name: "Facebook Ad", width: 1200, height: 628, category: "Facebook" },
-
-    // Social Media - Twitter/X
-    { name: "Twitter Post", width: 1200, height: 675, category: "Twitter" },
-    { name: "Twitter Header", width: 1500, height: 500, category: "Twitter" },
-    { name: "Twitter Profile", width: 400, height: 400, category: "Twitter" },
-
-    // Social Media - LinkedIn
-    { name: "LinkedIn Post", width: 1200, height: 627, category: "LinkedIn" },
-    { name: "LinkedIn Cover", width: 1584, height: 396, category: "LinkedIn" },
-    { name: "LinkedIn Profile", width: 400, height: 400, category: "LinkedIn" },
-
-    // Social Media - YouTube
-    { name: "YouTube Thumbnail", width: 1280, height: 720, category: "YouTube" },
-    { name: "YouTube Channel Art", width: 2560, height: 1440, category: "YouTube" },
-
-    // Social Media - TikTok
-    { name: "TikTok Video", width: 1080, height: 1920, category: "TikTok" },
-    { name: "TikTok Profile", width: 200, height: 200, category: "TikTok" },
-
-    // Print
-    { name: "A4", width: 794, height: 1123, category: "Print" },
-    { name: "A5", width: 559, height: 794, category: "Print" },
-    { name: "US Letter", width: 816, height: 1056, category: "Print" },
-    { name: "US Legal", width: 816, height: 1344, category: "Print" },
-
-    // Presentation
-    { name: "Presentation 16:9", width: 1280, height: 720, category: "Presentation" },
-    { name: "Presentation 4:3", width: 1024, height: 768, category: "Presentation" },
-
-    // Custom
-    { name: "Square", width: 1000, height: 1000, category: "Custom" },
-    { name: "Landscape", width: 1280, height: 720, category: "Custom" },
-    { name: "Portrait", width: 720, height: 1280, category: "Custom" },
-  ]
+  const [selectedElementIds, setSelectedElementIds] = useState<string[]>([])
+  const [isCanvasSelected, setIsCanvasSelected] = useState<boolean>(false)
+  const [canvasSize, setCanvasSize] = useState<CanvasSize>(DEFAULT_CANVAS_SIZE)
 
   // Extract unique categories
-  const sizeCategories = Array.from(new Set(availableSizes.map((size) => size.category || "Other")))
-
-  const [canvasSize, setCanvasSize] = useState<CanvasSize>(availableSizes.find((size) => size.name === "Presentation 16:9") || availableSizes[0])
-
-  // Helper function to add an action to history
-  const addToHistory = useCallback((action: HistoryAction) => {
-    setHistory((prev) => [...prev, action])
-    // Clear redo stack when a new action is performed
-    setRedoStack([])
-  }, [])
-
-  const measureTextWidth = (text: string, fontSize: number, fontFamily: string = "Inter") => {
-    if (typeof window === "undefined") return 200;
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    if (!context) return 200;
-    context.font = `${fontSize}px ${fontFamily}`;
-    const metrics = context.measureText(text);
-    // Add a small buffer for cursor/caret and padding
-    return Math.ceil(metrics.width) + 8;
-  };
+  const sizeCategories = Array.from(
+    new Set(AVAILABLE_CANVAS_SIZES.map((size) => size.category || "Other"))
+  )
+  
+  const {
+    addToHistory,
+    undo: historyUndo,
+    redo: historyRedo,
+    canUndo,
+    canRedo
+  } = useCanvasHistory()
 
   const addElement = useCallback(
-    (element: Omit<Element, "id">) => {
-      let width = element.width || 200;
-      let height = element.height || 50;
-      let fontSize = element.fontSize;
-      let fontFamily = element.fontFamily || "Inter";
-
-      if (element.type === "text") {
-        fontSize = fontSize || Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO);
-        fontFamily = fontFamily || "Inter";
+    (elementData: Omit<Element, "id">) => {
+      let newElement: Element;
+      
+      // Create element with the appropriate factory based on type
+      if (elementData.type === "text") {
+        const textElement = createTextElement(
+          elementData,
+          canvasSize.width,
+          canvasSize.height
+        )
+        
+        newElement = {
+          ...textElement,
+          id: `element-${Date.now()}`
+        }
+      } else {
+        // Future element types would be handled here
+        newElement = {
+          ...elementData,
+          id: `element-${Date.now()}`,
+          isNew: true
+        }
       }
-
-      if (element.type === "text" && element.content) {
-        width = measureTextWidth(element.content, fontSize || 36, fontFamily);
-        height = (fontSize || 36) * 1.2;
-      }
-
-      const centeredX = (canvasSize.width - width) / 2;
-      const centeredY = (canvasSize.height - height) / 2;
-
-      const newElement = {
-        ...element,
-        width,
-        height,
-        fontSize,
-        fontFamily,
-        x: centeredX,
-        y: centeredY,
-        id: `element-${Date.now()}`,
-        isNew: true,
-      };
 
       setElements((prev) => {
-        const newElements = [...prev, newElement];
+        const newElements = [...prev, newElement]
         addToHistory({
           type: "ADD_ELEMENT",
           element: newElement,
-        });
-        return newElements;
-      });
+        })
+        return newElements
+      })
 
       // Deselect canvas when a new element is created
-      setIsCanvasSelected(false);
+      setIsCanvasSelected(false)
       
       // Set the new element as selected
-      setSelectedElement(newElement);
-      setSelectedElementIds([newElement.id]);
+      setSelectedElement(newElement)
+      setSelectedElementIds([newElement.id])
     },
-    [canvasSize, addToHistory],
-  );
+    [canvasSize, addToHistory]
+  )
 
   const updateElement = useCallback(
     (id: string, updates: Partial<Element>) => {
+      // ...existing code...
       setElements((prev) => {
         const element = prev.find((el) => el.id === id)
         if (!element) return prev
@@ -231,7 +113,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         setSelectedElement((prev) => (prev ? { ...prev, ...updates } : null))
       }
     },
-    [selectedElement, addToHistory],
+    [selectedElement, addToHistory]
   )
 
   const updateMultipleElements = useCallback(
@@ -269,7 +151,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         return updatedElements;
       });
     },
-    [selectedElementIds, addToHistory],
+    [selectedElementIds, addToHistory]
   )
 
   const deleteElement = useCallback(
@@ -291,7 +173,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         setSelectedElement(null)
       }
     },
-    [selectedElement, addToHistory],
+    [selectedElement, addToHistory]
   )
 
   const deleteSelectedElements = useCallback(() => {
@@ -329,7 +211,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         setSelectedElementIds([id])
       }
     },
-    [elements],
+    [elements]
   )
 
   const selectMultipleElements = useCallback((ids: string[]) => {
@@ -348,7 +230,6 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
   const changeCanvasSize = useCallback(
     (size: CanvasSize) => {
-
       // Add to history
       addToHistory({
         type: "CHANGE_CANVAS_SIZE",
@@ -358,23 +239,19 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
       setCanvasSize(size)
     },
-    [canvasSize, addToHistory],
+    [canvasSize, addToHistory]
   )
 
   const fitCanvasToView = useCallback(
     (containerWidth: number, containerHeight: number) => {
-      // Account for padding and UI elements
-      const availableWidth = containerWidth - 100 // 50px padding on each side
-      const availableHeight = containerHeight - 160 // Account for top and bottom controls + padding
-
-      const widthRatio = availableWidth / canvasSize.width
-      const heightRatio = availableHeight / canvasSize.height
-
-      // Use the smaller ratio to ensure the canvas fits entirely
-      const fitScale = Math.min(widthRatio, heightRatio, 1) // Cap at 100%
-      return Math.round(fitScale * 100) // Round to integer
+      return fitCanvasToViewUtil(
+        containerWidth, 
+        containerHeight, 
+        canvasSize.width, 
+        canvasSize.height
+      )
     },
-    [canvasSize.width, canvasSize.height],
+    [canvasSize.width, canvasSize.height]
   )
 
   const clearNewElementFlag = useCallback(
@@ -385,99 +262,40 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         setSelectedElement((prev) => (prev ? { ...prev, isNew: false } : null))
       }
     },
-    [selectedElement],
+    [selectedElement]
   )
 
   const scaleElement = useCallback((element: Element, scaleFactor: number) => {
-    if (element.type === "text" && element.fontSize) {
-      const newFontSize = Math.max(8, Math.round((element.fontSize || 36) * scaleFactor))
-      return {
-        ...element,
-        fontSize: newFontSize,
-      }
-    }
-    return element
+    return scaleElementUtil(element, scaleFactor)
   }, [])
 
-  // Undo functionality
+  // Undo/redo wrapper methods that use the history hook
   const undo = useCallback(() => {
-    if (history.length === 0) return
+    historyUndo(
+      elements,
+      setElements,
+      selectedElement,
+      setSelectedElement,
+      setCanvasSize
+    )
+  }, [elements, historyUndo, selectedElement])
 
-    // Get the last action from history
-    const lastAction = history[history.length - 1]
-
-    // Remove the last action from history
-    setHistory((prev) => prev.slice(0, -1))
-
-    // Add to redo stack
-    setRedoStack((prev) => [...prev, lastAction])
-
-    // Apply the reverse of the action
-    switch (lastAction.type) {
-      case "ADD_ELEMENT":
-        setElements((prev) => prev.filter((el) => el.id !== lastAction.element.id))
-        if (selectedElement?.id === lastAction.element.id) {
-          setSelectedElement(null)
-        }
-        break
-
-      case "UPDATE_ELEMENT":
-        setElements((prev) => prev.map((el) => (el.id === lastAction.id ? { ...el, ...lastAction.before } : el)))
-        if (selectedElement?.id === lastAction.id) {
-          setSelectedElement((prev) => (prev ? { ...prev, ...lastAction.before } : null))
-        }
-        break
-
-      case "DELETE_ELEMENT":
-        setElements((prev) => [...prev, lastAction.element])
-        break
-
-      case "CHANGE_CANVAS_SIZE":
-        setCanvasSize(lastAction.before)
-        break
-    }
-  }, [history, selectedElement])
-
-  // Redo functionality
   const redo = useCallback(() => {
-    if (redoStack.length === 0) return
+    historyRedo(
+      elements,
+      setElements,
+      selectedElement,
+      setSelectedElement,
+      setCanvasSize
+    )
+  }, [elements, historyRedo, selectedElement])
 
-    // Get the last action from redo stack
-    const nextAction = redoStack[redoStack.length - 1]
+  const isElementSelected = useCallback(
+    (id: string) => selectedElementIds.includes(id),
+    [selectedElementIds]
+  )
 
-    // Remove the action from redo stack
-    setRedoStack((prev) => prev.slice(0, -1))
-
-    // Add back to history
-    setHistory((prev) => [...prev, nextAction])
-
-    // Apply the action
-    switch (nextAction.type) {
-      case "ADD_ELEMENT":
-        setElements((prev) => [...prev, nextAction.element])
-        break
-
-      case "UPDATE_ELEMENT":
-        setElements((prev) => prev.map((el) => (el.id === nextAction.id ? { ...el, ...nextAction.after } : el)))
-        if (selectedElement?.id === nextAction.id) {
-          setSelectedElement((prev) => (prev ? { ...prev, ...nextAction.after } : null))
-        }
-        break
-
-      case "DELETE_ELEMENT":
-        setElements((prev) => prev.filter((el) => el.id !== nextAction.element.id))
-        if (selectedElement?.id === nextAction.element.id) {
-          setSelectedElement(null)
-        }
-        break
-
-      case "CHANGE_CANVAS_SIZE":
-        setCanvasSize(nextAction.after)
-        break
-    }
-  }, [redoStack, selectedElement])
-
-  // Keyboard shortcuts for undo/redo
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check if the target is an input or textarea or contentEditable
@@ -506,13 +324,11 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         e.preventDefault()
         addElement({
           type: "text",
-          x: 0,
-          y: 0,
-          width: 200,
-          height: 44,
           content: "Add your text here",
           fontSize: Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO),
           fontFamily: "Inter",
+          // Remove hardcoded width and height to let the factory determine them
+          // Remove x and y to let the factory calculate centered positioning
         })
       }
 
@@ -533,13 +349,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [undo, redo, addElement, deleteElement, deleteSelectedElements, selectedElement, selectedElementIds])
-
-  const isElementSelected = useCallback(
-    (id: string) => selectedElementIds.includes(id),
-    [selectedElementIds],
-  )
-
+  }, [undo, redo, addElement, deleteElement, deleteSelectedElements, selectedElement, selectedElementIds, canvasSize.width])
 
   return (
     <CanvasContext.Provider
@@ -549,7 +359,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         selectedElementIds,
         isCanvasSelected,
         canvasSize,
-        availableSizes,
+        availableSizes: AVAILABLE_CANVAS_SIZES,
         sizeCategories,
         addElement,
         updateElement,
@@ -564,8 +374,8 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         fitCanvasToView,
         clearNewElementFlag,
         scaleElement,
-        canUndo: history.length > 0,
-        canRedo: redoStack.length > 0,
+        canUndo,
+        canRedo,
         undo,
         redo,
         isElementSelected,
