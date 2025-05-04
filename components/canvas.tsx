@@ -95,15 +95,20 @@ export function Canvas({
    * ------------------------------------------------------------------ */
   const handleCanvasClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (e.target === canvasRef.current) {
-      // Select the canvas if target is the canvas itself
-      selectCanvas(true);
+      // Toggle canvas selection if it's already selected
+      if (isCanvasSelected) {
+        selectCanvas(false);
+      } else {
+        // Select the canvas if target is the canvas itself
+        selectCanvas(true);
+      }
       
       // Clear element selection
       if (!e.shiftKey) {
         selectElement(null);
       }
     }
-  }, [selectElement, selectCanvas, canvasRef])
+  }, [selectElement, selectCanvas, canvasRef, isCanvasSelected])
 
   /* ------------------------------------------------------------------
    * Drag handlers (logical units)
