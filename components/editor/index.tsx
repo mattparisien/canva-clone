@@ -16,7 +16,24 @@ export function Editor() {
     // Reference for the editor container
     const editorContainerRef = useRef<HTMLDivElement>(null)
     const [zoom, setZoom] = useState(100) // 25 – 200 %
-    const { canvasSize, selectedElement, updateElement } = useCanvas();
+    const { 
+        canvasSize, 
+        selectedElement, 
+        updateElement, 
+        selectElement, 
+        clearSelection, 
+        selectCanvas 
+    } = useCanvas();
+
+    // Handle clicks outside the canvas to deselect everything
+    const handleEditorClick = useCallback((e: React.MouseEvent) => {
+        // Check if the click target is not the canvas or any of its children
+        const canvasElement = document.querySelector('.canvas-wrapper')
+        if (canvasElement && !canvasElement.contains(e.target as Node)) {
+            // Clear all selections - elements and canvas
+            clearSelection();
+        }
+    }, [clearSelection]);
 
     // Zoom handler that will be passed to Canvas
     const handleZoomChange = useCallback((newZoom: number) => {
@@ -60,7 +77,7 @@ export function Editor() {
     }, [selectedElement, updateElement]);
 
     return (
-        <div className="flex flex-1 overflow-hidden flex-col relative" ref={editorContainerRef}>
+        <div className="flex flex-1 overflow-hidden flex-col relative" ref={editorContainerRef} onClick={handleEditorClick}>
             {/* Main canvas area with wheel handler */}
             <div className="flex-1 overflow-hidden relative" onWheel={e => {
                 if (e.ctrlKey || e.metaKey) {

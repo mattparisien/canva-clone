@@ -20,6 +20,8 @@ export function Canvas({
     selectedElement,
     selectedElementIds,
     selectElement,
+    isCanvasSelected,
+    selectCanvas,
     canvasSize,
     availableSizes,
     sizeCategories,
@@ -44,7 +46,6 @@ export function Canvas({
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isInitialRender, setIsInitialRender] = useState(true)
 
-  // Define min and max zoom levels
 
   /* ------------------------------------------------------------------
    * Helpers
@@ -98,12 +99,15 @@ export function Canvas({
    * ------------------------------------------------------------------ */
   const handleCanvasClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (e.target === canvasRef.current) {
-      // Only clear selection if shift key is not pressed
+      // Select the canvas if target is the canvas itself
+      selectCanvas(true);
+      
+      // Clear element selection
       if (!e.shiftKey) {
-        selectElement(null)
+        selectElement(null);
       }
     }
-  }, [selectElement, canvasRef])
+  }, [selectElement, selectCanvas, canvasRef])
 
   /* ------------------------------------------------------------------
    * Drag handlers (logical units)
@@ -149,7 +153,7 @@ export function Canvas({
 
   // Handle element hover
   const handleElementHover = useCallback((id: string | null) => {
-    // No longer needed
+    setIsHoveringChild(id !== null)
   }, [])
 
   // Filter sizes based on search term and active category
@@ -162,23 +166,34 @@ export function Canvas({
   /* ------------------------------------------------------------------
    * Render
    * ------------------------------------------------------------------ */
+  const [isCanvasHovering, setIsCanvasHovering] = useState(false)
+  
+  // Track when we're hovering over a child element to prevent canvas border
+  const [isHoveringChild, setIsHoveringChild] = useState(false)
+
+  // Only show border when hovering over canvas but not over its children
+  const showCanvasBorder = isCanvasHovering && !isHoveringChild
+
   return (
     <div className="flex h-full w-full items-center justify-center overflow-auto">
       <div
         ref={scaleWrapperRef}
         style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
-        className="flex items-center justify-center p-12"
+        className="flex items-center justify-center p-12 canvas-wrapper"
       >
         <div
           ref={canvasRef}
-          className={`relative bg-white overflow-hidden rounded-2xl shadow-2xl border border-gray-200`}
+          className={`relative bg-white overflow-hidden ${showCanvasBorder ? "outline outline-primary" : ""} ${isCanvasSelected ? "outline outline-primary" : ""}`}
           style={{
             width: canvasSize.width,
             height: canvasSize.height,
             boxShadow: "0 4px 32px 0 rgba(80, 60, 180, 0.08)",
             border: "1px solid rgba(0, 0, 0, 0.05)",
+            outlineWidth: (showCanvasBorder || isCanvasSelected) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
           }}
           onClick={handleCanvasClick}
+          onMouseEnter={() => setIsCanvasHovering(true)}
+          onMouseLeave={() => setIsCanvasHovering(false)}
         >
           {/* Guides - always render them when dragging */}
           {isDragging && selectedElement && (

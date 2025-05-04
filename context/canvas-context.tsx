@@ -39,6 +39,7 @@ interface CanvasContextType {
   elements: Element[]
   selectedElement: Element | null
   selectedElementIds: string[] // New field for multi-selection
+  isCanvasSelected: boolean // New field for canvas selection
   canvasSize: CanvasSize
   availableSizes: CanvasSize[]
   sizeCategories: string[]
@@ -49,6 +50,7 @@ interface CanvasContextType {
   deleteSelectedElements: () => void // New method for deleting multiple elements
   selectElement: (id: string | null, addToSelection?: boolean) => void // Modified for multi-selection
   selectMultipleElements: (ids: string[]) => void // New method for selecting multiple elements
+  selectCanvas: (select: boolean) => void // New method for selecting the canvas
   clearSelection: () => void // New method to clear selection
   changeCanvasSize: (size: CanvasSize) => void
   fitCanvasToView: (containerWidth: number, containerHeight: number) => number
@@ -70,6 +72,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
   const [elements, setElements] = useState<Element[]>([])
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([]) // New state for multi-selection
+  const [isCanvasSelected, setIsCanvasSelected] = useState<boolean>(false) // New state for canvas selection
 
   // History stacks for undo/redo
   const [history, setHistory] = useState<HistoryAction[]>([])
@@ -187,7 +190,12 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         return newElements;
       });
 
+      // Deselect canvas when a new element is created
+      setIsCanvasSelected(false);
+      
+      // Set the new element as selected
       setSelectedElement(newElement);
+      setSelectedElementIds([newElement.id]);
     },
     [canvasSize, addToHistory],
   );
@@ -310,6 +318,9 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         return
       }
 
+      // Unselect the canvas when an element is selected
+      setIsCanvasSelected(false)
+
       const element = elements.find((el) => el.id === id)
       if (addToSelection) {
         setSelectedElementIds((prev) => [...prev, id])
@@ -325,9 +336,14 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     setSelectedElementIds(ids)
   }, [])
 
+  const selectCanvas = useCallback((select: boolean) => {
+    setIsCanvasSelected(select)
+  }, [])
+
   const clearSelection = useCallback(() => {
     setSelectedElement(null)
     setSelectedElementIds([])
+    setIsCanvasSelected(false)
   }, [])
 
   const changeCanvasSize = useCallback(
@@ -531,6 +547,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         elements,
         selectedElement,
         selectedElementIds,
+        isCanvasSelected,
         canvasSize,
         availableSizes,
         sizeCategories,
@@ -541,6 +558,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         deleteSelectedElements,
         selectElement,
         selectMultipleElements,
+        selectCanvas,
         clearSelection,
         changeCanvasSize,
         fitCanvasToView,
