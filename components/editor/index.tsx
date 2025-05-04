@@ -126,8 +126,8 @@ export function Editor() {
                         <div key={page.id} className="group relative">
                             <div
                                 className={`relative rounded-md overflow-hidden border-2 ${currentPageId === page.id
-                                        ? 'border-[#8344e1] shadow-sm'
-                                        : 'border-[#e5e5e5] hover:border-[#d0d0d0]'
+                                    ? 'border-[#8344e1] shadow-sm'
+                                    : 'border-[#e5e5e5] hover:border-[#d0d0d0]'
                                     } transition-all cursor-pointer`}
                                 style={{ width: '100px', height: '56px' }}
                                 onClick={() => goToPage(page.id)}
@@ -141,10 +141,6 @@ export function Editor() {
                                         <img src="/abstract-geometric-shapes.png" alt="Placeholder" className="mt-0.5 w-4 h-4 opacity-30" />
                                     </div>
                                 </div>
-                            </div>
-                            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                                Page {index + 1}
-                                <div className="absolute w-2 h-2 bg-gray-900 transform rotate-45 top-full -mt-1 left-1/2 -ml-1"></div>
                             </div>
                         </div>
                     ))}
