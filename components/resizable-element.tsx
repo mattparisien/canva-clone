@@ -601,15 +601,28 @@ export function ResizableElement({
     selectedElementIds,
   ])
 
-  // Track width for text elements to trigger height recalculation
+  // Track width and fontSize for text elements to trigger height recalculation
   const [textEditorKey, setTextEditorKey] = useState(0)
   useLayoutEffect(() => {
     if (element.type === "text") {
       setTextEditorKey((k) => k + 1)
     }
-    // Only run when width changes
+    // Only run when width or fontSize changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [element.width])
+  }, [element.width, element.fontSize])
+  
+  // Update height when fontSize changes
+  useEffect(() => {
+    if (element.type === "text" && element.content && element.fontSize) {
+      const measuredHeight = measureTextHeight(
+        element.content,
+        element.width
+      );
+      if (measuredHeight && measuredHeight !== element.height) {
+        updateElement(element.id, { height: measuredHeight });
+      }
+    }
+  }, [element.fontSize, element.width, element.content, element.type, element.id, element.height, updateElement]);
 
   // Calculate if the element is too small to show all corner handles
   const handleSize = HANDLE_BASE_SIZE / scale;
