@@ -1,34 +1,31 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import {
-  Bold,
-  Italic,
-  Underline,
-  Strikethrough,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  ChevronDown,
-  Minus,
-  Plus,
-  Type,
-  AlignStartHorizontal,
-  AlignCenterHorizontal,
-  AlignEndHorizontal,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Element } from "@/context/canvas-context"
-import { 
-  FONT_FAMILIES, 
-  DEFAULT_FONT_SIZE, 
-  MIN_FONT_SIZE, 
-  MAX_FONT_SIZE,
+import {
+  DEFAULT_FONT_SIZE,
   DEFAULT_TEXT_ALIGN,
+  FONT_FAMILIES,
+  MAX_FONT_SIZE,
+  MIN_FONT_SIZE,
   type TextAlignment
 } from "@/lib/constants/editor"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
+  Bold,
+  ChevronDown,
+  Italic,
+  Minus,
+  Plus,
+  Strikethrough,
+  Type,
+  Underline
+} from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 interface TextToolbarProps {
   selectedElement: Element | null
@@ -66,7 +63,7 @@ export function TextToolbar({
   const [isStrikethrough, setIsStrikethrough] = useState(selectedElement?.isStrikethrough || false)
   // Add position state
   const [isPositionPopoverOpen, setIsPositionPopoverOpen] = useState(false)
-  
+
   const toolbarRef = useRef<HTMLDivElement>(null)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -90,7 +87,7 @@ export function TextToolbar({
       setFontSize('' as unknown as number);
       return;
     }
-    
+
     // Convert to number and clamp value between min and max
     const sizeAsNumber = Number(newSize);
     const clampedSize = Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, sizeAsNumber));
@@ -148,13 +145,13 @@ export function TextToolbar({
     if (!selectedElement || !onPositionChange) return;
     onPositionChange({ x: 0 });
   }
-  
+
   const handleAlignCenter = () => {
     if (!selectedElement || !onPositionChange) return;
     const centerX = (canvasWidth - selectedElement.width) / 2;
     onPositionChange({ x: centerX });
   }
-  
+
   const handleAlignEnd = () => {
     if (!selectedElement || !onPositionChange) return;
     const endX = canvasWidth - selectedElement.width;
@@ -261,29 +258,29 @@ export function TextToolbar({
 
       {/* Text Formatting */}
       <div className="flex items-center">
-        <button 
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+        <button
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             isBold && "bg-purple-50 text-purple-600")}
           onClick={handleBoldChange}
         >
           <Bold className="h-3.5 w-3.5" />
         </button>
-        <button 
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+        <button
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             isItalic && "bg-purple-50 text-purple-600")}
           onClick={handleItalicChange}
         >
           <Italic className="h-3.5 w-3.5" />
         </button>
-        <button 
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+        <button
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             isUnderlined && "bg-purple-50 text-purple-600")}
           onClick={handleUnderlineChange}
         >
           <Underline className="h-3.5 w-3.5" />
         </button>
-        <button 
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+        <button
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             isStrikethrough && "bg-purple-50 text-purple-600")}
           onClick={handleStrikethroughChange}
         >
@@ -296,28 +293,28 @@ export function TextToolbar({
       {/* Text Alignment */}
       <div className="flex items-center">
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             textAlign === "left" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("left")}
         >
           <AlignLeft className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             textAlign === "center" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("center")}
         >
           <AlignCenter className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             textAlign === "right" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("right")}
         >
           <AlignRight className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition", 
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             textAlign === "justify" && "bg-purple-50 text-purple-600")}
           onClick={() => handleTextAlignChange("justify")}
         >
@@ -330,27 +327,38 @@ export function TextToolbar({
       {/* Effects and Position */}
       <div className="flex items-center">
         <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium">Effects</button>
-  
+
         <div className="h-5 w-px bg-gray-200 mx-1"></div>
-  
+
         <Popover>
           <PopoverTrigger asChild>
             <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium">Position</button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto bg-white border border-gray-100 rounded-xl shadow-lg p-2">
-            <div className="flex flex-col gap-1">
-              <button className="flex items-center gap-2 px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium" onClick={handleAlignStart}>
-                <AlignStartHorizontal className="h-4 w-4" />
-                <span>Align Start</span>
-              </button>
-              <button className="flex items-center gap-2 px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium" onClick={handleAlignCenter}>
-                <AlignCenterHorizontal className="h-4 w-4" />
-                <span>Align Center</span>
-              </button>
-              <button className="flex items-center gap-2 px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium" onClick={handleAlignEnd}>
-                <AlignEndHorizontal className="h-4 w-4" />
-                <span>Align End</span>
-              </button>
+          <PopoverContent className="w-auto p-3 bg-white border border-gray-100 rounded-xl shadow-lg">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 justify-between">
+                <button
+                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-purple-600 transition"
+                  onClick={handleAlignStart}
+                >
+                  <AlignLeft className="h-4 w-4" />
+                  <span className="text-xs font-medium">Left</span>
+                </button>
+                <button
+                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-purple-600 transition"
+                  onClick={handleAlignCenter}
+                >
+                  <AlignCenter className="h-4 w-4" />
+                  <span className="text-xs font-medium">Center</span>
+                </button>
+                <button
+                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-purple-600 transition"
+                  onClick={handleAlignEnd}
+                >
+                  <AlignRight className="h-4 w-4" />
+                  <span className="text-xs font-medium">Right</span>
+                </button>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
