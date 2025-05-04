@@ -1,5 +1,5 @@
 "use client"
-import { Canvas } from "@/components/canvas"
+import { Editor } from "@/components/editor"
 import React from "react"
 
 export default function EditorPage() {
@@ -36,5 +36,5 @@ export default function EditorPage() {
     }
   }, [])
 
-  return <Canvas />
+  return <Editor />
 }

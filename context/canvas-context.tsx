@@ -126,7 +126,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
   // Extract unique categories
   const sizeCategories = Array.from(new Set(availableSizes.map((size) => size.category || "Other")))
 
-  const [canvasSize, setCanvasSize] = useState<CanvasSize>(availableSizes[0])
+  const [canvasSize, setCanvasSize] = useState<CanvasSize>(availableSizes.find((size) => size.name === "Presentation 16:9") || availableSizes[0])
 
   // Helper function to add an action to history
   const addToHistory = useCallback((action: HistoryAction) => {
