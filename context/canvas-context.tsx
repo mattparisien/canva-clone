@@ -135,57 +135,62 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     setRedoStack([])
   }, [])
 
-  // Update the addElement function to better handle text element sizing and track history
+  const measureTextWidth = (text: string, fontSize: number, fontFamily: string = "Inter") => {
+    if (typeof window === "undefined") return 200;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) return 200;
+    context.font = `${fontSize}px ${fontFamily}`;
+    const metrics = context.measureText(text);
+    // Add a small buffer for cursor/caret and padding
+    return Math.ceil(metrics.width) + 8;
+  };
+
   const addElement = useCallback(
     (element: Omit<Element, "id">) => {
-      // For text elements, calculate a more precise width
-      let width = element.width || 200
-      let height = element.height || 50
-      let fontSize = element.fontSize
+      let width = element.width || 200;
+      let height = element.height || 50;
+      let fontSize = element.fontSize;
+      let fontFamily = element.fontFamily || "Inter";
 
       if (element.type === "text") {
-        // Use default font size as a percentage of canvas width if not provided
-        fontSize = fontSize || Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO)
+        fontSize = fontSize || Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO);
+        fontFamily = fontFamily || "Inter";
       }
 
       if (element.type === "text" && element.content) {
-        // More precise calculation for text elements
-        const contentLength = element.content.length
-        // Adjust width based on content length and font size
-        width = Math.max(contentLength * (fontSize || 36) * 0.5, (fontSize || 36) * 2)
-        // Adjust height based on font size
-        height = (fontSize || 36) * 1.2
+        width = measureTextWidth(element.content, fontSize || 36, fontFamily);
+        height = (fontSize || 36) * 1.2;
       }
 
-      // Calculate center position
-      const centeredX = (canvasSize.width - width) / 2
-      const centeredY = (canvasSize.height - height) / 2
+      const centeredX = (canvasSize.width - width) / 2;
+      const centeredY = (canvasSize.height - height) / 2;
 
       const newElement = {
         ...element,
         width,
         height,
         fontSize,
+        fontFamily,
         x: centeredX,
         y: centeredY,
         id: `element-${Date.now()}`,
-        isNew: true, // Mark as new element
-      }
+        isNew: true,
+      };
 
       setElements((prev) => {
-        const newElements = [...prev, newElement]
-        // Add to history
+        const newElements = [...prev, newElement];
         addToHistory({
           type: "ADD_ELEMENT",
           element: newElement,
-        })
-        return newElements
-      })
+        });
+        return newElements;
+      });
 
-      setSelectedElement(newElement)
+      setSelectedElement(newElement);
     },
     [canvasSize, addToHistory],
-  )
+  );
 
   const updateElement = useCallback(
     (id: string, updates: Partial<Element>) => {
@@ -518,6 +523,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     (id: string) => selectedElementIds.includes(id),
     [selectedElementIds],
   )
+
 
   return (
     <CanvasContext.Provider
