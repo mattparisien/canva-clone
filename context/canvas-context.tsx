@@ -322,14 +322,18 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey
       ) {
         e.preventDefault()
-        addElement({
-          type: "text",
-          content: "Add your text here",
-          fontSize: Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO),
-          fontFamily: "Inter",
-          // Remove hardcoded width and height to let the factory determine them
-          // Remove x and y to let the factory calculate centered positioning
-        })
+        // Use the factory function to create the text element with all required properties
+        const newTextElement = createTextElement(
+          {
+            content: "Add your text here",
+            fontSize: Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO),
+            fontFamily: "Inter"
+          }, 
+          canvasSize.width, 
+          canvasSize.height
+        );
+        
+        addElement(newTextElement);
       }
 
       // Delete selected elements: Delete or Backspace key
