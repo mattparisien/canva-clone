@@ -22,7 +22,12 @@ export function Editor() {
         updateElement, 
         selectElement, 
         clearSelection, 
-        selectCanvas 
+        selectCanvas,
+        pages,
+        currentPageId,
+        currentPageIndex,
+        goToPage,
+        addPage
     } = useCanvas();
 
     // Handle clicks outside the canvas to deselect everything
@@ -107,12 +112,32 @@ export function Editor() {
                 />
             </div>
 
-            {/* Add Page Button - moved from Canvas */}
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2">
-                <button className="px-6 h-10 flex items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white/80 text-sm text-gray-500 hover:bg-white hover:text-gray-700 transition-colors">
-                    <Plus className="h-4 w-4" />
-                    <span>Add page</span>
-                </button>
+            {/* Page Navigation Controls */}
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                    {pages.map((page, index) => (
+                        <button 
+                            key={page.id}
+                            className={`flex items-center justify-center h-12 w-16 border ${currentPageId === page.id ? 'border-blue-500 shadow' : 'border-gray-200'} bg-white/80 rounded-md shadow-sm hover:bg-white hover:shadow-md transition-all`}
+                            onClick={() => goToPage(page.id)}
+                        >
+                            <div className="flex items-center justify-center">
+                                <svg viewBox="0 0 24 24" className="h-5 w-5 text-gray-700" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="4" y="6" width="16" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                                    <path d="M8 10H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                    <path d="M8 14H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                                </svg>
+                                <span className="text-xs text-gray-700 ml-1">{index + 1}</span>
+                            </div>
+                        </button>
+                    ))}
+                    <button 
+                        className="flex items-center justify-center h-12 w-12 border border-gray-200 bg-white/80 rounded-md shadow-sm hover:bg-white hover:shadow-md transition-all"
+                        onClick={addPage}
+                    >
+                        <Plus className="h-5 w-5 text-gray-700" />
+                    </button>
+                </div>
             </div>
 
             {/* Bottom Bar - moved from Canvas */}
@@ -154,7 +179,7 @@ export function Editor() {
                     </div>
 
                     {/* Page counter */}
-                    <span className="text-sm text-gray-700">1 / 1</span>
+                    <span className="text-sm text-gray-700">{currentPageIndex + 1} / {pages.length}</span>
 
                     {/* Grid view */}
                     <button className="text-gray-700 hover:text-gray-900">

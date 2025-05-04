@@ -25,15 +25,28 @@ export interface Element {
   isStrikethrough?: boolean // Strikethrough formatting
 }
 
+export interface Page {
+  id: string
+  elements: Element[]
+  canvasSize: CanvasSize
+  thumbnail?: string // Optional thumbnail for page preview
+}
+
 // Define the types of actions that can be performed
 export type HistoryAction =
-  | { type: "ADD_ELEMENT"; element: Element }
-  | { type: "UPDATE_ELEMENT"; id: string; before: Partial<Element>; after: Partial<Element> }
-  | { type: "DELETE_ELEMENT"; element: Element }
-  | { type: "CHANGE_CANVAS_SIZE"; before: CanvasSize; after: CanvasSize }
+  | { type: "ADD_ELEMENT"; element: Element; pageId: string }
+  | { type: "UPDATE_ELEMENT"; id: string; before: Partial<Element>; after: Partial<Element>; pageId: string }
+  | { type: "DELETE_ELEMENT"; element: Element; pageId: string }
+  | { type: "CHANGE_CANVAS_SIZE"; before: CanvasSize; after: CanvasSize; pageId: string }
+  | { type: "ADD_PAGE"; page: Page }
+  | { type: "DELETE_PAGE"; page: Page }
+  | { type: "REORDER_PAGES"; before: string[]; after: string[] }
 
 export interface CanvasContextType {
-  elements: Element[]
+  pages: Page[]
+  currentPageId: string | null
+  currentPageIndex: number
+  elements: Element[] // Elements of the current page
   selectedElement: Element | null
   selectedElementIds: string[]
   isCanvasSelected: boolean
@@ -58,4 +71,12 @@ export interface CanvasContextType {
   undo: () => void
   redo: () => void
   isElementSelected: (id: string) => boolean
+  
+  // Page management
+  addPage: () => void
+  deletePage: (id: string) => void
+  goToPage: (id: string) => void
+  goToNextPage: () => void
+  goToPreviousPage: () => void
+  duplicateCurrentPage: () => void
 }

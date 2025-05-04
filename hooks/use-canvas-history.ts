@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import { HistoryAction, Element, CanvasSize } from "../types/canvas.types"
+import { HistoryAction, Element, CanvasSize, Page } from "../types/canvas.types"
 
 /**
  * Custom hook for managing canvas action history for undo/redo functionality
@@ -21,7 +21,11 @@ export function useCanvasHistory() {
       setElements: (elements: Element[]) => void,
       selectedElement: Element | null,
       setSelectedElement: (element: Element | null) => void,
-      setCanvasSize: (size: CanvasSize) => void
+      setCanvasSize: (size: CanvasSize) => void,
+      pages?: Page[],
+      setPages?: (pages: Page[]) => void,
+      currentPageId?: string | null,
+      setCurrentPageId?: (id: string | null) => void
     ) => {
       if (history.length === 0) return
 
@@ -61,6 +65,44 @@ export function useCanvasHistory() {
         case "CHANGE_CANVAS_SIZE":
           setCanvasSize(lastAction.before)
           break
+          
+        case "ADD_PAGE":
+          // Remove the page if pages state is available
+          if (pages && setPages) {
+            setPages(pages.filter(page => page.id !== lastAction.page.id))
+            
+            // If the current page was the one we're removing, go back to the previous page
+            if (currentPageId === lastAction.page.id && setCurrentPageId) {
+              const index = pages.findIndex(page => page.id === lastAction.page.id)
+              if (index > 0) {
+                setCurrentPageId(pages[index - 1].id)
+              } else if (pages.length > 1) {
+                setCurrentPageId(pages[1].id)
+              } else {
+                setCurrentPageId(null)
+              }
+            }
+          }
+          break
+          
+        case "DELETE_PAGE":
+          // Add the page back if pages state is available
+          if (pages && setPages) {
+            setPages([...pages, lastAction.page])
+          }
+          break
+          
+        case "REORDER_PAGES":
+          // Revert to the previous order if pages state is available
+          if (pages && setPages) {
+            const reorderedPages = [...pages]
+            // Create a new array with the previous order
+            const previousOrder = lastAction.before.map(id => 
+              pages.find(page => page.id === id)
+            ).filter(Boolean) as Page[]
+            setPages(previousOrder)
+          }
+          break
       }
     },
     [history]
@@ -73,7 +115,11 @@ export function useCanvasHistory() {
       setElements: (elements: Element[]) => void,
       selectedElement: Element | null,
       setSelectedElement: (element: Element | null) => void,
-      setCanvasSize: (size: CanvasSize) => void
+      setCanvasSize: (size: CanvasSize) => void,
+      pages?: Page[],
+      setPages?: (pages: Page[]) => void,
+      currentPageId?: string | null,
+      setCurrentPageId?: (id: string | null) => void
     ) => {
       if (redoStack.length === 0) return
 
@@ -112,6 +158,41 @@ export function useCanvasHistory() {
 
         case "CHANGE_CANVAS_SIZE":
           setCanvasSize(nextAction.after)
+          break
+          
+        case "ADD_PAGE":
+          // Add the page back if pages state is available
+          if (pages && setPages) {
+            setPages([...pages, nextAction.page])
+            
+            // Optionally switch to the newly added page
+            if (setCurrentPageId) {
+              setCurrentPageId(nextAction.page.id)
+            }
+          }
+          break
+          
+        case "DELETE_PAGE":
+          // Remove the page if pages state is available
+          if (pages && setPages) {
+            setPages(pages.filter(page => page.id !== nextAction.page.id))
+            
+            // If the current page was the one we're removing, go back to the first page
+            if (currentPageId === nextAction.page.id && setCurrentPageId && pages.length > 0) {
+              setCurrentPageId(pages[0].id)
+            }
+          }
+          break
+          
+        case "REORDER_PAGES":
+          // Apply the new order if pages state is available
+          if (pages && setPages) {
+            // Create a new array with the new order
+            const newOrder = nextAction.after.map(id => 
+              pages.find(page => page.id === id)
+            ).filter(Boolean) as Page[]
+            setPages(newOrder)
+          }
           break
       }
     },

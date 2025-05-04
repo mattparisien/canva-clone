@@ -64,7 +64,7 @@ export function Canvas({
 
     // Account for padding and UI elements (top controls, bottom controls)
     const availableWidth = containerWidth - 100 // 50px padding on each side
-    const availableHeight = containerHeight - 160 // Account for top and bottom controls + padding
+    const availableHeight = containerHeight - 260 // Account for top and bottom controls + padding
 
     // Calculate the scale needed to fit the canvas
     const widthRatio = availableWidth / canvasSize.width

@@ -1,7 +1,7 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react"
-import { Element, CanvasContextType, CanvasSize } from "../types/canvas.types"
+import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo } from "react"
+import { Element, Page, CanvasContextType, CanvasSize } from "../types/canvas.types"
 import { 
   DEFAULT_TEXT_FONT_SIZE_RATIO, 
   AVAILABLE_CANVAS_SIZES, 
@@ -18,11 +18,42 @@ import { createTextElement } from "../factories/element-factories"
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined)
 
 export function CanvasProvider({ children }: { children: ReactNode }) {
+  // Page Management States
+  const [pages, setPages] = useState<Page[]>(() => {
+    // Initialize with a single page
+    const initialPage: Page = {
+      id: `page-${Date.now()}`,
+      elements: [],
+      canvasSize: DEFAULT_CANVAS_SIZE
+    }
+    return [initialPage]
+  })
+  
+  const [currentPageId, setCurrentPageId] = useState<string | null>(pages[0]?.id || null)
+  const [currentPageIndex, setCurrentPageIndex] = useState<number>(0)
+
+  // Memoize the currentPage to prevent unnecessary recalculations and re-renders
+  const currentPage = useMemo(() => {
+    return pages.find(page => page.id === currentPageId) || pages[0];
+  }, [pages, currentPageId]);
+
+  // Elements and canvas size are derived from the current page
+  // This approach prevents circular updates by removing state that depends on other state
   const [elements, setElements] = useState<Element[]>([])
+  const [canvasSize, setCanvasSize] = useState<CanvasSize>(DEFAULT_CANVAS_SIZE)
+  
+  // Initialize elements and canvas size from current page on mount and page change
+  useEffect(() => {
+    if (currentPage) {
+      setElements(currentPage.elements);
+      setCanvasSize(currentPage.canvasSize);
+    }
+  }, [currentPage?.id]); // Only depend on the ID, not the entire object
+
+  // Selection states
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([])
   const [isCanvasSelected, setIsCanvasSelected] = useState<boolean>(false)
-  const [canvasSize, setCanvasSize] = useState<CanvasSize>(DEFAULT_CANVAS_SIZE)
 
   // Extract unique categories
   const sizeCategories = Array.from(
@@ -37,8 +68,162 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     canRedo
   } = useCanvasHistory()
 
+  // Synchronize elements with the current page
+  useEffect(() => {
+    if (currentPageId) {
+      setPages(prevPages => prevPages.map(page => 
+        page.id === currentPageId 
+          ? { ...page, elements: elements } 
+          : page
+      ))
+    }
+  }, [elements, currentPageId])
+
+  // Page Management Functions
+  const addPage = useCallback(() => {
+    const newPage: Page = {
+      id: `page-${Date.now()}`,
+      elements: [],
+      canvasSize: canvasSize // Use the current canvas size for consistency
+    }
+
+    setPages(prevPages => {
+      const newPages = [...prevPages, newPage]
+      
+      // Add to history
+      addToHistory({
+        type: "ADD_PAGE",
+        page: newPage
+      })
+      
+      return newPages
+    })
+
+    // Switch to the new page
+    setCurrentPageId(newPage.id)
+    setCurrentPageIndex(pages.length)
+    
+    // Clear selection when switching pages
+    setSelectedElement(null)
+    setSelectedElementIds([])
+    setIsCanvasSelected(false)
+  }, [canvasSize, pages.length, addToHistory])
+
+  const deletePage = useCallback((id: string) => {
+    if (pages.length <= 1) {
+      // Don't allow deleting the last page
+      return
+    }
+
+    setPages(prevPages => {
+      const pageToDelete = prevPages.find(page => page.id === id)
+      if (!pageToDelete) return prevPages
+
+      // Add to history
+      addToHistory({
+        type: "DELETE_PAGE",
+        page: pageToDelete
+      })
+
+      const newPages = prevPages.filter(page => page.id !== id)
+      return newPages
+    })
+
+    // If the current page was deleted, switch to the previous page or the first page
+    if (currentPageId === id) {
+      const index = pages.findIndex(page => page.id === id)
+      const newIndex = Math.max(0, index - 1)
+      setCurrentPageId(pages[newIndex]?.id || null)
+      setCurrentPageIndex(newIndex)
+    } else {
+      // Update the current page index
+      setCurrentPageIndex(pages.findIndex(page => page.id === currentPageId))
+    }
+  }, [pages, currentPageId, addToHistory])
+
+  const goToPage = useCallback((id: string) => {
+    const pageIndex = pages.findIndex(page => page.id === id)
+    if (pageIndex !== -1) {
+      setCurrentPageId(id)
+      setCurrentPageIndex(pageIndex)
+      
+      // Clear selection when switching pages
+      setSelectedElement(null)
+      setSelectedElementIds([])
+      setIsCanvasSelected(false)
+    }
+  }, [pages])
+
+  const goToNextPage = useCallback(() => {
+    if (currentPageIndex < pages.length - 1) {
+      const nextPage = pages[currentPageIndex + 1]
+      setCurrentPageId(nextPage.id)
+      setCurrentPageIndex(currentPageIndex + 1)
+      
+      // Clear selection when switching pages
+      setSelectedElement(null)
+      setSelectedElementIds([])
+      setIsCanvasSelected(false)
+    }
+  }, [currentPageIndex, pages])
+
+  const goToPreviousPage = useCallback(() => {
+    if (currentPageIndex > 0) {
+      const prevPage = pages[currentPageIndex - 1]
+      setCurrentPageId(prevPage.id)
+      setCurrentPageIndex(currentPageIndex - 1)
+      
+      // Clear selection when switching pages
+      setSelectedElement(null)
+      setSelectedElementIds([])
+      setIsCanvasSelected(false)
+    }
+  }, [currentPageIndex, pages])
+
+  const duplicateCurrentPage = useCallback(() => {
+    if (currentPage) {
+      // Create deep copy of elements
+      const duplicatedElements = JSON.parse(JSON.stringify(currentPage.elements))
+      
+      const newPage: Page = {
+        id: `page-${Date.now()}`,
+        elements: duplicatedElements,
+        canvasSize: { ...currentPage.canvasSize }
+      }
+
+      setPages(prevPages => {
+        // Find the current index and insert after it
+        const currentIndex = prevPages.findIndex(page => page.id === currentPageId)
+        const newPages = [
+          ...prevPages.slice(0, currentIndex + 1),
+          newPage,
+          ...prevPages.slice(currentIndex + 1)
+        ]
+        
+        // Add to history
+        addToHistory({
+          type: "ADD_PAGE",
+          page: newPage
+        })
+        
+        return newPages
+      })
+
+      // Switch to the new page
+      setCurrentPageId(newPage.id)
+      setCurrentPageIndex(currentPageIndex + 1)
+      
+      // Clear selection when switching pages
+      setSelectedElement(null)
+      setSelectedElementIds([])
+      setIsCanvasSelected(false)
+    }
+  }, [currentPage, currentPageId, currentPageIndex, addToHistory])
+
   const addElement = useCallback(
     (elementData: Omit<Element, "id">) => {
+      if (!currentPageId) return;
+
       let newElement: Element;
       
       // Create element with the appropriate factory based on type
@@ -67,6 +252,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         addToHistory({
           type: "ADD_ELEMENT",
           element: newElement,
+          pageId: currentPageId
         })
         return newElements
       })
@@ -78,12 +264,13 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
       setSelectedElement(newElement)
       setSelectedElementIds([newElement.id])
     },
-    [canvasSize, addToHistory]
+    [canvasSize, addToHistory, currentPageId]
   )
 
   const updateElement = useCallback(
     (id: string, updates: Partial<Element>) => {
-      // ...existing code...
+      if (!currentPageId) return;
+
       setElements((prev) => {
         const element = prev.find((el) => el.id === id)
         if (!element) return prev
@@ -104,6 +291,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
           id,
           before,
           after: updates,
+          pageId: currentPageId
         })
 
         return prev.map((el) => (el.id === id ? { ...el, ...updates } : el))
@@ -113,11 +301,13 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         setSelectedElement((prev) => (prev ? { ...prev, ...updates } : null))
       }
     },
-    [selectedElement, addToHistory]
+    [selectedElement, addToHistory, currentPageId]
   )
 
   const updateMultipleElements = useCallback(
     (updates: Partial<Element> | ((element: Element) => Partial<Element>)) => {
+      if (!currentPageId) return;
+
       setElements((prev) => {
         const updatedElements = prev.map((el) => {
           if (selectedElementIds.includes(el.id)) {
@@ -142,6 +332,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
               id: el.id,
               before,
               after: updatesToApply,
+              pageId: currentPageId
             });
 
             return { ...el, ...updatesToApply };
@@ -151,11 +342,13 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         return updatedElements;
       });
     },
-    [selectedElementIds, addToHistory]
+    [selectedElementIds, addToHistory, currentPageId]
   )
 
   const deleteElement = useCallback(
     (id: string) => {
+      if (!currentPageId) return;
+
       setElements((prev) => {
         const element = prev.find((el) => el.id === id)
         if (!element) return prev
@@ -164,6 +357,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         addToHistory({
           type: "DELETE_ELEMENT",
           element,
+          pageId: currentPageId
         })
 
         return prev.filter((el) => el.id !== id)
@@ -173,10 +367,12 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         setSelectedElement(null)
       }
     },
-    [selectedElement, addToHistory]
+    [selectedElement, addToHistory, currentPageId]
   )
 
   const deleteSelectedElements = useCallback(() => {
+    if (!currentPageId) return;
+
     setElements((prev) => {
       const elementsToDelete = prev.filter((el) => selectedElementIds.includes(el.id))
       elementsToDelete.forEach((element) => {
@@ -184,13 +380,14 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         addToHistory({
           type: "DELETE_ELEMENT",
           element,
+          pageId: currentPageId
         })
       })
       return prev.filter((el) => !selectedElementIds.includes(el.id))
     })
     setSelectedElement(null)
     setSelectedElementIds([])
-  }, [selectedElementIds, addToHistory])
+  }, [selectedElementIds, addToHistory, currentPageId])
 
   const selectElement = useCallback(
     (id: string | null, addToSelection = false) => {
@@ -230,16 +427,26 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
   const changeCanvasSize = useCallback(
     (size: CanvasSize) => {
+      if (!currentPageId) return;
+
       // Add to history
       addToHistory({
         type: "CHANGE_CANVAS_SIZE",
         before: canvasSize,
         after: size,
+        pageId: currentPageId
       })
 
       setCanvasSize(size)
+      
+      // Update the size in the current page
+      setPages(prevPages => prevPages.map(page => 
+        page.id === currentPageId 
+          ? { ...page, canvasSize: size } 
+          : page
+      ))
     },
-    [canvasSize, addToHistory]
+    [canvasSize, addToHistory, currentPageId]
   )
 
   const fitCanvasToView = useCallback(
@@ -276,9 +483,13 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
       setElements,
       selectedElement,
       setSelectedElement,
-      setCanvasSize
+      setCanvasSize,
+      pages,
+      setPages,
+      currentPageId,
+      setCurrentPageId
     )
-  }, [elements, historyUndo, selectedElement])
+  }, [elements, historyUndo, selectedElement, pages, currentPageId])
 
   const redo = useCallback(() => {
     historyRedo(
@@ -286,9 +497,13 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
       setElements,
       selectedElement,
       setSelectedElement,
-      setCanvasSize
+      setCanvasSize,
+      pages,
+      setPages,
+      currentPageId,
+      setCurrentPageId
     )
-  }, [elements, historyRedo, selectedElement])
+  }, [elements, historyRedo, selectedElement, pages, currentPageId])
 
   const isElementSelected = useCallback(
     (id: string) => selectedElementIds.includes(id),
@@ -297,6 +512,9 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 
   // Keyboard shortcuts
   useEffect(() => {
+    // Debounce flag to prevent multiple rapid keypresses
+    let isProcessingTKey = false;
+    
     const handleKeyDown = (e: KeyboardEvent) => {
       // Check if the target is an input or textarea or contentEditable
       const target = e.target as HTMLElement
@@ -322,18 +540,37 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey
       ) {
         e.preventDefault()
-        // Use the factory function to create the text element with all required properties
-        const newTextElement = createTextElement(
-          {
-            content: "Add your text here",
-            fontSize: Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO),
-            fontFamily: "Inter"
-          }, 
-          canvasSize.width, 
-          canvasSize.height
-        );
         
-        addElement(newTextElement);
+        // Prevent rapid fire or re-entrancy
+        if (isProcessingTKey) return;
+        isProcessingTKey = true;
+        
+        // Create with explicit type to avoid any ambiguity
+        const textElementData = {
+          type: "text" as const, // Explicitly set as const to avoid type issues
+          content: "Add your text here",
+          fontSize: Math.round(canvasSize.width * DEFAULT_TEXT_FONT_SIZE_RATIO),
+          fontFamily: "Inter"
+        };
+        
+        // Use setTimeout to break the render cycle
+        setTimeout(() => {
+          const newTextElement = createTextElement(
+            textElementData,
+            canvasSize.width, 
+            canvasSize.height
+          );
+          
+          addElement({
+            ...newTextElement,
+            type: "text" // Ensure type is set correctly
+          });
+          
+          // Reset the processing flag after a delay
+          setTimeout(() => {
+            isProcessingTKey = false;
+          }, 100);
+        }, 0);
       }
 
       // Delete selected elements: Delete or Backspace key
@@ -349,15 +586,39 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
           deleteElement(selectedElement.id)
         }
       }
+
+      // Next page: Right arrow
+      if (e.key === "ArrowRight" && e.altKey) {
+        e.preventDefault()
+        goToNextPage()
+      }
+
+      // Previous page: Left arrow
+      if (e.key === "ArrowLeft" && e.altKey) {
+        e.preventDefault()
+        goToPreviousPage()
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [undo, redo, addElement, deleteElement, deleteSelectedElements, selectedElement, selectedElementIds, canvasSize.width])
+  }, [undo, redo,  deleteElement, deleteSelectedElements, selectedElement, selectedElementIds, canvasSize.width, goToNextPage, goToPreviousPage])
 
   return (
     <CanvasContext.Provider
       value={{
+        // Page management
+        pages,
+        currentPageId,
+        currentPageIndex,
+        addPage,
+        deletePage,
+        goToPage,
+        goToNextPage,
+        goToPreviousPage,
+        duplicateCurrentPage,
+        
+        // Canvas elements and properties
         elements,
         selectedElement,
         selectedElementIds,
@@ -365,6 +626,8 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         canvasSize,
         availableSizes: AVAILABLE_CANVAS_SIZES,
         sizeCategories,
+        
+        // Element manipulation
         addElement,
         updateElement,
         updateMultipleElements,
@@ -378,10 +641,14 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         fitCanvasToView,
         clearNewElementFlag,
         scaleElement,
+        
+        // History
         canUndo,
         canRedo,
         undo,
         redo,
+        
+        // Utility
         isElementSelected,
       }}
     >
