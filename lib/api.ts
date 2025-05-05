@@ -21,6 +21,58 @@ async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): Promise
   return response.json();
 }
 
+// Auth API
+export const authAPI = {
+  // Verify user token
+  verifyToken: (token: string) => fetchAPI<{user: any}>('/auth/me', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }),
+  
+  // Login user
+  login: (email: string, password: string) => fetchAPI<{user: any; token: string}>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  }),
+  
+  // Register new user
+  register: (name: string, email: string, password: string) => fetchAPI<{user: any; token: string}>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, password }),
+  }),
+  
+  // Logout user
+  logout: (token: string) => fetchAPI<void>('/auth/logout', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }),
+  
+  // Forgot password
+  forgotPassword: (email: string) => fetchAPI<{message: string}>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  }),
+  
+  // Reset password
+  resetPassword: (token: string, password: string) => fetchAPI<{user: any; token: string}>(`/auth/reset-password/${token}`, {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  }),
+  
+  // Update user profile
+  updateProfile: (token: string, data: { name?: string; email?: string; currentPassword?: string; newPassword?: string }) => 
+    fetchAPI<{user: any}>('/auth/update-profile', {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
+    }),
+};
+
 // Presentations API
 export const presentationsAPI = {
   // Get all presentations

@@ -206,7 +206,7 @@ export function Navbar() {
         <Avatar className="h-8 w-8 bg-red-500 text-white">
           <AvatarFallback>MP</AvatarFallback>
         </Avatar>
-        <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+        {/* <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 10V7M12 10V5M16 10V3M5 21L19 21C20.1046 21 21 20.1046 21 19L21 5C21 3.89543 20.1046 3 19 3L5 3C3.89543 3 3 3.89543 3 5L3 19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -218,7 +218,7 @@ export function Navbar() {
         </Button>
         <Button variant="ghost" size="sm" className="text-white border border-white/30 hover:bg-white/10">
           Present
-        </Button>
+        </Button> */}
         <Button variant="ghost" size="sm" className="text-white border border-white/30 hover:bg-white/10 flex items-center gap-2">
           <Share2 className="h-4 w-4" />
           <span>Share</span>
