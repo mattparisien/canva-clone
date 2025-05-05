@@ -2,9 +2,12 @@
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, ArrowRight, ChevronDown, Share2 } from "lucide-react"
+import { ArrowLeft, ArrowRight, ChevronDown, Save, Share2 } from "lucide-react"
+import { useEditor } from "@/context/editor-context"
 
 export function Navbar() {
+  const { saveDesign, isDesignSaved, isSaving } = useEditor()
+  
   return (
     <div className="flex h-14 items-center px-4 shadow bg-gradient-to-r from-[#2ec4e6] via-[#5e60ce] to-[#7c3aed] border-b border-[#e0e7ef]">
       {/* Left Section */}
@@ -26,6 +29,22 @@ export function Navbar() {
           </Button>
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-8 w-8">
             <ArrowRight className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`${isDesignSaved ? "text-white" : "text-yellow-300"} hover:bg-white/10 h-8 w-8 relative`}
+            onClick={saveDesign}
+            title="Save design (Ctrl/⌘+S)"
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <div className="flex items-center justify-center">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
+              </div>
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>

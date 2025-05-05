@@ -45,10 +45,11 @@ export type HistoryAction =
 // Editor context handles document-level state and page management
 export interface EditorContextType {
   // Document metadata
-  documentName: string
-  isDocumentSaved: boolean
-  renameDocument: (name: string) => void
-  saveDocument: () => void
+  designName: string
+  isDesignSaved: boolean
+  isSaving: boolean
+  renameDesign: (name: string) => void
+  saveDesign: () => void
   
   // Page management
   pages: Page[]
