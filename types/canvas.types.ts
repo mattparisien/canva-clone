@@ -51,6 +51,10 @@ export interface EditorContextType {
   renameDesign: (name: string) => void
   saveDesign: () => void
   
+  // Editor mode
+  isEditMode: boolean
+  toggleEditMode: () => void
+  
   // Page management
   pages: Page[]
   currentPageId: string | null

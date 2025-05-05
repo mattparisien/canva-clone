@@ -332,9 +332,6 @@ export function TextToolbar({
 
       {/* Effects and Position */}
       <div className="flex items-center">
-        <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium">Effects</button>
-
-        <div className="h-5 w-px bg-gray-200 mx-1"></div>
 
         <Popover>
           <PopoverTrigger asChild>

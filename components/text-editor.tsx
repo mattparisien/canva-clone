@@ -44,6 +44,8 @@ interface TextEditorProps {
   isItalic?: boolean;
   isUnderlined?: boolean;
   isStrikethrough?: boolean;
+  /** Edit mode flag */
+  isEditMode?: boolean;
 }
 
 /* ------------------------------------------------------------------
@@ -66,6 +68,7 @@ export function TextEditor({
   isUnderlined = false,
   isStrikethrough = false,
   onTextAlignChange,
+  isEditMode = true, // Default to edit mode if not provided
 }: TextEditorProps) {
   /* ----------------------------------------------------------------
      Local state & refs
@@ -83,17 +86,28 @@ export function TextEditor({
     }
   }, [content, isEditing]);
 
-
+  // Exit editing mode when switching to view mode
+  useEffect(() => {
+    if (!isEditMode && isEditing) {
+      setIsEditing(false);
+    }
+  }, [isEditMode, isEditing]);
 
   /* ----------------------------------------------------------------
      Enter editing mode on double-click
      ---------------------------------------------------------------- */
   const startEditing = () => {
+    // Only allow editing in edit mode
+    if (!isEditMode) return;
+    
     onEditingStart?.();
     setIsEditing(true);
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
+    // Only allow editing in edit mode
+    if (!isEditMode) return;
+    
     e.stopPropagation();
     startEditing();
   };
@@ -183,7 +197,7 @@ export function TextEditor({
     boxSizing: "border-box",
     direction: "ltr",
     textAlign: textAlign,
-    cursor: isEditing ? "text" : "move",
+    cursor: isEditing ? "text" : isEditMode ? "move" : "default",
     fontWeight: isBold ? "bold" : "normal",
     fontStyle: isItalic ? "italic" : "normal",
     textDecoration: `${isUnderlined ? "underline" : ""} ${isStrikethrough ? "line-through" : ""}`.trim() || "none",

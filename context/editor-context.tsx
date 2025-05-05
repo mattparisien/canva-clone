@@ -14,6 +14,9 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   const [isSaving, setIsSaving] = useState<boolean>(false)
   const [designId, setDesignId] = useState<string | null>(null)
   
+  // Editor mode - default to edit mode
+  const [isEditMode, setIsEditMode] = useState<boolean>(true)
+  
   // Auto-save timer reference
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null)
   
@@ -292,6 +295,11 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [goToNextPage, goToPreviousPage, saveDesign])
 
+  // Toggle between edit mode and view mode
+  const toggleEditMode = useCallback(() => {
+    setIsEditMode(prevMode => !prevMode)
+  }, [])
+
   return (
     <EditorContext.Provider
       value={{
@@ -301,6 +309,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         isSaving,
         renameDesign,
         saveDesign,
+        
+        // Editor mode
+        isEditMode,
+        toggleEditMode,
         
         // Page management
         pages,

@@ -3,6 +3,7 @@
 import { AlignmentGuides } from "@/components/alignment-guides"
 import { ResizableElement } from "@/components/resizable-element"
 import { useCanvas } from "@/context/canvas-context"
+import { useEditor } from "@/context/editor-context"
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"
 
 export function Canvas({
@@ -28,6 +29,9 @@ export function Canvas({
     addElement,
     fitCanvasToView: fitCanvasToViewUtil
   } = useCanvas()
+  
+  // Get edit mode from editor context
+  const { isEditMode } = useEditor()
 
   const scaleWrapperRef = useRef<HTMLDivElement>(null) // wrapper that gets the CSS scale()
   const canvasRef = useRef<HTMLDivElement>(null) // un‑scaled logical canvas
@@ -90,10 +94,21 @@ export function Canvas({
     return () => window.removeEventListener("resize", fitCanvasToView)
   }, [canvasSize.width, canvasSize.height])
 
+  // Clear selection when switching to view mode
+  useEffect(() => {
+    if (!isEditMode) {
+      selectElement(null);
+      selectCanvas(false);
+    }
+  }, [isEditMode, selectElement, selectCanvas]);
+
   /* ------------------------------------------------------------------
    * Canvas click → deselect
    * ------------------------------------------------------------------ */
   const handleCanvasClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
+    // If in view mode, do nothing
+    if (!isEditMode) return;
+    
     if (e.target === canvasRef.current) {
       // Toggle canvas selection if it's already selected
       if (isCanvasSelected) {
@@ -108,19 +123,25 @@ export function Canvas({
         selectElement(null);
       }
     }
-  }, [selectElement, selectCanvas, canvasRef, isCanvasSelected])
+  }, [selectElement, selectCanvas, canvasRef, isCanvasSelected, isEditMode])
 
   /* ------------------------------------------------------------------
    * Drag handlers (logical units)
    * ------------------------------------------------------------------ */
   const handleDragStart = useCallback((element: any) => {
+    // If in view mode, do nothing
+    if (!isEditMode) return;
+    
     setIsDragging(true)
     setActiveDragElement(element.id)
     setAlignments({ horizontal: [], vertical: [] })
     setLastDragPos({ x: element.x, y: element.y }) // Initialize last drag position
-  }, [])
+  }, [isEditMode])
 
   const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments, isDragSelection: boolean = false) => {
+    // If in view mode, do nothing
+    if (!isEditMode) return;
+    
     setAlignments(newAlignments)
 
     // When dragging multiple elements, update their positions
@@ -142,20 +163,26 @@ export function Canvas({
         setLastDragPos({ x, y });
       }
     }
-  }, [selectedElementIds, updateMultipleElements, lastDragPos])
+  }, [selectedElementIds, updateMultipleElements, lastDragPos, isEditMode])
 
   const handleDragEnd = useCallback(() => {
+    // If in view mode, do nothing
+    if (!isEditMode) return;
+    
     setIsDragging(false)
     setActiveDragElement(null)
     setAlignments({ horizontal: [], vertical: [] })
     setDebugInfo("")
     setLastDragPos(null) // Reset last drag position
-  }, [])
+  }, [isEditMode])
 
   // Handle element hover
   const handleElementHover = useCallback((id: string | null) => {
-    setIsHoveringChild(id !== null)
-  }, [])
+    // Only set hover states in edit mode
+    if (isEditMode) {
+      setIsHoveringChild(id !== null)
+    }
+  }, [isEditMode])
 
   /* ------------------------------------------------------------------
    * Render
@@ -165,8 +192,8 @@ export function Canvas({
   // Track when we're hovering over a child element to prevent canvas border
   const [isHoveringChild, setIsHoveringChild] = useState(false)
 
-  // Only show border when hovering over canvas but not over its children
-  const showCanvasBorder = isCanvasHovering && !isHoveringChild
+  // Only show border when hovering over canvas but not over its children, and only in edit mode
+  const showCanvasBorder = isCanvasHovering && !isHoveringChild && isEditMode
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-auto">
@@ -177,20 +204,21 @@ export function Canvas({
       >
         <div
           ref={canvasRef}
-          className={`relative bg-white overflow-hidden ${showCanvasBorder ? "outline outline-primary" : ""} ${isCanvasSelected ? "outline outline-primary" : ""}`}
+          className={`relative bg-white overflow-hidden ${showCanvasBorder ? "outline outline-primary" : ""} ${isCanvasSelected && isEditMode ? "outline outline-primary" : ""}`}
           style={{
             width: canvasSize.width,
             height: canvasSize.height,
             boxShadow: "0 4px 32px 0 rgba(80, 60, 180, 0.08)",
             border: "1px solid rgba(0, 0, 0, 0.05)",
-            outlineWidth: (showCanvasBorder || isCanvasSelected) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
+            outlineWidth: (showCanvasBorder || (isCanvasSelected && isEditMode)) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
+            cursor: isEditMode ? "default" : "default",
           }}
           onClick={handleCanvasClick}
-          onMouseEnter={() => setIsCanvasHovering(true)}
-          onMouseLeave={() => setIsCanvasHovering(false)}
+          onMouseEnter={() => isEditMode && setIsCanvasHovering(true)}
+          onMouseLeave={() => isEditMode && setIsCanvasHovering(false)}
         >
-          {/* Guides - always render them when dragging */}
-          {isDragging && selectedElement && (
+          {/* Guides - always render them when dragging and in edit mode */}
+          {isDragging && selectedElement && isEditMode && (
             <AlignmentGuides
               activeElement={selectedElement}
               elements={elements}
@@ -205,7 +233,7 @@ export function Canvas({
             <ResizableElement
               key={el.id}
               element={el}
-              isSelected={selectedElementIds.includes(el.id) || selectedElement?.id === el.id}
+              isSelected={isEditMode && (selectedElementIds.includes(el.id) || selectedElement?.id === el.id)}
               scale={scale}
               canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
               allElements={elements}
@@ -215,6 +243,7 @@ export function Canvas({
               onDrag={handleDrag}
               onDragEnd={handleDragEnd}
               onHover={handleElementHover}
+              isEditMode={isEditMode}
             />
           ))}
         </div>

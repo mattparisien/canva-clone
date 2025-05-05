@@ -20,6 +20,7 @@ interface ResizableElementProps {
   onDrag: (element: Element, x: number, y: number, alignments: { horizontal: number[]; vertical: number[] }, isMultiSelectionDrag: boolean) => void
   onDragEnd: () => void
   onHover: (id: string | null) => void
+  isEditMode: boolean // Add isEditMode prop
 }
 
 export function ResizableElement({
@@ -34,6 +35,7 @@ export function ResizableElement({
   onDrag,
   onDragEnd,
   onHover,
+  isEditMode, // Accept the new prop
 }: ResizableElementProps) {
   const { updateElement, selectElement, clearNewElementFlag, deleteElement, selectedElementIds } = useCanvas()
   const [isDragging, setIsDragging] = useState(false)
@@ -92,6 +94,9 @@ export function ResizableElement({
 
   // Handle element dragging
   const handleDragStart = useCallback((e: React.MouseEvent) => {
+    // If in view mode, do nothing
+    if (!isEditMode) return;
+    
     e.stopPropagation()
 
     // Clear isNew flag on any interaction
@@ -109,7 +114,7 @@ export function ResizableElement({
       y: e.clientY,
     })
     onDragStart(element)
-  }, [element, selectElement, onDragStart, clearNewElementFlag])
+  }, [element, selectElement, onDragStart, clearNewElementFlag, isEditMode])
 
   // Handle element deletion
   const handleDelete = useCallback((e: React.MouseEvent) => {
@@ -119,9 +124,12 @@ export function ResizableElement({
 
   // Handle mouse enter/leave
   const handleMouseEnter = useCallback(() => {
-    setIsHovering(true)
-    onHover(element.id)
-  }, [onHover, element.id])
+    // Only show hover effects in edit mode
+    if (isEditMode) {
+      setIsHovering(true)
+      onHover(element.id)
+    }
+  }, [onHover, element.id, isEditMode])
 
   const handleMouseLeave = useCallback(() => {
     if (justFinishedResizing.current) {
@@ -148,6 +156,9 @@ export function ResizableElement({
 
   // Handle element resizing
   const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
+    // If in view mode, do nothing
+    if (!isEditMode) return;
+    
     e.stopPropagation()
     // Clear isNew flag on any interaction
     if (element.isNew) {
@@ -177,7 +188,7 @@ export function ResizableElement({
       aspectRatio: element.width / element.height,
       fontSize: element.fontSize || 36,
     }
-  }, [element, clearNewElementFlag])
+  }, [element, clearNewElementFlag, isEditMode])
 
 
   // Find the closest snap point if within threshold
@@ -657,14 +668,14 @@ export function ResizableElement({
               isItalic={element.isItalic}
               isUnderlined={element.isUnderlined}
               isStrikethrough={element.isStrikethrough}
-
+              isEditMode={isEditMode} // Pass edit mode to TextEditor
             />
           </div>
         )
       default:
         return null
     }
-  }, [element, isSelected, textEditorKey, updateElement, clearNewElementFlag, handleHeightChange, handleTextAlignChange])
+  }, [element, isSelected, textEditorKey, updateElement, clearNewElementFlag, handleHeightChange, handleTextAlignChange, isEditMode])
 
   return (
     <>
@@ -701,16 +712,16 @@ export function ResizableElement({
       )}
       <div
         ref={elementRef}
-        className={`absolute${isSelected ? " outline outline-primary" : isHovering ? " outline outline-primary" : ""}`}
+        className={`absolute${isSelected && isEditMode ? " outline outline-primary" : isHovering && isEditMode ? " outline outline-primary" : ""}`}
         style={{
           left: element.x,
           top: element.y,
           width: element.width,
           height: element.height,
-          cursor: isDragging ? "grabbing" : "move",
+          cursor: isEditMode ? (isDragging ? "grabbing" : "move") : "default",
           transform: "none",
-          outlineWidth: (isSelected || isHovering) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
-          outlineStyle: (isSelected || isHovering) ? "solid" : undefined,
+          outlineWidth: (isSelected || isHovering) && isEditMode ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
+          outlineStyle: (isSelected || isHovering) && isEditMode ? "solid" : undefined,
           // Let Tailwind class handle outline color
         }}
         onMouseDown={handleDragStart}
@@ -719,7 +730,8 @@ export function ResizableElement({
       >
         {renderElement()}
 
-        {isSelected && (
+        {/* Only show resize handles when selected and in edit mode */}
+        {isSelected && isEditMode && (
           <>
             {/* Top-left corner handle - always shown unless resizing another handle */}
             {(!isResizing || resizeDirection === "nw") && (
