@@ -87,7 +87,7 @@ export function ResizableElement({
 
   // Helper to get handle background
   const getHandleBg = (dir: string) => {
-    return (handleHover[dir] || (resizeDirection === dir && isResizing)) ? "var(--handle-hover)" : "#fff";
+    return (handleHover[dir as keyof typeof handleHover] || (resizeDirection === dir && isResizing)) ? "var(--handle-hover)" : "#fff";
   };
 
   // Handle element dragging

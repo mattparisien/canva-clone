@@ -21,7 +21,10 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
   
   // Canvas-specific states
   const [elements, setElements] = useState<Element[]>([])
-  const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width: 1080, height: 1080 })
+  const [canvasSize, setCanvasSize] = useState<CanvasSize>({
+    width: 1080, height: 1080,
+    name: ""
+  })
   
   // Selection states
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
@@ -464,3 +467,5 @@ export function useCanvas() {
   }
   return context
 }
+export type { Element }
+
