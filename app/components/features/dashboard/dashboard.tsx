@@ -372,7 +372,7 @@ export default function Dashboard() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className={`rounded-xl ${viewMode === "grid" ? "border-brand-blue text-brand-blue bg-brand-blue/5" : ""}`}
+                      className={`rounded-xl transition-all duration-300 ${viewMode === "grid" ? "border-brand-blue text-brand-blue bg-brand-blue/5" : ""}`}
                       onClick={() => setViewMode("grid")}
                     >
                       <Grid3x3 className="h-4 w-4" />
@@ -388,7 +388,7 @@ export default function Dashboard() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className={`rounded-xl ${viewMode === "list" ? "border-brand-blue text-brand-blue bg-brand-blue/5" : ""}`}
+                      className={`rounded-xl transition-all duration-300 ${viewMode === "list" ? "border-brand-blue text-brand-blue bg-brand-blue/5" : ""}`}
                       onClick={() => setViewMode("list")}
                     >
                       <List className="h-4 w-4" />
@@ -401,7 +401,7 @@ export default function Dashboard() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-xl">
+                    <Button variant="outline" size="icon" className="rounded-xl transition-all duration-300">
                       <Filter className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -412,7 +412,7 @@ export default function Dashboard() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="rounded-xl">
+                    <Button variant="outline" size="icon" className="rounded-xl transition-all duration-300">
                       <SlidersHorizontal className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -426,16 +426,20 @@ export default function Dashboard() {
                     <Button
                       onClick={handleCreatePresentation}
                       disabled={isCreating}
-                      className="relative h-14 w-14 rounded-full bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue-dark hover:to-brand-teal-dark text-white shadow-lg shadow-brand-blue/30 hover:shadow-xl hover:shadow-brand-blue/40 transition-all duration-300 hover:scale-105"
+                      className="group relative h-14 w-14 rounded-full shadow-lg shadow-brand-blue/30 hover:shadow-xl hover:shadow-brand-blue/40 transition-all duration-300 overflow-hidden"
                     >
-                      {isCreating ? (
-                        <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                      ) : (
-                        <Plus className="h-6 w-6" />
-                      )}
+                      <span className="absolute inset-0 bg-gradient-to-r from-brand-blue to-brand-teal transition-opacity duration-200 ease-in-out"></span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-brand-blue-dark to-brand-teal-dark opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"></span>
+                      <span className="relative z-10">
+                        {isCreating ? (
+                          <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <Plus className="h-6 w-6 text-white transition-transform duration-300 group-hover:scale-110" />
+                        )}
+                      </span>
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="left">
@@ -485,30 +489,7 @@ export default function Dashboard() {
         <>
           {viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {/* Create new presentation card */}
-              <Card
-                onClick={handleCreatePresentation}
-                className={`cursor-pointer group h-[280px] border border-dashed rounded-2xl hover:border-brand-blue bg-gradient-to-br from-white to-gray-50 flex flex-col justify-center items-center hover:shadow-md hover:shadow-brand-blue/10 transition-all duration-300 ${isCreating ? 'opacity-70 pointer-events-none' : ''}`}
-              >
-                <div className="text-center p-6 transform group-hover:scale-105 transition-transform duration-300">
-                  <div className="rounded-full bg-gradient-to-r from-brand-blue-light/20 to-brand-teal-light/20 p-6 mx-auto mb-5 w-20 h-20 flex items-center justify-center group-hover:from-brand-blue-light/30 group-hover:to-brand-teal-light/30 transition-all duration-300">
-                    {isCreating ? (
-                      <svg className="animate-spin h-8 w-8 text-brand-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    ) : (
-                      <Plus className="h-8 w-8 text-brand-blue group-hover:scale-110 transition-transform duration-300" />
-                    )}
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 text-gray-900">Create Design</h3>
-                  <p className="text-sm text-gray-500">
-                    Start with a blank canvas or template
-                  </p>
-                </div>
-              </Card>
-
-              {/* Design cards */}
+              {/* Design cards - Create design card removed */}
               {getVisibleDesigns().map((design, index) => {
                 const handleCardClick = () => {
                   handleOpenDesign(design._id);
@@ -531,7 +512,7 @@ export default function Dashboard() {
                       <img
                         src={design.thumbnail || getDefaultThumbnail(index)}
                         alt={design.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       />
                       
                       {/* Page count indicator - show for presentations/documents */}
@@ -679,7 +660,7 @@ export default function Dashboard() {
 
           {/* Empty state */}
           {getVisibleDesigns().length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+            <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
               <div className="rounded-full bg-gradient-to-r from-brand-blue-light/20 to-brand-teal-light/20 p-6 mb-4">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-brand-blue">
                   <path
@@ -704,21 +685,25 @@ export default function Dashboard() {
               <Button
                 onClick={handleCreatePresentation}
                 disabled={isCreating}
-                className="rounded-2xl bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue-dark hover:to-brand-teal-dark text-white font-medium py-3 h-auto"
+                className="group relative rounded-2xl overflow-hidden bg-transparent font-medium py-3 h-auto transition-all duration-300"
               >
-                {isCreating ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Creating...
-                  </span>
-                ) : (
-                  <>
-                    <Plus className="mr-2 h-4 w-4" /> Create Design
-                  </>
-                )}
+                <span className="absolute inset-0 bg-gradient-to-r from-brand-blue to-brand-teal transition-opacity duration-200 ease-in-out"></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-brand-blue-dark to-brand-teal-dark opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"></span>
+                <span className="relative z-10 px-4 py-1 flex items-center text-white">
+                  {isCreating ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Creating...
+                    </span>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" /> Create Design
+                    </>
+                  )}
+                </span>
               </Button>
             </div>
           )}
@@ -734,7 +719,7 @@ export default function Dashboard() {
                       <img
                         src={`/placeholder${item % 2 === 0 ? '.jpg' : '.svg'}`}
                         alt={`Template ${item}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       />
                       <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/70 to-brand-teal/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                         <Button size="sm" variant="secondary" className="bg-white hover:bg-white/90 text-sm rounded-xl">
