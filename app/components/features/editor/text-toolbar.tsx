@@ -1,7 +1,7 @@
 "use client"
 
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover"
-import type { Element } from "@/app/lib/context/canvas-context"
+import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
+import type { Element } from "@lib/context/canvas-context"
 import {
   DEFAULT_FONT_SIZE,
   DEFAULT_TEXT_ALIGN,
@@ -10,7 +10,7 @@ import {
   MIN_FONT_SIZE,
   type TextAlignment
 } from "@/lib/constants/editor"
-import { cn } from "@/app/lib/utils"
+import { cn } from "@/lib/utils/utils"
 import {
   AlignCenter,
   AlignJustify,

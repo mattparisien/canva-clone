@@ -1,11 +1,11 @@
 "use client"
 
-import { Canvas } from "@/app/components/features/editor/canvas"
-import { TextToolbar } from "@/app/components/features/editor/text-toolbar"
-import { Slider } from "@/app/components/ui/slider"
-import { useCanvas } from "@/app/lib/context/canvas-context"
-import { useEditor } from "@/app/lib/context/editor-context"
-import { MAX_ZOOM, MIN_ZOOM } from "@/app/lib/constants/editor"
+import { Canvas } from "@components/features/editor/canvas"
+import { TextToolbar } from "@components/features/editor/text-toolbar"
+import { Slider } from "@components/ui/slider"
+import { useCanvas } from "@lib/context/canvas-context"
+import { useEditor } from "@lib/context/editor-context"
+import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor"
 import { HelpCircle, LayoutGrid, Maximize, PenLine, Plus } from "lucide-react"
 import { useCallback, useRef, useState } from "react"
 

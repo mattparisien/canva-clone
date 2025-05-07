@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/app/lib/context/auth-context";
-import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { Label } from "@/app/components/ui/label";
-import { Alert, AlertDescription } from "@/app/components/ui/alert";
+import { useAuth } from "@lib/context/auth-context";
+import { Button } from "@components/ui/button";
+import { Input } from "@components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/ui/card";
+import { Label } from "@components/ui/label";
+import { Alert, AlertDescription } from "@components/ui/alert";
 import Link from "next/link";
 
 export default function ForgotPasswordPage() {

@@ -1,9 +1,9 @@
 "use client"
 
-import { Button } from "@/app/components/ui/button"
-import { Input } from "@/app/components/ui/input"
-import { useCanvas } from "@/app/lib/context/canvas-context"
-import { cn } from "@/app/lib/utils"
+import { Button } from "@components/ui/button"
+import { Input } from "@components/ui/input"
+import { useCanvas } from "@lib/context/canvas-context"
+import { cn } from "@/lib/utils/utils"
 import { AppWindow, Crown, Folder, LayoutGrid, Search, Settings, Shapes, Sparkles, Type, Upload } from "lucide-react"
 import { useEffect, useState } from "react"
 

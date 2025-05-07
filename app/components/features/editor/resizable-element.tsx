@@ -2,9 +2,9 @@
 
 import type React from "react"
 
-import { TextEditor } from "@/app/components/features/editor/text-editor"
-import type { Element } from "@/app/lib/context/canvas-context"
-import { useCanvas } from "@/app/lib/context/canvas-context"
+import { TextEditor } from "@components/features/editor/text-editor"
+import type { Element } from "@lib/context/canvas-context"
+import { useCanvas } from "@lib/context/canvas-context"
 import { HANDLE_BASE_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react"
 

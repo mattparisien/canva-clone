@@ -1,10 +1,10 @@
 "use client"
 
-import { Avatar, AvatarFallback } from "@/app/components/ui/avatar"
-import { Button } from "@/app/components/ui/button"
+import { Avatar, AvatarFallback } from "@components/ui/avatar"
+import { Button } from "@components/ui/button"
 import { ArrowLeft, ArrowRight, ChevronDown, Save, Share2, Edit, Eye } from "lucide-react"
-import { useEditor } from "@/app/lib/context/editor-context"
-import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover"
+import { useEditor } from "@lib/context/editor-context"
+import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
 import { useCallback, useState, KeyboardEvent, useRef, useEffect } from "react"
 
 export function Navbar() {

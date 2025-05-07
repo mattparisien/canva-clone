@@ -1,9 +1,9 @@
 "use client"
 
-import { Sidebar } from "@/app/components/sidebar"
-import { Navbar } from "@/app/components/navbar"
-import { CanvasProvider } from "@/app/lib/context/canvas-context"
-import { EditorProvider } from "@/app/lib/context/editor-context"
+import { Sidebar } from "@components/layout/sidebar"
+import { Navbar } from "@components/layout/navbar"
+import { CanvasProvider } from "@lib/context/canvas-context"
+import { EditorProvider } from "@lib/context/editor-context"
 
 export default function EditorLayout({
     children,

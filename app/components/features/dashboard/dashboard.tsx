@@ -1,39 +1,38 @@
 "use client"
 
-import { Button } from "@/app/components/ui/button"
-import { Card, CardContent } from "@/app/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs"
-import { 
-  Plus, 
-  Trash2, 
-  Share2, 
-  MoreHorizontal, 
-  Star, 
-  StarOff,
-  Grid3x3,
-  List,
-  Filter,
-  SlidersHorizontal,
-  Clock
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState, useEffect } from "react"
+import { Badge } from "@components/ui/badge"
+import { Button } from "@components/ui/button"
+import { Card } from "@components/ui/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/app/components/ui/dropdown-menu"
-import { Badge } from "@/app/components/ui/badge"
-import { 
+} from "@components/ui/dropdown-menu"
+import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs"
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/app/components/ui/tooltip"
-import { designsAPI } from "@/app/lib/api"
-import { useToast } from "@/app/components/ui/use-toast"
+} from "@components/ui/tooltip"
+import { useToast } from "@components/ui/use-toast"
+import { designsAPI } from "@lib/api"
+import {
+  Clock,
+  Filter,
+  Grid3x3,
+  List,
+  MoreHorizontal,
+  Plus,
+  Share2,
+  SlidersHorizontal,
+  Star,
+  StarOff
+} from "lucide-react"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
 
 // Design interface
@@ -59,7 +58,7 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [activeTab, setActiveTab] = useState("all")
   const [isCreating, setIsCreating] = useState(false)
-  
+
   // Fetch designs from the backend
   useEffect(() => {
     const fetchDesigns = async () => {
@@ -90,31 +89,31 @@ export default function Dashboard() {
     const differenceInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24))
 
     if (differenceInDays === 0) {
-      return "Today, " + date.toLocaleTimeString(undefined, { 
-        hour: '2-digit', 
+      return "Today, " + date.toLocaleTimeString(undefined, {
+        hour: '2-digit',
         minute: '2-digit'
       })
     } else if (differenceInDays === 1) {
-      return "Yesterday, " + date.toLocaleTimeString(undefined, { 
-        hour: '2-digit', 
+      return "Yesterday, " + date.toLocaleTimeString(undefined, {
+        hour: '2-digit',
         minute: '2-digit'
       })
     } else if (differenceInDays < 7) {
       return `${differenceInDays} days ago`
     } else {
-      return date.toLocaleDateString(undefined, { 
-        month: 'short', 
+      return date.toLocaleDateString(undefined, {
+        month: 'short',
         day: 'numeric',
         year: now.getFullYear() !== date.getFullYear() ? 'numeric' : undefined
       })
     }
   }
-  
+
   // Create new presentation
   const handleCreatePresentation = async () => {
     try {
       setIsCreating(true)
-      
+
       // Create default presentation document
       const newDesign = {
         title: `Untitled Design - ${new Date().toLocaleDateString()}`,
@@ -147,13 +146,13 @@ export default function Dashboard() {
 
       // Create the document in MongoDB
       const createdDesign = await designsAPI.create(newDesign)
-      
+
       // Add the newly created design to the state
       setDesigns(prevDesigns => [createdDesign, ...prevDesigns])
-      
+
       // Navigate to editor with the new design ID
       router.push(`/editor?id=${createdDesign._id}`)
-      
+
       toast({
         title: "Success",
         description: "New design created successfully!",
@@ -170,20 +169,20 @@ export default function Dashboard() {
       setIsCreating(false)
     }
   }
-  
+
   // Open existing design
   const handleOpenDesign = (id: string) => {
     router.push(`/editor?id=${id}`)
   }
-  
+
   // Delete design
   const handleDeleteDesign = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent triggering the card click
-    
+
     try {
       await designsAPI.delete(id)
       setDesigns(designs.filter(d => d._id !== id))
-      
+
       toast({
         title: "Success",
         description: "Design deleted successfully!",
@@ -198,20 +197,20 @@ export default function Dashboard() {
       })
     }
   }
-  
+
   // Toggle star status
   const toggleStar = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent triggering the card click
-    
+
     const design = designs.find(d => d._id === id)
     if (!design) return
-    
+
     try {
-      const updatedDesign = await designsAPI.update(id, { 
-        starred: !design.starred 
+      const updatedDesign = await designsAPI.update(id, {
+        starred: !design.starred
       })
-      
-      setDesigns(designs.map(d => 
+
+      setDesigns(designs.map(d =>
         d._id === id ? { ...d, starred: !d.starred } : d
       ))
     } catch (error) {
@@ -226,13 +225,13 @@ export default function Dashboard() {
 
   // Get visible designs based on active tab
   const getVisibleDesigns = () => {
-    switch(activeTab) {
+    switch (activeTab) {
       case "starred":
         return designs.filter(d => d.starred)
       case "shared":
         return designs.filter(d => d.shared)
       case "recent":
-        return [...designs].sort((a, b) => 
+        return [...designs].sort((a, b) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         ).slice(0, 3)
       default:
@@ -250,7 +249,7 @@ export default function Dashboard() {
     ]
     return thumbnails[index % thumbnails.length]
   }
-  
+
   return (
     <main className="container mx-auto py-10 max-w-7xl">
       {/* Hero section */}
@@ -260,11 +259,11 @@ export default function Dashboard() {
           Create, edit and share stunning designs. All your creative work in one place.
         </p>
       </div>
-      
+
       {/* Tabs and Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <Tabs 
-          defaultValue="all" 
+        <Tabs
+          defaultValue="all"
           value={activeTab}
           onValueChange={setActiveTab}
           className="w-full md:w-auto"
@@ -276,14 +275,14 @@ export default function Dashboard() {
             <TabsTrigger value="shared">Shared</TabsTrigger>
           </TabsList>
         </Tabs>
-        
+
         <div className="flex items-center gap-3">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   className={`rounded-md ${viewMode === "grid" ? "bg-gray-100" : ""}`}
                   onClick={() => setViewMode("grid")}
                 >
@@ -293,13 +292,13 @@ export default function Dashboard() {
               <TooltipContent>Grid view</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
+                <Button
+                  variant="outline"
+                  size="icon"
                   className={`rounded-md ${viewMode === "list" ? "bg-gray-100" : ""}`}
                   onClick={() => setViewMode("list")}
                 >
@@ -320,7 +319,7 @@ export default function Dashboard() {
               <TooltipContent>Filter</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -332,9 +331,9 @@ export default function Dashboard() {
             </Tooltip>
           </TooltipProvider>
 
-          <Button 
+          <Button
             onClick={handleCreatePresentation}
-            disabled={isCreating} 
+            disabled={isCreating}
             className="rounded-md bg-gradient-to-r from-[#2ec4e6] to-[#7c3aed] hover:opacity-90 transition-opacity"
           >
             {isCreating ? (
@@ -353,7 +352,7 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
-      
+
       {/* Loading state */}
       {loading && (
         <div className="flex items-center justify-center py-20">
@@ -377,7 +376,7 @@ export default function Dashboard() {
           </div>
           <h3 className="text-xl font-medium mb-2">Failed to Load Designs</h3>
           <p className="text-gray-500 mb-6 max-w-sm">{error}</p>
-          <Button 
+          <Button
             onClick={() => window.location.reload()}
             className="rounded-md bg-gradient-to-r from-[#2ec4e6] to-[#7c3aed]"
           >
@@ -385,14 +384,14 @@ export default function Dashboard() {
           </Button>
         </div>
       )}
-      
+
       {/* Content when not loading and no error */}
       {!loading && !error && (
         <>
           {viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {/* Create new presentation card */}
-              <Card 
+              <Card
                 onClick={handleCreatePresentation}
                 className={`cursor-pointer group h-[280px] border border-dashed hover:border-primary bg-gradient-to-br from-white to-gray-50 flex flex-col justify-center items-center hover:shadow-md hover:shadow-primary/5 transition-all duration-300 ${isCreating ? 'opacity-70 pointer-events-none' : ''}`}
               >
@@ -413,16 +412,16 @@ export default function Dashboard() {
                   </p>
                 </div>
               </Card>
-              
+
               {/* Design cards */}
               {getVisibleDesigns().map((design, index) => (
-                <Card 
-                  key={design._id} 
+                <Card
+                  key={design._id}
                   className="cursor-pointer overflow-hidden h-[280px] hover:shadow-lg transition-all duration-300 group border-gray-100"
                   onClick={() => handleOpenDesign(design._id)}
                 >
                   <div className="h-[160px] bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
-                    <img 
+                    <img
                       src={design.thumbnail || getDefaultThumbnail(index)}
                       alt={design.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -469,7 +468,7 @@ export default function Dashboard() {
                             </DropdownMenuItem>
                             <DropdownMenuItem className="cursor-pointer">Download</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="cursor-pointer text-red-500 focus:text-red-500"
                               onClick={(e) => handleDeleteDesign(design._id, e)}
                             >
@@ -514,8 +513,8 @@ export default function Dashboard() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {getVisibleDesigns().map((design, index) => (
-                    <tr 
-                      key={design._id} 
+                    <tr
+                      key={design._id}
                       className="hover:bg-gray-50 cursor-pointer"
                       onClick={() => handleOpenDesign(design._id)}
                     >
@@ -574,7 +573,7 @@ export default function Dashboard() {
                               <DropdownMenuItem className="cursor-pointer">Duplicate</DropdownMenuItem>
                               <DropdownMenuItem className="cursor-pointer">Download</DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem 
+                              <DropdownMenuItem
                                 className="cursor-pointer text-red-500 focus:text-red-500"
                                 onClick={(e) => handleDeleteDesign(design._id, e)}
                               >
@@ -590,7 +589,7 @@ export default function Dashboard() {
               </table>
             </div>
           )}
-          
+
           {/* Empty state */}
           {getVisibleDesigns().length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -607,16 +606,16 @@ export default function Dashboard() {
               </div>
               <h3 className="text-xl font-medium mb-2">No designs found</h3>
               <p className="text-gray-500 mb-6 max-w-sm">
-                {activeTab === "all" 
+                {activeTab === "all"
                   ? "You haven't created any designs yet. Create your first one now!"
                   : activeTab === "starred"
                     ? "You haven't starred any designs yet."
-                    : activeTab === "shared" 
+                    : activeTab === "shared"
                       ? "You don't have any shared designs."
                       : "No recent designs found."}
               </p>
-              <Button 
-                onClick={handleCreatePresentation} 
+              <Button
+                onClick={handleCreatePresentation}
                 disabled={isCreating}
                 className="rounded-md bg-gradient-to-r from-[#2ec4e6] to-[#7c3aed]"
               >
@@ -645,7 +644,7 @@ export default function Dashboard() {
                 {[1, 2, 3, 4, 5, 6].map((item) => (
                   <Card key={item} className="cursor-pointer overflow-hidden group h-40 hover:shadow-md transition-all">
                     <div className="h-full bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
-                      <img 
+                      <img
                         src={`/placeholder${item % 2 === 0 ? '.jpg' : '.svg'}`}
                         alt={`Template ${item}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

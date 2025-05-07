@@ -1,5 +1,5 @@
 "use client"
-import { Editor } from "@/app/components/editor"
+import { Editor } from "@components/features/editor"
 import React from "react"
 
 export default function EditorPage() {
