@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import "@/app/styles/globals.css"
-import { ThemeProvider } from "@/app/components/theme-provider"
-import { AuthProvider } from "@/app/lib/context/auth-context"
+import { ThemeProvider } from "@/components/theme-provider"
+import { AuthProvider } from "@context/auth-context"
 
 export const metadata: Metadata = {
   title: "Canvas - Create stunning designs",
