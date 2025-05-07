@@ -36,7 +36,7 @@ export function DashboardNavbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center mr-6 group">
           <div className="flex items-center">
-            <div className="w-10 h-10 mr-3 rounded-xl bg-gradient-to-r from-[#2ec4e6] to-[#7c3aed] flex items-center justify-center shadow-md shadow-primary/20 group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-300">
+            <div className="w-10 h-10 mr-3 rounded-xl bg-gradient-to-r from-brand-blue to-brand-teal flex items-center justify-center shadow-md shadow-brand-blue/20 group-hover:shadow-lg group-hover:shadow-brand-blue/30 transition-all duration-300">
               <svg
                 width="22"
                 height="22"
@@ -54,13 +54,13 @@ export function DashboardNavbar() {
                 />
               </svg>
             </div>
-            <span className="font-bold text-xl tracking-tight">Canvas</span>
+            <span className="font-bold text-xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-teal">Droip</span>
           </div>
         </Link>
 
         {/* Navigation Links */}
         <nav className="hidden md:flex space-x-6 ml-6">
-          <a href="#" className="text-primary font-medium">Home</a>
+          <a href="#" className="text-brand-blue font-medium">Home</a>
           <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">Templates</a>
           <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">Recent</a>
           <a href="#" className="text-gray-500 hover:text-gray-900 transition-colors">Shared</a>
@@ -70,12 +70,12 @@ export function DashboardNavbar() {
         <div className={`flex-1 flex justify-center transition-all duration-300 ${isSearchFocused ? 'scale-105' : ''}`}>
           <div className="relative w-full max-w-md">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className={`h-4 w-4 transition-colors duration-300 ${isSearchFocused ? 'text-primary' : 'text-gray-400'}`} />
+              <Search className={`h-4 w-4 transition-colors duration-300 ${isSearchFocused ? 'text-brand-blue' : 'text-gray-400'}`} />
             </div>
             <input
               type="search"
-              placeholder="Search presentations..."
-              className="w-full pl-10 py-2 px-4 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
+              placeholder="Search designs..."
+              className="w-full pl-10 py-2 px-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue transition-all duration-300"
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
             />
@@ -84,31 +84,35 @@ export function DashboardNavbar() {
 
         {/* User menu */}
         <div className="ml-auto flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-primary hover:bg-gray-100">
+          <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-brand-blue hover:bg-gray-100">
             <HelpCircle className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-primary hover:bg-gray-100 relative">
+          <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-brand-blue hover:bg-gray-100 relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
           </Button>
-          <Button variant="outline" size="sm" className="hidden md:flex rounded-full border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="hidden md:flex rounded-2xl border-gray-200 hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
+          >
             <span className="text-sm font-medium">Upgrade</span>
-            <span className="ml-1 bg-gradient-to-r from-[#2ec4e6] to-[#7c3aed] text-transparent bg-clip-text font-semibold">Pro</span>
+            <span className="ml-1 bg-gradient-to-r from-brand-blue to-brand-teal text-transparent bg-clip-text font-semibold">Pro</span>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-white hover:ring-primary transition-all">
+              <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-gray-100 hover:ring-brand-blue transition-all">
                 <AvatarImage src="/placeholder-user.jpg" alt="User" />
-                <AvatarFallback className="bg-gradient-to-r from-[#2ec4e6] to-[#7c3aed] text-white">
+                <AvatarFallback className="bg-gray-100 text-gray-600 border border-gray-200">
                   {user?.name?.split(' ').map(n => n[0]).join('') || 'MP'}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 p-2">
+            <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
               <div className="flex items-center gap-3 p-2">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src="/placeholder-user.jpg" alt="User" />
-                  <AvatarFallback className="bg-gradient-to-r from-[#2ec4e6] to-[#7c3aed] text-white">
+                  <AvatarFallback className="bg-gray-100 text-gray-600 border border-gray-200">
                     {user?.name?.split(' ').map(n => n[0]).join('') || 'MP'}
                   </AvatarFallback>
                 </Avatar>
@@ -118,15 +122,15 @@ export function DashboardNavbar() {
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer rounded-md">
+              <DropdownMenuItem asChild className="cursor-pointer rounded-md hover:bg-brand-blue-light/10 hover:text-brand-blue">
                 <Link href="/profile">Profile</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer rounded-md">Settings</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer rounded-md">Billing</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer rounded-md">Templates</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-brand-blue-light/10 hover:text-brand-blue">Settings</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-brand-blue-light/10 hover:text-brand-blue">Billing</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-brand-blue-light/10 hover:text-brand-blue">Templates</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                className="cursor-pointer rounded-md"
+                className="cursor-pointer rounded-md text-red-500 hover:bg-red-50 hover:text-red-600"
                 onClick={handleLogout}
               >
                 Log out

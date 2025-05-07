@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Checkbox } from "@components/ui/checkbox";
@@ -14,12 +14,20 @@ import Image from "next/image";
 
 export default function SignIn() {
   const router = useRouter();
+  const { status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
+  // Redirect authenticated users away from signin page
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
   // Get return URL from query parameter
   const searchParams = new URLSearchParams(

@@ -51,7 +51,7 @@ export default function ResetPasswordPage() {
       await resetPassword(token, password);
       
       // Redirect to dashboard after successful password reset
-      router.push('/dashboard');
+      router.push('/');
     } catch (err: any) {
       setError(err.message || "Failed to reset password");
     } finally {

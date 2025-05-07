@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Checkbox } from "@components/ui/checkbox";
@@ -29,6 +29,7 @@ type FormErrors = {
 
 export default function SignUp() {
   const router = useRouter();
+  const { status } = useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,6 +37,13 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  // Redirect authenticated users away from signup page
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
   // Get return URL from query parameter
   const searchParams = new URLSearchParams(

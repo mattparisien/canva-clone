@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo } from "react"
 import { Element, CanvasContextType, CanvasSize } from "../types/canvas.types"
 import { DEFAULT_TEXT_FONT_SIZE_RATIO } from "../constants/canvas"
-import { scaleElement as scaleElementUtil, fitCanvasToView as fitCanvasToViewUtil } from "../../../utils/canvas-utils"
+import { scaleElement as scaleElementUtil, fitCanvasToView as fitCanvasToViewUtil } from "@utils/canvas-utils"
 import { useCanvasHistory } from "../hooks/use-canvas-history"
 import { createTextElement } from "../factories/element-factories"
 import { useEditor } from "./editor-context"

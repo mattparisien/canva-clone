@@ -72,7 +72,7 @@ export default function SignupForm() {
         setErrors({ form: signInResult.error });
       } else {
         // Redirect to dashboard on successful sign-in
-        router.push("/dashboard");
+        router.push("/");
       }
     } catch (error) {
       if (error instanceof Error) {
