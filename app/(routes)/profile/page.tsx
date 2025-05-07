@@ -19,7 +19,13 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { userAPI } from "../../../lib/api"; // Changed import path
+import { userAPI, getImageUrlWithSize } from "../../../lib/api" // Import the getImageUrlWithSize utility
+
+// Size constants for profile pictures
+const PROFILE_PIC_SIZES = {
+  avatar: { width: 128, height: 128 }, // Size for the profile avatar
+  thumbnail: { width: 48, height: 48 }  // Size for smaller thumbnails if needed
+}
 
 interface ProfileData {
   _id: string
@@ -242,8 +248,15 @@ export default function ProfilePage() {
                   >
                     <input {...getInputProps()} />
                     <Avatar className="h-full w-full">
-                      {/* Ensure profilePictureUrl is used here */}
-                      <AvatarImage src={profileData.profilePictureUrl} alt={profileData.name} />
+                      {/* Use optimized profile picture with specific size */}
+                      <AvatarImage 
+                        src={getImageUrlWithSize(
+                          profileData.profilePictureUrl, 
+                          PROFILE_PIC_SIZES.avatar.width, 
+                          PROFILE_PIC_SIZES.avatar.height
+                        )} 
+                        alt={profileData.name} 
+                      />
                       <AvatarFallback className="bg-gradient-to-br from-brand-blue-light to-brand-teal-light text-white text-2xl">
                         {profileData.name?.substring(0, 2).toUpperCase() || 'U'}
                       </AvatarFallback>
