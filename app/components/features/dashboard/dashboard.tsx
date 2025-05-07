@@ -372,29 +372,17 @@ export default function Dashboard() {
                     <Button
                       variant="outline"
                       size="icon"
-                      className={`rounded-xl transition-all duration-300 ${viewMode === "grid" ? "border-brand-blue text-brand-blue bg-brand-blue/5" : ""}`}
-                      onClick={() => setViewMode("grid")}
+                      className="rounded-xl transition-all duration-300"
+                      onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
                     >
-                      <Grid3x3 className="h-4 w-4" />
+                      {viewMode === "grid" ? (
+                        <Grid3x3 className="h-4 w-4" />
+                      ) : (
+                        <List className="h-4 w-4" />
+                      )}
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Grid view</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className={`rounded-xl transition-all duration-300 ${viewMode === "list" ? "border-brand-blue text-brand-blue bg-brand-blue/5" : ""}`}
-                      onClick={() => setViewMode("list")}
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>List view</TooltipContent>
+                  <TooltipContent>{viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
