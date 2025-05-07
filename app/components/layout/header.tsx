@@ -68,17 +68,17 @@ export function Header() {
 
         {/* User menu */}
         <div className="ml-auto flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-brand-blue hover:bg-gray-100">
+          <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100">
             <HelpCircle className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-brand-blue hover:bg-gray-100 relative">
+          <Button variant="ghost" size="icon" className="rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100 relative">
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="hidden md:flex rounded-2xl border-gray-200 hover:border-brand-blue hover:bg-brand-blue/5 transition-colors"
+            className="hidden md:flex rounded-2xl border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
           >
             <span className="text-sm font-medium">Upgrade</span>
             <span className="ml-1 bg-gradient-to-r from-brand-blue to-brand-teal text-transparent bg-clip-text font-semibold">Pro</span>
@@ -106,15 +106,15 @@ export function Header() {
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild className="cursor-pointer rounded-md hover:bg-brand-blue-light/10 hover:text-brand-blue">
+              <DropdownMenuItem asChild className="cursor-pointer rounded-md hover:bg-gray-100 hover:text-gray-900">
                 <Link href="/profile">Profile</Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-brand-blue-light/10 hover:text-brand-blue">Settings</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-brand-blue-light/10 hover:text-brand-blue">Billing</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-brand-blue-light/10 hover:text-brand-blue">Templates</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-gray-100 hover:text-gray-900">Settings</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-gray-100 hover:text-gray-900">Billing</DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer rounded-md hover:bg-gray-100 hover:text-gray-900">Templates</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="cursor-pointer rounded-md text-red-500 hover:bg-red-50 hover:text-red-600"
+                className="cursor-pointer rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                 onClick={handleLogout}
               >
                 Log out
