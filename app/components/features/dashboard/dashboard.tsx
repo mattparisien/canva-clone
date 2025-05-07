@@ -32,7 +32,8 @@ import {
   Share2,
   SlidersHorizontal,
   Star,
-  StarOff
+  StarOff,
+  Trash2
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -284,6 +285,42 @@ export default function Dashboard() {
     return thumbnails[index % thumbnails.length]
   }
 
+  // Get count of selected designs
+  const selectedCount = Object.values(selectedDesigns).filter(Boolean).length;
+  
+  // Delete multiple designs
+  const handleDeleteSelectedDesigns = async () => {
+    try {
+      const selectedIds = Object.entries(selectedDesigns)
+        .filter(([_, isSelected]) => isSelected)
+        .map(([id]) => id);
+      
+      if (selectedIds.length === 0) return;
+      
+      // Delete each selected design
+      await Promise.all(selectedIds.map(id => designsAPI.delete(id)));
+      
+      // Remove deleted designs from state
+      setDesigns(designs.filter(d => !selectedDesigns[d._id]));
+      
+      // Clear selection
+      setSelectedDesigns({});
+      
+      toast({
+        title: "Success",
+        description: `${selectedIds.length} ${selectedIds.length === 1 ? 'design' : 'designs'} deleted successfully!`,
+        variant: "default"
+      });
+    } catch (error) {
+      console.error("Failed to delete designs:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete designs. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <main className="container mx-auto pb-10 pt-5 max-w-7xl">
       {/* Hero section */}
@@ -320,7 +357,7 @@ export default function Dashboard() {
                 </div>
                 <Input
                   type="search"
-                  className="pl-10 py-2 bg-white border border-gray-200 rounded-xl focus-visible:ring-brand-blue/20 focus-visible:ring-offset-0"
+                  className="pl-10 py-2 bg-white border border-gray-200 rounded-xl focus-visible:ring-brand-blue/30 focus-visible:ring-offset-0"
                   placeholder="Search designs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -511,13 +548,13 @@ export default function Dashboard() {
                         }`}
                         onClick={handleCheckboxClick}
                       >
-                        <div className={`h-5 w-5 rounded border flex items-center justify-center ${
+                        <div className={`h-6 w-6 rounded border-2 flex items-center justify-center cursor-pointer ${
                           isDesignSelected(design._id) 
                             ? 'bg-brand-blue border-brand-blue text-white' 
                             : 'border-white bg-black/20 backdrop-blur-sm'
                         }`}>
                           {isDesignSelected(design._id) && (
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg width="14" height="14" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           )}
@@ -711,6 +748,23 @@ export default function Dashboard() {
             </div>
           )}
         </>
+      )}
+
+      {/* Fixed selection popover */}
+      {selectedCount > 0 && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-xl px-8 py-4 flex items-center gap-6 z-50 min-w-[320px] md:min-w-[400px] border border-gray-100">
+          <span className="text-gray-700 font-medium">{selectedCount} selected</span>
+          <div className="flex-1"></div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-lg hover:bg-gray-100"
+            onClick={handleDeleteSelectedDesigns}
+            aria-label="Delete selected items"
+          >
+            <Trash2 className="w-10 h-10 text-gray-600" />
+          </Button>
+        </div>
       )}
     </main>
   )
