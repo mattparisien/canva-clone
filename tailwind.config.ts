@@ -24,6 +24,19 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        // Brand colors
+        brand: {
+          blue: {
+            DEFAULT: "#1E88E5", // Our main blue color
+            light: "#E3F2FD",
+            dark: "#1565C0",
+          },
+          teal: {
+            DEFAULT: "#20B2AA", // Our main teal color
+            light: "#E0F7FA",
+            dark: "#00796B",
+          }
+        },
         primary: {
           DEFAULT: "#7C5DFA",
           foreground: "#ffffff",
