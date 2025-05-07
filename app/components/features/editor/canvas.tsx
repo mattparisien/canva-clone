@@ -1,7 +1,7 @@
 "use client"
 
-import { AlignmentGuides } from "@/app/components/alignment-guides"
-import { ResizableElement } from "@/app/components/resizable-element"
+import { AlignmentGuides } from "@/app/components/features/editor/alignment-guides"
+import { ResizableElement } from "@/app/components/features/editor/resizable-element"
 import { useCanvas } from "@/app/lib/context/canvas-context"
 import { useEditor } from "@/app/lib/context/editor-context"
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"

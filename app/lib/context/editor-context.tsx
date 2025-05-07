@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo, useRef } from "react"
 import { Element, Page, CanvasSize, EditorContextType } from "../types/canvas.types"
-import { DEFAULT_CANVAS_SIZE } from "../constants/canvas-constants"
+import { DEFAULT_CANVAS_SIZE } from "../constants/canvas"
 import { designsAPI } from "../api"
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined)

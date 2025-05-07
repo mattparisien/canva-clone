@@ -1,5 +1,5 @@
 import { Element, ElementType } from "../types/canvas.types"
-import { DEFAULT_TEXT_FONT_SIZE_RATIO } from "../constants/canvas-constants"
+import { DEFAULT_TEXT_FONT_SIZE_RATIO } from "../constants/canvas"
 import { measureTextWidth } from "../../../utils/canvas-utils"
 import { DEFAULT_TEXT_ALIGN } from "../lib/constants/editor"
 

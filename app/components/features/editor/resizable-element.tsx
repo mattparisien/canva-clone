@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { TextEditor } from "@/app/components/text-editor"
+import { TextEditor } from "@/app/components/features/editor/text-editor"
 import type { Element } from "@/app/lib/context/canvas-context"
 import { useCanvas } from "@/app/lib/context/canvas-context"
 import { HANDLE_BASE_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
