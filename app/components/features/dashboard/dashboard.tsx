@@ -3,7 +3,6 @@
 import { Badge } from "@components/ui/badge"
 import { Button } from "@components/ui/button"
 import { Card } from "@components/ui/card"
-import { Checkbox } from "@components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +37,8 @@ import {
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
+import { upperFirst } from "lodash";
+import { getRelativeTime } from "@utils/utils"
 
 // Design interface
 interface Design {
@@ -101,32 +102,7 @@ export default function Dashboard() {
     fetchDesigns()
   }, [toast])
 
-  // Format date to readable string
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const differenceInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24))
 
-    if (differenceInDays === 0) {
-      return "Today, " + date.toLocaleTimeString(undefined, {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    } else if (differenceInDays === 1) {
-      return "Yesterday, " + date.toLocaleTimeString(undefined, {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    } else if (differenceInDays < 7) {
-      return `${differenceInDays} days ago`
-    } else {
-      return date.toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-        year: now.getFullYear() !== date.getFullYear() ? 'numeric' : undefined
-      })
-    }
-  }
 
   // Create new presentation
   const handleCreatePresentation = async () => {
@@ -135,7 +111,7 @@ export default function Dashboard() {
 
       // Create default presentation document
       const newDesign = {
-        title: `Untitled Design - ${new Date().toLocaleDateString()}`,
+        title: 'Untitled Design',
         description: "",
         type: "presentation",
         userId: "user123", // Replace with actual user ID from auth
@@ -245,7 +221,7 @@ export default function Dashboard() {
   // Get visible designs based on active tab and search query
   const getVisibleDesigns = () => {
     let filteredDesigns = designs;
-    
+
     // Filter by tab first
     switch (activeTab) {
       case "starred":
@@ -260,17 +236,17 @@ export default function Dashboard() {
         ).slice(0, 3)
         break
     }
-    
+
     // Then filter by search query if present
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filteredDesigns = filteredDesigns.filter(
-        design => design.title.toLowerCase().includes(query) || 
-                (design.category && design.category.toLowerCase().includes(query)) ||
-                (design.type && design.type.toLowerCase().includes(query))
+        design => design.title.toLowerCase().includes(query) ||
+          (design.category && design.category.toLowerCase().includes(query)) ||
+          (design.type && design.type.toLowerCase().includes(query))
       );
     }
-    
+
     return filteredDesigns;
   }
 
@@ -287,25 +263,25 @@ export default function Dashboard() {
 
   // Get count of selected designs
   const selectedCount = Object.values(selectedDesigns).filter(Boolean).length;
-  
+
   // Delete multiple designs
   const handleDeleteSelectedDesigns = async () => {
     try {
       const selectedIds = Object.entries(selectedDesigns)
         .filter(([_, isSelected]) => isSelected)
         .map(([id]) => id);
-      
+
       if (selectedIds.length === 0) return;
-      
+
       // Delete each selected design
       await Promise.all(selectedIds.map(id => designsAPI.delete(id)));
-      
+
       // Remove deleted designs from state
       setDesigns(designs.filter(d => !selectedDesigns[d._id]));
-      
+
       // Clear selection
       setSelectedDesigns({});
-      
+
       toast({
         title: "Success",
         description: `${selectedIds.length} ${selectedIds.length === 1 ? 'design' : 'designs'} deleted successfully!`,
@@ -425,7 +401,10 @@ export default function Dashboard() {
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
                         ) : (
-                          <Plus className="h-6 w-6 text-white transition-transform duration-300 group-hover:scale-110" />
+                          <Plus className="text-white transition-transform duration-300 group-hover:scale-110" style={{
+                            width: "1.3rem",
+                            height: "1.3rem",
+                          }}/>
                         )}
                       </span>
                     </Button>
@@ -482,17 +461,16 @@ export default function Dashboard() {
                 const handleCardClick = () => {
                   handleOpenDesign(design._id);
                 };
-                
+
                 const handleCheckboxClick = (e: React.MouseEvent) => {
                   toggleDesignSelection(design._id, e);
                 };
-                
+
                 return (
-                  <div 
+                  <div
                     key={design._id}
-                    className={`group relative rounded-lg overflow-hidden bg-white hover:shadow-md transition-all duration-300 ${
-                      isDesignSelected(design._id) ? 'ring-2 ring-brand-blue' : ''
-                    }`}
+                    className={`group relative rounded-lg overflow-hidden bg-white transition-all duration-300 ${isDesignSelected(design._id) ? 'ring-2 ring-brand-blue' : ''
+                      }`}
                     onClick={handleCardClick}
                   >
                     {/* Preview thumbnail */}
@@ -502,42 +480,39 @@ export default function Dashboard() {
                         alt={design.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                       />
-                      
+
                       {/* Page count indicator - show for presentations/documents */}
-                      {(design.type === "presentation" || design.type === "document") && (
+                      {/* {(design.type === "presentation" || design.type === "document") && (
                         <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md backdrop-blur-md">
                           1 of 2
                         </div>
-                      )}
-                      
+                      )} */}
+
                       {/* Selection checkbox - visible on hover or when selected */}
-                      <div 
-                        className={`absolute top-2 left-2 transition-opacity ${
-                          isDesignSelected(design._id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                        }`}
+                      <div
+                        className={`absolute top-2 left-2 transition-opacity ${isDesignSelected(design._id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}
                         onClick={handleCheckboxClick}
                       >
-                        <div className={`h-6 w-6 rounded border-2 flex items-center justify-center cursor-pointer ${
-                          isDesignSelected(design._id) 
-                            ? 'bg-brand-blue border-brand-blue text-white' 
-                            : 'border-white bg-black/20 backdrop-blur-sm'
-                        }`}>
+                        <div className={`h-6 w-6 rounded border-[1.2px] flex items-center justify-center cursor-pointer ${isDesignSelected(design._id)
+                          ? 'bg-brand-blue border-brand-blue text-white'
+                          : 'border-gray-400 bg-white'
+                          }`}>
                           {isDesignSelected(design._id) && (
                             <svg width="14" height="14" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           )}
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Design info */}
                     <div className="p-3">
-                      <h3 className="font-medium text-sm text-gray-900 truncate">{design.title}</h3>
+                      <h3 className="font-semibold text-sm text-gray-900 truncate">{design.title}</h3>
                       <div className="flex items-center mt-1 text-gray-500 text-xs">
-                        <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
                         <span className="truncate">
-                          {formatDate(design.updatedAt)}
+                          {upperFirst(design.type)} · Edited {getRelativeTime(design.updatedAt)}
                         </span>
                       </div>
                     </div>
@@ -586,11 +561,11 @@ export default function Dashboard() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge variant="outline" className="bg-brand-teal-light/10 border-brand-teal-light/20">
-                          {design.category || design.type || "Design"}
+                          {upperFirst(design.category) || upperFirst(design.type) || "Design"}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(design.updatedAt)}
+                        {upperFirst(getRelativeTime(design.updatedAt))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
@@ -702,7 +677,7 @@ export default function Dashboard() {
               <h2 className="text-xl font-semibold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-teal">Recently Used Templates</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((item) => (
-                  <Card key={item} className="cursor-pointer overflow-hidden group h-40 hover:shadow-md transition-all rounded-2xl border-gray-100">
+                  <Card key={item} className="cursor-pointer overflow-hidden group h-40 transition-all rounded-2xl border-gray-100">
                     <div className="h-full bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
                       <img
                         src={`/placeholder${item % 2 === 0 ? '.jpg' : '.svg'}`}

@@ -19,7 +19,8 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { userAPI, getImageUrlWithSize } from "../../../lib/api" // Import the getImageUrlWithSize utility
+import { userAPI } from "../../../lib/api" // Updated import
+import { getImageUrlWithSize } from "../../../lib/api" // Fixed import path
 
 // Size constants for profile pictures
 const PROFILE_PIC_SIZES = {
