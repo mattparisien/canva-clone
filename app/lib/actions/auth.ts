@@ -1,5 +1,5 @@
-import { SignupFormSchema, FormState } from '@/app/lib/definitions'
-import { authAPI } from '@/app/lib/api'
+import { SignupFormSchema, FormState } from '@lib/definitions'
+import { authAPI } from '@lib/api'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 

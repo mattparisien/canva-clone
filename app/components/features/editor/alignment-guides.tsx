@@ -1,7 +1,6 @@
 "use client"
 
-import type { Element } from "@/app/lib/context/canvas-context"
-import { useEffect } from "react"
+import type { Element } from "@context/canvas-context"
 
 interface AlignmentGuidesProps {
   activeElement: Element

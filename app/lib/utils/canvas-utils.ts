@@ -1,4 +1,4 @@
-import { Element } from "../app/lib/types/canvas.types";
+import { Element } from "@lib/types/canvas.types";
 
 /**
  * Calculates the width of text based on font size and family
