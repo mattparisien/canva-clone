@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import "@styles/globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { AuthProvider } from "@context/auth-context"
+import { Providers } from "@/components/providers"
+import { RouteGuard } from "@/components/route-guard"
 
 export const metadata: Metadata = {
   title: "Canvas - Create stunning designs",
@@ -16,16 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
+        <Providers>
+          <RouteGuard>
             {children}
-          </AuthProvider>
-        </ThemeProvider>
+          </RouteGuard>
+        </Providers>
       </body>
     </html>
   )
