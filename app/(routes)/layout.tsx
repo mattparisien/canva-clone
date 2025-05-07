@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import "./globals.css"
+import "@/app/styles/globals.css"
 import { ThemeProvider } from "@/app/components/theme-provider"
 import { AuthProvider } from "@/app/lib/context/auth-context"
 
