@@ -9,12 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@components/ui/dropdown-menu"
+import { getImageUrlWithSize } from "@lib/api"; // Fixed import path
 import { useAuth } from "@lib/context/auth-context"
-import { getImageUrlWithSize } from "@lib/api" // Fixed import path
 import { Bell, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { User } from "@lib/types/user.types"
 
 // Define thumbnail size constant for the header
 const HEADER_AVATAR_SIZE = {
@@ -94,13 +93,13 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <Avatar className="h-9 w-9 cursor-pointer overflow-visible ring-offset-1 ring-offset-white">
                 <div className="absolute inset-0 rounded-full ring-1 ring-gray-200 hover:ring-gray-300 transition-colors duration-200"></div>
-                <AvatarImage 
+                <AvatarImage
                   src={getImageUrlWithSize(
-                    user?.image || "/placeholder-user.jpg", 
-                    HEADER_AVATAR_SIZE.thumbnail.width, 
+                    user?.image || "/placeholder-user.jpg",
+                    HEADER_AVATAR_SIZE.thumbnail.width,
                     HEADER_AVATAR_SIZE.thumbnail.height
-                  )} 
-                  alt={user?.name || "User"} 
+                  )}
+                  alt={user?.name || "User"}
                   className="rounded-full"
                 />
                 <AvatarFallback className="bg-gray-100 text-gray-600">
@@ -111,13 +110,13 @@ export function Header() {
             <DropdownMenuContent align="end" className="w-72 p-2 rounded-xl">
               <div className="flex items-center gap-3 p-2">
                 <Avatar className="h-10 w-10 flex-shrink-0">
-                  <AvatarImage 
+                  <AvatarImage
                     src={getImageUrlWithSize(
-                      user?.image || "/placeholder-user.jpg", 
-                      HEADER_AVATAR_SIZE.thumbnail.width, 
+                      user?.image || "/placeholder-user.jpg",
+                      HEADER_AVATAR_SIZE.thumbnail.width,
                       HEADER_AVATAR_SIZE.thumbnail.height
-                    )} 
-                    alt={user?.name || "User"} 
+                    )}
+                    alt={user?.name || "User"}
                   />
                   <AvatarFallback className="bg-gray-100 text-gray-600 border border-gray-200">
                     {user?.name?.split(' ').map(n => n[0]).join('') || 'MP'}
