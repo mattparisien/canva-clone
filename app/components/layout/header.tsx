@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger
 } from "@components/ui/dropdown-menu"
 import { useAuth } from "@lib/context/auth-context"
-import { getImageUrlWithSize } from "../../../lib/api" // Fixed import path
+import { getImageUrlWithSize } from "@lib/api" // Fixed import path
 import { Bell, HelpCircle } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
