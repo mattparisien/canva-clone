@@ -3,11 +3,13 @@
 import { Canvas } from "@components/features/editor/canvas"
 import { TextToolbar } from "@components/features/editor/text-toolbar"
 import { Slider } from "@components/ui/slider"
+import { Button } from "@components/ui/button"
+import { Badge } from "@components/ui/badge"
 import { useCanvas } from "@lib/context/canvas-context"
 import { useEditor } from "@lib/context/editor-context"
 import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor"
-import { HelpCircle, LayoutGrid, Maximize, PenLine, Plus } from "lucide-react"
-import { useCallback, useRef, useState } from "react"
+import { HelpCircle, LayoutGrid, Maximize, Minus, PenLine, Plus, ZoomIn } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.
@@ -17,6 +19,9 @@ export function Editor() {
     // Reference for the editor container
     const editorContainerRef = useRef<HTMLDivElement>(null)
     const [zoom, setZoom] = useState(100) // 25 – 200 %
+    const [isFullscreen, setIsFullscreen] = useState(false)
+    // Track which page thumbnail is selected (for delete functionality)
+    const [selectedPageThumbnail, setSelectedPageThumbnail] = useState<string | null>(null)
 
     // Get editor-level state (pages, navigation)
     const {
@@ -24,7 +29,8 @@ export function Editor() {
         currentPageIndex,
         currentPageId,
         goToPage,
-        addPage
+        addPage,
+        deletePage
     } = useEditor();
 
     // Get canvas-level state (elements, selection)
@@ -51,6 +57,87 @@ export function Editor() {
     const handleZoomChange = useCallback((newZoom: number) => {
         setZoom(newZoom);
     }, []);
+
+    const handleZoomIn = useCallback(() => {
+        setZoom(prev => Math.min(MAX_ZOOM, prev + 10));
+    }, []);
+
+    const handleZoomOut = useCallback(() => {
+        setZoom(prev => Math.max(MIN_ZOOM, prev - 10));
+    }, []);
+
+    const toggleFullscreen = useCallback(() => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+            setIsFullscreen(true);
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+                setIsFullscreen(false);
+            }
+        }
+    }, []);
+
+    // Listen for fullscreen change events
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        };
+    }, []);
+
+    // Listen for keyboard events for page deletion
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check if the target is an input or textarea or contentEditable
+            const target = e.target as HTMLElement;
+            if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+                return;
+            }
+            
+            // If Delete key is pressed and a page thumbnail is selected
+            if ((e.key === "Delete" || e.key === "Backspace") && selectedPageThumbnail) {
+                e.preventDefault(); // Prevent browser's back navigation on Backspace
+                e.stopPropagation(); // Stop event propagation
+                
+                // Don't delete if it's the only page
+                if (pages.length <= 1) {
+                    return;
+                }
+                
+                console.log(`Deleting page with ID: ${selectedPageThumbnail}`);
+                deletePage(selectedPageThumbnail);
+                setSelectedPageThumbnail(null);
+            }
+            
+            // Deselect with Escape key
+            if (e.key === "Escape" && selectedPageThumbnail) {
+                setSelectedPageThumbnail(null);
+            }
+        };
+
+        // Add event listener directly to the document
+        document.addEventListener("keydown", handleKeyDown, { capture: true });
+        
+        // Clicking elsewhere should deselect the page thumbnail
+        const handleClickOutside = (e: MouseEvent) => {
+            const pageThumbnails = document.querySelector('.page-thumbnails-container');
+            if (pageThumbnails && !pageThumbnails.contains(e.target as Node) && selectedPageThumbnail) {
+                setSelectedPageThumbnail(null);
+            }
+        };
+        
+        window.addEventListener("click", handleClickOutside);
+        
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown, { capture: true });
+            window.removeEventListener("click", handleClickOutside);
+        };
+    }, [deletePage, pages.length, selectedPageThumbnail]);
 
     // Text editing handlers
     const handleFontSizeChange = useCallback((size: number) => {
@@ -89,16 +176,23 @@ export function Editor() {
     }, [selectedElement, updateElement]);
 
     return (
-        <div className="flex flex-1 overflow-hidden flex-col relative" ref={editorContainerRef} onClick={handleEditorClick}>
+        <div 
+            className="flex flex-1 overflow-hidden flex-col relative bg-slate-50" 
+            ref={editorContainerRef} 
+            onClick={handleEditorClick}
+        >
             {/* Main canvas area with wheel handler */}
-            <div className="flex-1 overflow-hidden relative" onWheel={e => {
-                if (e.ctrlKey || e.metaKey) {
-                    e.preventDefault();
-                    const zoomDelta = e.deltaY * 0.25;
-                    const next = Math.round(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom - zoomDelta)));
-                    setZoom(next);
-                }
-            }}>
+            <div 
+                className="flex-1 overflow-hidden relative"
+                onWheel={e => {
+                    if (e.ctrlKey || e.metaKey) {
+                        e.preventDefault();
+                        const zoomDelta = e.deltaY * 0.25;
+                        const next = Math.round(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom - zoomDelta)));
+                        setZoom(next);
+                    }
+                }}
+            >
                 {/* TextToolbar moved here */}
                 {selectedElement && selectedElement.type === "text" && (
                     <TextToolbar
@@ -119,21 +213,45 @@ export function Editor() {
                 />
             </div>
 
-            {/* Page Navigation Controls */}
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 py-2">
-                <div className="flex items-center gap-2">
+            {/* Page Navigation Controls with refined styling */}
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-3 py-3 px-6 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.05)] bg-white border border-gray-100">
+                <div className="flex items-center gap-4 page-thumbnails-container">
                     {pages.map((page, index) => (
                         <div key={page.id} className="group relative">
                             <div
-                                className={`relative rounded-md overflow-hidden border-2 ${currentPageId === page.id
-                                    ? 'border-[#8344e1] shadow-sm'
-                                    : 'border-[#e5e5e5] hover:border-[#d0d0d0]'
-                                    } transition-all cursor-pointer`}
+                                className={`relative rounded-lg overflow-hidden border-2 ${
+                                    selectedPageThumbnail === page.id
+                                    ? 'border-red-500 shadow-md'
+                                    : currentPageId === page.id
+                                    ? 'border-brand-blue shadow-sm'
+                                    : 'border-[#e5e5e5] hover:border-brand-blue/30'
+                                } transition-all cursor-pointer hover:shadow-sm`}
                                 style={{ width: '100px', height: '56px' }}
-                                onClick={() => goToPage(page.id)}
+                                onClick={(e) => {
+                                    if (e.ctrlKey || e.metaKey) {
+                                        // Toggle selection for deletion
+                                        setSelectedPageThumbnail(prev => prev === page.id ? null : page.id);
+                                    } else {
+                                        // Regular click just navigates to page
+                                        goToPage(page.id);
+                                        // Clear any selection
+                                        setSelectedPageThumbnail(null);
+                                    }
+                                }}
+                                onContextMenu={(e) => {
+                                    e.preventDefault();
+                                    // Right-click selects for deletion
+                                    setSelectedPageThumbnail(prev => prev === page.id ? null : page.id);
+                                }}
                             >
                                 <div className="absolute inset-0 bg-white flex items-center justify-center">
-                                    <div className="text-[0.6rem] text-gray-600 absolute top-1 right-1 flex items-center">
+                                    <div className={`text-[0.6rem] font-medium absolute top-1.5 right-1.5 flex items-center justify-center h-4 w-4 rounded-full ${
+                                        selectedPageThumbnail === page.id 
+                                        ? 'bg-red-500 text-white' 
+                                        : currentPageId === page.id 
+                                        ? 'bg-brand-blue text-white' 
+                                        : 'bg-gray-100 text-gray-600'
+                                    }`}>
                                         <span>{index + 1}</span>
                                     </div>
                                     <div className="flex flex-col items-center justify-center">
@@ -142,73 +260,128 @@ export function Editor() {
                                     </div>
                                 </div>
                             </div>
+                            
+                            {/* Visual indicator for current and selected pages */}
+                            {currentPageId === page.id && !selectedPageThumbnail && (
+                                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 h-0.5 w-8 rounded-full bg-gradient-to-r from-brand-blue to-brand-teal"></div>
+                            )}
+                            {selectedPageThumbnail === page.id && (
+                                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 h-0.5 w-8 rounded-full bg-gradient-to-r from-red-500 to-red-400">
+                                    <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 text-xs text-red-500 whitespace-nowrap">
+                                        Press Delete to remove
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ))}
+                    
+                    {/* Add Page Button with improved styling */}
                     <div
-                        className="rounded-md flex items-center justify-center bg-[#e2e2e2] hover:bg-[#d0d0d0] transition-colors cursor-pointer"
+                        className="rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-200 hover:border-brand-blue/30 transition-all cursor-pointer group"
                         style={{ width: '100px', height: '56px' }}
                         onClick={() => addPage()}
                     >
-                        <Plus className="h-5 w-5 text-gray-700" strokeWidth={1.2} />
+                        <div className="flex flex-col items-center justify-center gap-1.5">
+                            <div className="rounded-full p-1.5 bg-white group-hover:bg-brand-blue/10 transition-colors shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                                <Plus className="h-4 w-4 text-gray-500 group-hover:text-brand-blue transition-colors" strokeWidth={1.5} />
+                            </div>
+                            <span className="text-[0.65rem] text-gray-500 group-hover:text-brand-blue font-medium transition-colors">Add page</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Bottom Bar - moved from Canvas */}
-            <div className="h-12 flex items-center justify-between px-4 bg-[#EDF1F5]">
+            {/* Bottom Bar with gradient styling */}
+            <div className="h-12 flex items-center justify-between px-4 bg-white border-t border-gray-100 shadow-sm z-10">
                 {/* Left side - Notes button */}
                 <div className="flex items-center">
-                    <button className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
-                        <PenLine className="h-5 w-5" />
+                    <Button variant="ghost" size="sm" className="text-gray-700 hover:text-brand-blue hover:bg-brand-blue-light/20 gap-2 rounded-lg">
+                        <PenLine className="h-4 w-4" />
                         <span className="font-medium">Notes</span>
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Right side - Zoom controls and page info */}
-                <div className="flex items-center gap-6">
-                    {/* Zoom slider */}
-                    <div className="flex items-center gap-3">
-                        <div className="relative w-36 flex items-center">
+                <div className="flex items-center gap-4">
+                    {/* Zoom controls with improved UX */}
+                    <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-1 border border-gray-100">
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 rounded-md text-gray-600 hover:text-brand-blue hover:bg-brand-blue-light/20"
+                            onClick={handleZoomOut}
+                        >
+                            <Minus className="h-3.5 w-3.5" />
+                        </Button>
+                        
+                        <div className="relative w-24 flex items-center px-2">
                             <Slider
                                 value={[zoom]}
                                 min={MIN_ZOOM}
                                 max={MAX_ZOOM}
                                 step={1}
                                 onValueChange={([v]) => setZoom(v)}
+                                className="[&>[role=slider]]:bg-brand-blue"
                             />
                         </div>
-                        <span className="text-sm text-gray-700 font-medium">{zoom}%</span>
+                        
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-7 w-7 rounded-md text-gray-600 hover:text-brand-blue hover:bg-brand-blue-light/20"
+                            onClick={handleZoomIn}
+                        >
+                            <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                        
+                        <div className="mx-1 px-1.5 py-0.5 min-w-10 text-center font-medium text-sm text-gray-700 bg-white rounded border border-gray-100">
+                            {zoom}%
+                        </div>
                     </div>
 
-                    {/* Pages button */}
-                    <div className="flex items-center gap-1">
-                        <button className="flex items-center gap-1 text-gray-700 hover:text-gray-900">
-                            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-                                <path d="M8 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                <path d="M8 14H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                            <span className="font-medium">Pages</span>
-                        </button>
+                    {/* Pages info with badge */}
+                    <Badge variant="outline" className="bg-white px-3 py-1.5 h-7 gap-1.5 border-gray-200 text-gray-700 font-medium text-xs flex items-center">
+                        <svg className="h-4 w-4 text-brand-blue" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                            <path d="M8 10H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                            <path d="M8 14H16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                        <span>{currentPageIndex + 1} / {pages.length}</span>
+                    </Badge>
+
+                    {/* Control buttons with consistent styling */}
+                    <div className="flex items-center gap-1.5">
+                        {/* Grid view */}
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-lg text-gray-600 hover:text-brand-blue hover:bg-brand-blue-light/20"
+                            title="Grid View"
+                        >
+                            <LayoutGrid className="h-4.5 w-4.5" />
+                        </Button>
+
+                        {/* Fullscreen */}
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-lg text-gray-600 hover:text-brand-blue hover:bg-brand-blue-light/20"
+                            onClick={toggleFullscreen}
+                            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                        >
+                            <Maximize className="h-4.5 w-4.5" />
+                        </Button>
+
+                        {/* Help */}
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-lg text-gray-600 hover:text-brand-blue hover:bg-brand-blue-light/20"
+                            title="Help"
+                        >
+                            <HelpCircle className="h-4.5 w-4.5" />
+                        </Button>
                     </div>
-
-                    {/* Page counter */}
-                    <span className="text-sm text-gray-700">{currentPageIndex + 1} / {pages.length}</span>
-
-                    {/* Grid view */}
-                    <button className="text-gray-700 hover:text-gray-900">
-                        <LayoutGrid className="h-5 w-5" />
-                    </button>
-
-                    {/* Fullscreen */}
-                    <button className="text-gray-700 hover:text-gray-900">
-                        <Maximize className="h-5 w-5" />
-                    </button>
-
-                    {/* Help */}
-                    <button className="text-gray-700 hover:text-gray-900">
-                        <HelpCircle className="h-5 w-5" />
-                    </button>
                 </div>
             </div>
         </div>

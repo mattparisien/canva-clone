@@ -712,17 +712,16 @@ export function ResizableElement({
       )}
       <div
         ref={elementRef}
-        className={`absolute${isSelected && isEditMode ? " outline outline-primary" : isHovering && isEditMode ? " outline outline-primary" : ""}`}
+        className={`absolute${isSelected && isEditMode ? " ring-4 ring-brand-blue ring-opacity-80" : isHovering && isEditMode ? " ring-4 ring-brand-blue ring-opacity-60" : ""}`}
         style={{
           left: element.x,
           top: element.y,
           width: element.width,
           height: element.height,
-          cursor: isEditMode ? (isDragging ? "grabbing" : "move") : "default",
+          cursor: isEditMode ? (isDragging ? "grabbing" : "grab") : "default",
           transform: "none",
-          outlineWidth: (isSelected || isHovering) && isEditMode ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
-          outlineStyle: (isSelected || isHovering) && isEditMode ? "solid" : undefined,
-          // Let Tailwind class handle outline color
+          transition: "all 0.05s ease-out",
+          borderRadius: "2px",
         }}
         onMouseDown={handleDragStart}
         onMouseEnter={handleMouseEnter}
@@ -733,10 +732,10 @@ export function ResizableElement({
         {/* Only show resize handles when selected and in edit mode */}
         {isSelected && isEditMode && (
           <>
-            {/* Top-left corner handle - always shown unless resizing another handle */}
+            {/* Top-left corner handle with brand styling */}
             {(!isResizing || resizeDirection === "nw") && (
               <div
-                className="absolute cursor-nwse-resize bg-white shadow-md group/handle"
+                className="absolute cursor-nwse-resize group/handle"
                 style={{
                   width: `${handleSize}px`,
                   height: `${handleSize}px`,
@@ -744,16 +743,20 @@ export function ResizableElement({
                   boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                   border: "1px solid var(--handle-border)",
                   zIndex: 10,
-                  transition: "background 0.15s",
+                  transition: "all 0.15s",
                   top: 0,
                   left: 0,
                   transform: `translate(-50%, -50%) scale(${1})`,
-                  background: getHandleBg("nw"),
+                  background: getHandleBg("nw") === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
                 }}
                 onMouseDown={(e) => handleResizeStart(e, "nw")}
                 onMouseEnter={() => setHandleHover(h => ({ ...h, nw: true }))}
                 onMouseLeave={() => setHandleHover(h => ({ ...h, nw: false }))}
-              />
+              >
+                {handleHover.nw && (
+                  <div className="absolute inset-0 rounded-full bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s' }} />
+                )}
+              </div>
             )}
 
             {/* These corner handles only show when element is big enough */}
@@ -761,7 +764,7 @@ export function ResizableElement({
               <>
                 {(!isResizing || resizeDirection === "ne") && (
                   <div
-                    className="absolute cursor-nesw-resize bg-white shadow-md group/handle"
+                    className="absolute cursor-nesw-resize group/handle"
                     style={{
                       width: `${handleSize}px`,
                       height: `${handleSize}px`,
@@ -769,20 +772,24 @@ export function ResizableElement({
                       boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                       border: "1px solid var(--handle-border)",
                       zIndex: 10,
-                      transition: "background 0.15s",
+                      transition: "all 0.15s",
                       top: 0,
                       right: 0,
                       transform: `translate(50%, -50%) scale(${1})`,
-                      background: getHandleBg("ne"),
+                      background: getHandleBg("ne") === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
                     }}
                     onMouseDown={(e) => handleResizeStart(e, "ne")}
                     onMouseEnter={() => setHandleHover(h => ({ ...h, ne: true }))}
                     onMouseLeave={() => setHandleHover(h => ({ ...h, ne: false }))}
-                  />
+                  >
+                    {handleHover.ne && (
+                      <div className="absolute inset-0 rounded-full bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s' }} />
+                    )}
+                  </div>
                 )}
                 {(!isResizing || resizeDirection === "sw") && (
                   <div
-                    className="absolute cursor-nesw-resize bg-white shadow-md group/handle"
+                    className="absolute cursor-nesw-resize group/handle"
                     style={{
                       width: `${handleSize}px`,
                       height: `${handleSize}px`,
@@ -790,20 +797,24 @@ export function ResizableElement({
                       boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                       border: "1px solid var(--handle-border)",
                       zIndex: 10,
-                      transition: "background 0.15s",
+                      transition: "all 0.15s",
                       bottom: 0,
                       left: 0,
                       transform: `translate(-50%, 50%) scale(${1})`,
-                      background: getHandleBg("sw"),
+                      background: getHandleBg("sw") === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
                     }}
                     onMouseDown={(e) => handleResizeStart(e, "sw")}
                     onMouseEnter={() => setHandleHover(h => ({ ...h, sw: true }))}
                     onMouseLeave={() => setHandleHover(h => ({ ...h, sw: false }))}
-                  />
+                  >
+                    {handleHover.sw && (
+                      <div className="absolute inset-0 rounded-full bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s' }} />
+                    )}
+                  </div>
                 )}
                 {(!isResizing || resizeDirection === "se") && (
                   <div
-                    className="absolute cursor-nwse-resize bg-white shadow-md group/handle"
+                    className="absolute cursor-nwse-resize group/handle"
                     style={{
                       width: `${handleSize}px`,
                       height: `${handleSize}px`,
@@ -811,33 +822,37 @@ export function ResizableElement({
                       boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                       border: "1px solid var(--handle-border)",
                       zIndex: 10,
-                      transition: "background 0.15s",
+                      transition: "all 0.15s",
                       bottom: 0,
                       right: 0,
                       transform: `translate(50%, 50%) scale(${1})`,
-                      background: getHandleBg("se"),
+                      background: getHandleBg("se") === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
                     }}
                     onMouseDown={(e) => handleResizeStart(e, "se")}
                     onMouseEnter={() => setHandleHover(h => ({ ...h, se: true }))}
                     onMouseLeave={() => setHandleHover(h => ({ ...h, se: false }))}
-                  />
+                  >
+                    {handleHover.se && (
+                      <div className="absolute inset-0 rounded-full bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s' }} />
+                    )}
+                  </div>
                 )}
               </>
             )}
 
-            {/* Right handle - always shown unless resizing another handle */}
+            {/* Right handle with enhanced styling */}
             {(!isResizing || resizeDirection === "e") && (
               <div
-                className="absolute cursor-ew-resize bg-white shadow-md group/handle"
+                className="absolute cursor-ew-resize group/handle"
                 style={{
                   width: `${handleSize * 0.7}px`,
-                  height: `${Math.min(handleSize * 2.2, element.height)}px`,
+                  height: `${Math.min(handleSize * 2.2, element.height * 0.6)}px`,
                   borderRadius: `${handleSize * 0.35}px`,
                   boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                   border: "1px solid var(--handle-border)",
                   zIndex: 10,
-                  transition: "background 0.15s",
-                  background: (rightBorderHover || getHandleBg("e")) === "var(--handle-hover)" ? "var(--handle-hover)" : "#fff",
+                  transition: "all 0.15s",
+                  background: (rightBorderHover || getHandleBg("e") === "var(--handle-hover)") ? "#1E88E5" : "#ffffff",
                   right: 0,
                   top: `calc(50% + ${(element.height < handleSize * 2.2 ? (element.height - handleSize * 2.2) / 2 : 0)}px)`,
                   transform: `translate(50%, -50%) scale(${1})`
@@ -845,22 +860,26 @@ export function ResizableElement({
                 onMouseDown={(e) => handleResizeStart(e, "e")}
                 onMouseEnter={() => setHandleHover(h => ({ ...h, e: true }))}
                 onMouseLeave={() => setHandleHover(h => ({ ...h, e: false }))}
-              />
+              >
+                {handleHover.e && (
+                  <div className="absolute inset-0 rounded-md bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s', borderRadius: `${handleSize * 0.35}px` }} />
+                )}
+              </div>
             )}
 
-            {/* Left handle - only shown when element is big enough and not resizing another handle */}
+            {/* Left handle with enhanced styling */}
             {!isTooSmallForAllHandles && (!isResizing || resizeDirection === "w") && (
               <div
-                className="absolute cursor-ew-resize bg-white shadow-md group/handle"
+                className="absolute cursor-ew-resize group/handle"
                 style={{
                   width: `${handleSize * 0.7}px`,
-                  height: `${Math.min(handleSize * 2.2, element.height)}px`,
+                  height: `${Math.min(handleSize * 2.2, element.height * 0.6)}px`,
                   borderRadius: `${handleSize * 0.35}px`,
                   boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                   border: "1px solid var(--handle-border)",
                   zIndex: 10,
-                  transition: "background 0.15s",
-                  background: (leftBorderHover || getHandleBg("w")) === "var(--handle-hover)" ? "var(--handle-hover)" : "#fff",
+                  transition: "all 0.15s",
+                  background: (leftBorderHover || getHandleBg("w") === "var(--handle-hover)") ? "#1E88E5" : "#ffffff",
                   left: 0,
                   top: `calc(50% + ${(element.height < handleSize * 2.2 ? (element.height - handleSize * 2.2) / 2 : 0)}px)`,
                   transform: `translate(-50%, -50%) scale(${1})`
@@ -868,14 +887,28 @@ export function ResizableElement({
                 onMouseDown={(e) => handleResizeStart(e, "w")}
                 onMouseEnter={() => setHandleHover(h => ({ ...h, w: true }))}
                 onMouseLeave={() => setHandleHover(h => ({ ...h, w: false }))}
-              />
+              >
+                {handleHover.w && (
+                  <div className="absolute inset-0 rounded-md bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s', borderRadius: `${handleSize * 0.35}px` }} />
+                )}
+              </div>
             )}
 
-            {/* Wide invisible resize zones for left/right borders - always shown */}
+            {/* Selection indicator that shows which element is selected with a subtle gradient border */}
+            <div 
+              className="absolute inset-0 pointer-events-none" 
+              style={{ 
+                border: '2px solid rgba(30, 136, 229, 0.8)',
+                borderRadius: '2px',
+                background: 'transparent'
+              }}
+            />
+            
+            {/* Wide invisible resize zones */}
             <div
               className="absolute top-0 left-0 -translate-x-1/2 h-full"
               style={{
-                width: 40, // 16px wide zone
+                width: 40, 
                 cursor: "ew-resize",
                 zIndex: 5,
                 background: "transparent"
@@ -895,12 +928,11 @@ export function ResizableElement({
             <div
               className="absolute top-0 right-0 translate-x-1/2 h-full"
               style={{
-                width: 40, // 16px wide zone
+                width: 40,
                 cursor: "ew-resize",
                 zIndex: 5,
                 background: "transparent"
               }}
-              onMouseUp={(e) => { console.log("Mouse up") }}
               onMouseDown={(e) => handleResizeStart(e, "e")}
               onMouseEnter={() => {
                 if (!isResizing && !rightBorderHover) {

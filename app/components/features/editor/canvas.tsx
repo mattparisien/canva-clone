@@ -196,28 +196,47 @@ export function Canvas({
   const showCanvasBorder = isCanvasHovering && !isHoveringChild && isEditMode
 
   return (
-    <div className="flex h-full w-full items-center justify-center overflow-auto">
+    <div className="flex h-full w-full items-center justify-center overflow-auto bg-gradient-to-b from-slate-50 to-slate-100 pattern-grid-slate-100">
+      {/* Canvas scaling wrapper with subtle grid pattern */}
       <div
         ref={scaleWrapperRef}
         style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
-        className="flex items-center justify-center canvas-wrapper"
+        className="flex items-center justify-center canvas-wrapper relative"
       >
+        {/* Canvas drop shadow effect */}
+        <div 
+          className="absolute rounded-lg opacity-30 z-0"
+          style={{
+            width: canvasSize.width + 8, 
+            height: canvasSize.height + 8,
+            background: 'linear-gradient(45deg, rgba(30,136,229,0.4), rgba(32,178,170,0.4))',
+            filter: 'blur(20px)',
+            transform: 'translateY(4px)'
+          }}
+        ></div>
+        
+        {/* Actual canvas */}
         <div
           ref={canvasRef}
-          className={`relative bg-white overflow-hidden ${showCanvasBorder ? "outline outline-primary" : ""} ${isCanvasSelected && isEditMode ? "outline outline-primary" : ""}`}
+          className={`relative bg-white overflow-hidden rounded-lg z-10 transition-all duration-200 ${
+            (isCanvasHovering && !isHoveringChild && isEditMode) 
+              ? "ring-4 ring-brand-blue ring-opacity-60" 
+              : (isCanvasSelected && isEditMode) 
+              ? "ring-4 ring-brand-blue ring-opacity-80"
+              : ""
+          }`}
           style={{
             width: canvasSize.width,
             height: canvasSize.height,
-            boxShadow: "0 4px 32px 0 rgba(80, 60, 180, 0.08)",
-            border: "1px solid rgba(0, 0, 0, 0.05)",
-            outlineWidth: (showCanvasBorder || (isCanvasSelected && isEditMode)) ? `${Math.min(6, Math.max(2, 2 / scale))}px` : undefined,
+            boxShadow: "0 6px 30px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.05)",
             cursor: isEditMode ? "default" : "default",
+            borderRadius: "2px",
           }}
           onClick={handleCanvasClick}
           onMouseEnter={() => isEditMode && setIsCanvasHovering(true)}
           onMouseLeave={() => isEditMode && setIsCanvasHovering(false)}
         >
-          {/* Guides - always render them when dragging and in edit mode */}
+          {/* Guides with brand colors */}
           {isDragging && selectedElement && isEditMode && (
             <AlignmentGuides
               activeElement={selectedElement}
@@ -228,7 +247,7 @@ export function Canvas({
             />
           )}
 
-          {/* Elements */}
+          {/* Canvas elements */}
           {elements.map((el) => (
             <ResizableElement
               key={el.id}
@@ -246,6 +265,33 @@ export function Canvas({
               isEditMode={isEditMode}
             />
           ))}
+          
+          {/* Canvas editing overlay indicator - clean white background when selected */}
+          {isCanvasSelected && isEditMode && (
+            <div 
+              className="absolute inset-0 pointer-events-none" 
+              style={{
+                border: '3px solid rgba(30, 136, 229, 0.8)',
+                borderRadius: '3px'
+              }}
+            />
+          )}
+        </div>
+        
+        {/* Zoom indicator when changing zoom level */}
+        <div 
+          className={`absolute bottom-4 right-4 bg-white py-1 px-3 rounded-full shadow-md text-sm font-medium text-gray-700 transform transition-all duration-300 flex items-center gap-2 ${
+            isInitialRender ? 'translate-y-10 opacity-0' : 'opacity-80 hover:opacity-100'
+          }`}
+          style={{ transformOrigin: 'bottom right', transform: `scale(${1/scale})` }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-brand-blue">
+            <path d="M15 3H21V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 21H3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M21 3L14 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M3 21L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <span>{zoom}%</span>
         </div>
       </div>
     </div>

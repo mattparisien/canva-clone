@@ -78,90 +78,120 @@ export function Navbar() {
   }, [editingName, saveNameChanges])
   
   return (
-    <div className="flex h-14 items-center px-4 shadow bg-gradient-to-r from-[#2ec4e6] via-[#5e60ce] to-[#7c3aed] border-b border-[#e0e7ef]">
+    <div className="flex h-14 items-center px-4 shadow bg-gradient-to-r from-brand-blue via-brand-blue/90 to-brand-teal border-b border-[rgba(255,255,255,0.1)]">
       {/* Left Section */}
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 font-medium">
+      <div className="flex items-center gap-1.5">
+        <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 font-medium rounded-lg">
           File
         </Button>
         <Button
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/10 active:bg-white/20 font-medium flex items-center gap-1"
+          className="text-white hover:bg-white/10 active:bg-white/20 font-medium flex items-center gap-1 rounded-lg"
         >
           <span>Resize</span>
-          <ChevronDown className="h-4 w-4" />
+          <ChevronDown className="h-3.5 w-3.5 opacity-70" />
         </Button>
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/10 font-medium flex items-center gap-1"
+              className="text-white hover:bg-white/10 font-medium flex items-center gap-1 rounded-lg"
               aria-haspopup="true"
               aria-expanded={isPopoverOpen}
             >
-              <Edit className="h-4 w-4 mr-1" />
+              {isEditMode ? (
+                <Edit className="h-3.5 w-3.5 mr-1.5" />
+              ) : (
+                <Eye className="h-3.5 w-3.5 mr-1.5" />
+              )}
               <span>{isEditMode ? "Editing" : "Viewing"}</span>
-              <ChevronDown className="h-4 w-4 ml-1" />
+              <ChevronDown className="h-3.5 w-3.5 ml-1 opacity-70" />
             </Button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-64 p-0 shadow-lg"
+            className="w-64 p-0 shadow-lg rounded-lg border border-gray-100"
             align="start"
             alignOffset={0}
             role="menu"
+            sideOffset={5}
           >
-            <div className="py-2">
+            <div className="py-1.5">
               <button 
-                className="w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+                className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors ${
+                  isEditMode ? 'bg-brand-blue-light/10' : 'hover:bg-gray-50'
+                }`}
                 onClick={setEditingMode}
                 role="menuitem"
                 aria-selected={isEditMode}
               >
-                <div className="text-gray-800 p-1.5 rounded-full bg-gray-100 flex-shrink-0">
-                  <Edit className="h-5 w-5" />
+                <div className={`p-1.5 rounded-full ${
+                  isEditMode ? 'bg-brand-blue-light text-brand-blue' : 'bg-gray-100 text-gray-500'
+                } flex-shrink-0`}>
+                  <Edit className="h-4.5 w-4.5" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium">Editing</div>
-                  <div className="text-sm text-gray-500">Make changes</div>
+                  <div className={`font-medium ${isEditMode ? 'text-brand-blue' : 'text-gray-700'}`}>Editing</div>
+                  <div className="text-xs text-gray-500">Make changes to your design</div>
                 </div>
-                {isEditMode && <div className="text-blue-600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12L10 17L19 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg></div>}
+                {isEditMode && <div className="text-brand-blue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12L10 17L19 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>}
               </button>
               
               <button 
-                className="w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-gray-50 transition-colors"
+                className={`w-full text-left px-3 py-2 flex items-center gap-3 transition-colors ${
+                  !isEditMode ? 'bg-brand-blue-light/10' : 'hover:bg-gray-50'
+                }`}
                 onClick={setViewingMode}
                 role="menuitem"
                 aria-selected={!isEditMode}
               >
-                <div className="text-gray-800 p-1.5 rounded-full bg-gray-100 flex-shrink-0">
-                  <Eye className="h-5 w-5" />
+                <div className={`p-1.5 rounded-full ${
+                  !isEditMode ? 'bg-brand-blue-light text-brand-blue' : 'bg-gray-100 text-gray-500'
+                } flex-shrink-0`}>
+                  <Eye className="h-4.5 w-4.5" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium">Viewing</div>
-                  <div className="text-sm text-gray-500">Read-only</div>
+                  <div className={`font-medium ${!isEditMode ? 'text-brand-blue' : 'text-gray-700'}`}>Viewing</div>
+                  <div className="text-xs text-gray-500">Preview in read-only mode</div>
                 </div>
-                {!isEditMode && <div className="text-blue-600"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 12L10 17L19 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg></div>}
+                {!isEditMode && <div className="text-brand-blue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12L10 17L19 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>}
               </button>
             </div>
           </PopoverContent>
         </Popover>
-        <div className="flex items-center ml-2 gap-1">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-8 w-8" aria-label="Undo">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 h-8 w-8" aria-label="Redo">
-            <ArrowRight className="h-4 w-4" />
+        <div className="h-5 w-px bg-white/20 mx-1"></div>
+        <div className="flex items-center gap-0.5">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/10 h-7 w-7 rounded-lg" 
+            aria-label="Undo"
+            title="Undo (Ctrl+Z)"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            className={`${isDesignSaved ? "text-white" : "text-yellow-300"} hover:bg-white/10 h-8 w-8 relative`} 
+            className="text-white hover:bg-white/10 h-7 w-7 rounded-lg" 
+            aria-label="Redo"
+            title="Redo (Ctrl+Y)"
+          >
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className={`${isDesignSaved ? "text-white" : "text-yellow-300"} hover:bg-white/10 h-7 w-7 rounded-lg relative`} 
             onClick={saveDesign} 
             title="Save design (Ctrl/⌘+S)" 
             disabled={isSaving} 
@@ -169,60 +199,64 @@ export function Navbar() {
           >
             {isSaving ? (
               <div className="flex items-center justify-center">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-t-transparent border-white"></div>
               </div>
             ) : (
-              <Save className="h-4 w-4" />
+              <Save className="h-3.5 w-3.5" />
             )}
           </Button>
         </div>
       </div>
 
-      {/* Center Section */}
+      {/* Center Section - Design Title */}
       <div className="flex-1 flex justify-center">
         {editingName ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={nameValue}
-            onChange={(e) => setNameValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={saveNameChanges}
-            className="px-4 py-1.5 rounded-md bg-white text-gray-800 outline-none border-2 border-blue-400 min-w-[200px] text-center"
-            placeholder="Enter design name"
-          />
+          <div className="relative">
+            <input
+              ref={inputRef}
+              type="text"
+              value={nameValue}
+              onChange={(e) => setNameValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={saveNameChanges}
+              className="px-4 py-1.5 rounded-md bg-white text-gray-800 outline-none border-2 border-brand-blue min-w-[200px] text-center text-sm font-medium shadow-md"
+              placeholder="Enter design name"
+            />
+            <div className="absolute -bottom-0.5 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
+          </div>
         ) : (
-          <div 
-            onClick={startEditing}
-            className="px-4 py-1.5 rounded-md bg-white/10 text-white cursor-pointer hover:bg-white/15 transition-colors truncate max-w-[150px] md:max-w-[300px]"
-          >
-            {designName}
+          <div className="relative">
+            <div 
+              onClick={startEditing}
+              className="px-4 py-1.5 rounded-md bg-white/10 text-white cursor-pointer hover:bg-white/15 transition-all truncate max-w-[150px] md:max-w-[300px] flex items-center gap-2 text-sm font-medium"
+            >
+              {designName}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="opacity-70">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="absolute -bottom-0.5 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
           </div>
         )}
       </div>
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
-        <Avatar className="h-8 w-8 bg-red-500 text-white">
-          <AvatarFallback>MP</AvatarFallback>
+        <Button 
+          variant="outline"
+          size="sm"
+          className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:border-white/30 rounded-lg h-8 flex items-center gap-2 shadow-sm"
+        >
+          <Share2 className="h-3.5 w-3.5" />
+          <span className="font-medium text-sm">Share</span>
+        </Button>
+        
+        <div className="h-7 w-px bg-white/20 mx-0.5"></div>
+        
+        <Avatar className="h-8 w-8 border border-white/20 bg-brand-blue-dark text-white shadow-sm hover:shadow transition-shadow cursor-pointer">
+          <AvatarFallback className="text-sm font-medium">MP</AvatarFallback>
         </Avatar>
-        {/* <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 10V7M12 10V5M16 10V3M5 21L19 21C20.1046 21 21 20.1046 21 19L21 5C21 3.89543 20.1046 3 19 3L5 3C3.89543 3 3 3.89543 3 5L3 19C3 20.1046 3.89543 21 5 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </Button>
-        <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 12H16M8 12C8 14.2091 9.79086 16 12 16C14.2091 16 16 14.2091 16 12M8 12C8 9.79086 9.79086 8 12 8C14.2091 8 16 9.79086 16 12M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </Button>
-        <Button variant="ghost" size="sm" className="text-white border border-white/30 hover:bg-white/10">
-          Present
-        </Button> */}
-        <Button variant="ghost" size="sm" className="text-white border border-white/30 hover:bg-white/10 flex items-center gap-2">
-          <Share2 className="h-4 w-4" />
-          <span>Share</span>
-        </Button>
       </div>
     </div>
   )
