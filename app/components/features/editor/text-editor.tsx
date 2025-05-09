@@ -203,6 +203,26 @@ export function TextEditor({
     textDecoration: `${isUnderlined ? "underline" : ""} ${isStrikethrough ? "line-through" : ""}`.trim() || "none",
   };
 
+  // Styles for the editor
+  const editorStyles = {
+    width: "100%",
+    height: "100%",
+    outline: "none",
+    lineHeight: 1.5, // Increased line height to match the measuring function
+    fontSize: `${fontSize}px`,
+    fontFamily,
+    fontWeight: isBold ? "bold" : "normal",
+    fontStyle: isItalic ? "italic" : "normal",
+    textDecoration: `${isUnderlined ? "underline" : ""} ${isStrikethrough ? "line-through" : ""}`.trim() || "none",
+    textAlign,
+    padding: "4px", // Add padding to match the measuring function
+    wordBreak: "break-word",
+    whiteSpace: "pre-wrap",
+    overflowWrap: "break-word",
+    position: "relative",
+    zIndex: 0,
+  } as const;
+
   /* ----------------------------------------------------------------
      Render
      ---------------------------------------------------------------- */
@@ -212,7 +232,7 @@ export function TextEditor({
         <div
           ref={editorRef}
           className="w-full outline-none"
-          style={baseStyle}
+          style={editorStyles}
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}

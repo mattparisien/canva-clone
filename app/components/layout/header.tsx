@@ -81,14 +81,14 @@ export function Header() {
             <Bell className="h-5 w-5" />
             <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             size="sm"
             className="hidden md:flex rounded-2xl border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
           >
             <span className="text-sm font-medium">Upgrade</span>
             <span className="ml-1 bg-gradient-to-r from-brand-blue to-brand-teal text-transparent bg-clip-text font-semibold">Pro</span>
-          </Button>
+          </Button> */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Avatar className="h-9 w-9 cursor-pointer overflow-visible ring-offset-1 ring-offset-white">

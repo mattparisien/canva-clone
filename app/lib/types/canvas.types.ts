@@ -80,6 +80,7 @@ export interface CanvasContextType {
   selectedElementIds: string[]
   isCanvasSelected: boolean
   canvasSize: CanvasSize
+  isLoaded: boolean // Canvas loading state
   
   // Element manipulation
   addElement: (element: Omit<Element, "id">) => void

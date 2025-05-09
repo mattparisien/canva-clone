@@ -72,9 +72,23 @@ export function ResizableElement({
   // Helper to measure text height given current width and styles
   const measureTextHeight = (content: string, width: number) => {
     if (!measurerRef.current) return 0;
+    
+    // Configure the measurer with all the styles from the element
     measurerRef.current.style.width = width + 'px';
+    measurerRef.current.style.fontSize = `${element.fontSize || 36}px`;
+    measurerRef.current.style.fontFamily = element.fontFamily || 'Inter';
+    measurerRef.current.style.fontWeight = element.isBold ? 'bold' : 'normal';
+    measurerRef.current.style.fontStyle = element.isItalic ? 'italic' : 'normal';
+    measurerRef.current.style.textDecoration = `${element.isUnderlined ? 'underline' : ''} ${element.isStrikethrough ? 'line-through' : ''}`.trim() || 'none';
+    measurerRef.current.style.textAlign = element.textAlign || 'center';
+    measurerRef.current.style.lineHeight = '1.5'; // Increased line height for better readability
+    measurerRef.current.style.padding = '4px'; // Add padding to ensure text has room to breathe
+    
+    // Set content and measure
     measurerRef.current.innerText = content;
-    return measurerRef.current.scrollHeight;
+    
+    // Add extra padding to ensure text isn't cut off
+    return measurerRef.current.scrollHeight + 12; // Add extra padding for safety
   };
 
   // Add state for handle hover

@@ -241,14 +241,19 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Capture canvas screenshot for thumbnail
+      const thumbnailImage = await captureCanvasScreenshot();
+
       // Prepare the data to be saved
       const designData = {
         title: designName,
         pages: pages,
-        // Add other fields that might need updating
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        thumbnail: thumbnailImage // Add the thumbnail data
       };
 
+      console.log('Saving design:', designName, 'with ID:', idToUse);
+      
       // Call the API to update the design
       await designsAPI.update(idToUse, designData);
       
@@ -262,6 +267,69 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       setIsSaving(false);
     }
   }, [designName, pages, designId]);
+
+  // Function to capture canvas screenshot
+  const captureCanvasScreenshot = useCallback(async (): Promise<string | null> => {
+    return new Promise((resolve) => {
+      try {
+        // Use a longer delay to ensure all rendering and text calculations are complete
+        setTimeout(async () => {
+          // Find the canvas element in the DOM - targeting the specific canvas element
+          const canvasElement = document.querySelector('.canvas-wrapper');
+          
+          if (!canvasElement) {
+            console.error('Canvas element not found for screenshot');
+            resolve(null);
+            return;
+          }
+
+          try {
+            // Create a clone of the canvas for screenshot to avoid modifying the visible one
+            const canvasClone = canvasElement.cloneNode(true) as HTMLElement;
+            document.body.appendChild(canvasClone);
+            canvasClone.style.position = 'absolute';
+            canvasClone.style.left = '-9999px';
+            canvasClone.style.top = '-9999px';
+            
+            // Make sure all text elements are properly sized with adequate padding
+            const textElements = canvasClone.querySelectorAll('.text-element');
+            textElements.forEach((textEl) => {
+              const el = textEl as HTMLElement;
+              el.style.padding = '4px';
+              el.style.lineHeight = '1.5';
+              el.style.overflow = 'visible'; // Ensure text isn't clipped
+            });
+
+            // Use html2canvas to capture the clone
+            const { default: html2canvas } = await import('html2canvas');
+            const canvas = await html2canvas(canvasClone, {
+              scale: 2, // Higher scale for better quality
+              backgroundColor: '#ffffff',
+              logging: false,
+              useCORS: true,
+              allowTaint: true,
+              windowWidth: canvasClone.offsetWidth * 2,
+              windowHeight: canvasClone.offsetHeight * 2
+            });
+            
+            // Clean up the clone
+            document.body.removeChild(canvasClone);
+            
+            // Convert canvas to data URL (PNG format with good quality)
+            const thumbnailDataUrl = canvas.toDataURL('image/png', 0.9);
+            console.log('Screenshot captured successfully');
+            resolve(thumbnailDataUrl);
+          } catch (err) {
+            console.error('Failed to generate canvas screenshot:', err);
+            resolve(null);
+          }
+        }, 300); // Longer delay to ensure rendering is complete
+      } catch (error) {
+        console.error('Error in screenshot capture process:', error);
+        resolve(null);
+      }
+    });
+  }, []);
 
   // Handle keyboard shortcuts at document level
   useEffect(() => {

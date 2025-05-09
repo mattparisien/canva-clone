@@ -26,6 +26,9 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     name: ""
   })
   
+  // Track loading state
+  const [isLoaded, setIsLoaded] = useState<boolean>(false)
+  
   // Selection states
   const [selectedElement, setSelectedElement] = useState<Element | null>(null)
   const [selectedElementIds, setSelectedElementIds] = useState<string[]>([])
@@ -42,6 +45,10 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
   // Initialize elements and canvas size from current page
   useEffect(() => {
     if (currentPage) {
+      // Start with setting isLoaded to false when page changes
+      setIsLoaded(false)
+      
+      // Set elements and canvas size
       setElements(currentPage.elements || [])
       setCanvasSize(currentPage.canvasSize)
       
@@ -49,6 +56,11 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
       setSelectedElement(null)
       setSelectedElementIds([])
       setIsCanvasSelected(false)
+      
+      // Set a small timeout to allow rendering to complete
+      setTimeout(() => {
+        setIsLoaded(true)
+      }, 100)
     }
   }, [currentPage?.id])
   
@@ -429,6 +441,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
         selectedElementIds,
         isCanvasSelected,
         canvasSize,
+        isLoaded,
         
         // Element manipulation
         addElement,

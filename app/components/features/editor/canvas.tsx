@@ -27,7 +27,8 @@ export function Canvas({
     updateElement,
     updateMultipleElements,
     addElement,
-    fitCanvasToView: fitCanvasToViewUtil
+    fitCanvasToView,
+    isLoaded
   } = useCanvas()
   
   // Get edit mode from editor context
@@ -55,44 +56,49 @@ export function Canvas({
   /* ------------------------------------------------------------------
    * Fit canvas to container on mount / resize
    * ------------------------------------------------------------------ */
-  const fitCanvasToView = useCallback(() => {
-    if (!scaleWrapperRef.current) return
+  // const fitCanvasToView = useCallback(() => {
+  //   if (!scaleWrapperRef.current) return;
 
-    // Get container dimensions, accounting for UI elements
-    const containerWidth = scaleWrapperRef.current.clientWidth
-    const containerHeight = scaleWrapperRef.current.clientHeight
+  // //   // Get container dimensions
+  // //   const containerWidth = scaleWrapperRef.current.clientWidth
+  // //   const containerHeight = scaleWrapperRef.current.clientHeight
 
-    // Account for padding and UI elements (top controls, bottom controls)
-    const availableWidth = containerWidth - 100 // 50px padding on each side
-    const availableHeight = containerHeight - 260 // Account for top and bottom controls + padding
+  // //   // Account for padding and UI elements with more accurate values
+  // //   // Adjust these values based on your UI layout
+  // //   const horizontalPadding = 120 // Increased padding on sides
+  // //   const verticalPadding = 300   // Increased padding for top/bottom controls
 
-    // Calculate the scale needed to fit the canvas
-    const widthRatio = availableWidth / canvasSize.width
-    const heightRatio = availableHeight / canvasSize.height
+  // //   const availableWidth = containerWidth - horizontalPadding
+  // //   const availableHeight = containerHeight - verticalPadding
 
-    // Use the smaller ratio to ensure the canvas fits entirely
-    const fitScale = Math.min(widthRatio, heightRatio, 1) // Cap at 100%
+  // //   // Calculate the scale needed to fit the canvas
+  // //   const widthRatio = availableWidth / canvasSize.width
+  // //   const heightRatio = availableHeight / canvasSize.height
 
-    // Use the setZoom prop passed from Editor
-    setZoom(Math.round(fitScale * 100))
-  }, [canvasSize.width, canvasSize.height, setZoom]);
+  // //   // Use the smaller ratio to ensure the canvas fits entirely
+  // //   // Add a small buffer (0.95) to ensure there's always some margin
+  // //   const fitScale = Math.min(widthRatio, heightRatio, 1) * 0.95
 
-  // Initial fit on mount and when canvas size changes
-  useEffect(() => {
-    // Use a timeout to ensure the container has been properly rendered
-    const timer = setTimeout(() => {
-      fitCanvasToView()
-      setIsInitialRender(false)
-    }, 100)
+  // //   // Use the setZoom prop passed from Editor
+  // //   setZoom(Math.round(fitScale * 100))
+  // // }, [canvasSize.width, canvasSize.height, setZoom]);
 
-    return () => clearTimeout(timer)
-  }, [canvasSize.width, canvasSize.height])
+  // // // Initial fit on mount and when canvas size changes
+  // // useEffect(() => {
+  // //   // Increased timeout to ensure all layout is complete
+  // //   const timer = setTimeout(() => {
+  // //     fitCanvasToView()
+  // //     setIsInitialRender(false)
+  // //   }, 300) // Increased from 100ms to 300ms
+
+  // //   return () => clearTimeout(timer)
+  // }, [canvasSize.width, canvasSize.height, fitCanvasToView])
 
   // Refit on window resize
-  useEffect(() => {
-    window.addEventListener("resize", fitCanvasToView)
-    return () => window.removeEventListener("resize", fitCanvasToView)
-  }, [canvasSize.width, canvasSize.height])
+  // useEffect(() => {
+  //   window.addEventListener("resize", fitCanvasToView)
+  //   return () => window.removeEventListener("resize", fitCanvasToView)
+  // }, [canvasSize.width, canvasSize.height])
 
   // Clear selection when switching to view mode
   useEffect(() => {
@@ -101,6 +107,7 @@ export function Canvas({
       selectCanvas(false);
     }
   }, [isEditMode, selectElement, selectCanvas]);
+
 
   /* ------------------------------------------------------------------
    * Canvas click → deselect
@@ -201,28 +208,27 @@ export function Canvas({
       <div
         ref={scaleWrapperRef}
         style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
-        className="flex items-center justify-center canvas-wrapper relative"
+        className="flex items-center justify-center relative shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)]"
       >
-        {/* Canvas drop shadow effect */}
-        <div 
-          className="absolute rounded-lg opacity-30 z-0"
-          style={{
-            width: canvasSize.width + 8, 
-            height: canvasSize.height + 8,
-            background: 'linear-gradient(45deg, rgba(30,136,229,0.4), rgba(32,178,170,0.4))',
-            filter: 'blur(20px)',
-            transform: 'translateY(4px)'
-          }}
-        ></div>
+        
+        {/* Loading indicator - shown when canvas is not loaded */}
+        {!isLoaded && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-white bg-opacity-80 backdrop-blur-sm rounded-lg">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-10 h-10 border-t-4 border-b-4 border-brand-blue rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-600 font-medium">Loading canvas...</p>
+            </div>
+          </div>
+        )}
         
         {/* Actual canvas */}
         <div
           ref={canvasRef}
-          className={`relative bg-white overflow-hidden rounded-lg z-10 transition-all duration-200 ${
+          className={`canvas-wrapper relative bg-white overflow-hidden rounded-lg z-10 transition-all duration-200 ${
             (isCanvasHovering && !isHoveringChild && isEditMode) 
-              ? "ring-4 ring-brand-blue ring-opacity-60" 
+              ? "ring-8 ring-brand-blue ring-opacity-60" 
               : (isCanvasSelected && isEditMode) 
-              ? "ring-4 ring-brand-blue ring-opacity-80"
+              ? "ring-8 ring-brand-blue ring-opacity-80"
               : ""
           }`}
           style={{

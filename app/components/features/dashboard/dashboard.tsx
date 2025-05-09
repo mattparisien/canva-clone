@@ -301,7 +301,7 @@ export default function Dashboard() {
     <main className="container mx-auto pb-10 pt-5 max-w-7xl">
       {/* Hero section */}
       <div className="mb-6">
-        <h1 className="text-4xl font-bold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-teal">Your Workspace</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-teal">Your Designs</h1>
         <p className="text-gray-500 max-w-3xl">
           Create, edit and share stunning designs. All your creative work in one place.
         </p>
