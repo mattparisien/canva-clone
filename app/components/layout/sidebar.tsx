@@ -123,7 +123,7 @@ export function Sidebar() {
             </div>
 
             <Button
-              className="mb-4 w-full bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue-dark hover:to-brand-teal-dark text-white h-12 rounded-lg flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow"
+              className="mb-4 w-full bg-brand-blue hover:bg-brand-blue-dark text-white h-12 rounded-lg flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out"
               onClick={() => handleAddText(36, "Add a text box")}
             >
               <Type className="h-5 w-5" />
@@ -133,7 +133,7 @@ export function Sidebar() {
             <div className="mb-6 w-full">
               <Button
                 variant="outline"
-                className="w-full border-gray-200 text-gray-700 h-12 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-blue-light/30 hover:border-brand-blue-light hover:text-brand-blue transition-colors"
+                className="w-full border-gray-200 text-gray-700 h-12 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-blue-light/30 hover:border-brand-blue-light hover:text-brand-blue transition-all duration-200 ease-in-out"
                 onClick={() => handleAddText(36, "Magic Write", "bold")}
               >
                 <Sparkles className="h-5 w-5 text-brand-blue" />
@@ -143,21 +143,21 @@ export function Sidebar() {
 
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-800">Brand Kit</h3>
-              <Button variant="ghost" className="h-8 text-xs text-brand-blue hover:bg-brand-blue-light/50 hover:text-brand-blue-dark transition-colors">
+              <Button variant="ghost" className="h-8 text-xs text-brand-blue hover:bg-brand-blue-light/50 hover:text-brand-blue-dark transition-all duration-200 ease-in-out">
                 Edit
               </Button>
             </div>
 
             <div className="space-y-3 mb-8">
               <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
                 onClick={() => handleAddText(32, "Title", "bold")}
               >
                 <p className="text-2xl font-bold">Title</p>
               </div>
 
               <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
                 onClick={() => handleAddText(24, "Heading", "semibold")}
               >
                 <p className="text-xl font-semibold">Heading</p>
@@ -170,14 +170,14 @@ export function Sidebar() {
 
             <div className="space-y-3 mb-8">
               <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
                 onClick={() => handleAddText(18, "Add a subheading")}
               >
                 <p className="text-lg">Add a subheading</p>
               </div>
 
               <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
                 onClick={() => handleAddText(14, "Add a little bit of body text")}
               >
                 <p className="text-sm">Add a little bit of body text</p>
@@ -188,7 +188,7 @@ export function Sidebar() {
               <h3 className="text-sm font-semibold text-gray-800">Dynamic text</h3>
             </div>
 
-            <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)] flex items-center">
+            <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)] flex items-center">
               <div className="h-12 w-12 rounded bg-gradient-to-br from-brand-blue to-brand-teal flex items-center justify-center text-white font-bold mr-3">
                 1
               </div>
