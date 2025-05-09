@@ -342,7 +342,7 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-3">
-              <TooltipProvider>
+              <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -362,7 +362,7 @@ export default function Dashboard() {
                 </Tooltip>
               </TooltipProvider>
 
-              <TooltipProvider>
+              <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="icon" className="rounded-xl transition-all duration-300">
@@ -373,7 +373,7 @@ export default function Dashboard() {
                 </Tooltip>
               </TooltipProvider>
 
-              <TooltipProvider>
+              <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="icon" className="rounded-xl transition-all duration-300">
@@ -384,7 +384,7 @@ export default function Dashboard() {
                 </Tooltip>
               </TooltipProvider>
 
-              <TooltipProvider>
+              <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -404,7 +404,7 @@ export default function Dashboard() {
                           <Plus className="text-white transition-transform duration-300 group-hover:scale-110" style={{
                             width: "1.3rem",
                             height: "1.3rem",
-                          }}/>
+                          }} />
                         )}
                       </span>
                     </Button>

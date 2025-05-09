@@ -56,7 +56,7 @@ export default function BottomBar({
                             max={MAX_ZOOM}
                             step={1}
                             onValueChange={([v]) => setZoom(v)}
-                            className="[&>[role=slider]]:bg-brand-blue"
+                            className="[&>[role=slider]]:h-3 [&>[role=slider]]:w-3 [&>[role=slider]]:bg-brand-blue [&_.range-slider]:bg-brand-blue"
                         />
                     </div>
 
