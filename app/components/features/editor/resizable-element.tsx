@@ -720,7 +720,6 @@ export function ResizableElement({
           height: element.height,
           cursor: isEditMode ? (isDragging ? "grabbing" : "grab") : "default",
           transform: "none",
-          transition: "all 0.05s ease-out",
           borderRadius: "2px",
         }}
         onMouseDown={handleDragStart}
@@ -743,7 +742,6 @@ export function ResizableElement({
                   boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                   border: "1px solid var(--handle-border)",
                   zIndex: 10,
-                  transition: "all 0.15s",
                   top: 0,
                   left: 0,
                   transform: `translate(-50%, -50%) scale(${1})`,
@@ -752,11 +750,7 @@ export function ResizableElement({
                 onMouseDown={(e) => handleResizeStart(e, "nw")}
                 onMouseEnter={() => setHandleHover(h => ({ ...h, nw: true }))}
                 onMouseLeave={() => setHandleHover(h => ({ ...h, nw: false }))}
-              >
-                {handleHover.nw && (
-                  <div className="absolute inset-0 rounded-full bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s' }} />
-                )}
-              </div>
+              />
             )}
 
             {/* These corner handles only show when element is big enough */}
@@ -772,7 +766,6 @@ export function ResizableElement({
                       boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                       border: "1px solid var(--handle-border)",
                       zIndex: 10,
-                      transition: "all 0.15s",
                       top: 0,
                       right: 0,
                       transform: `translate(50%, -50%) scale(${1})`,
@@ -781,11 +774,7 @@ export function ResizableElement({
                     onMouseDown={(e) => handleResizeStart(e, "ne")}
                     onMouseEnter={() => setHandleHover(h => ({ ...h, ne: true }))}
                     onMouseLeave={() => setHandleHover(h => ({ ...h, ne: false }))}
-                  >
-                    {handleHover.ne && (
-                      <div className="absolute inset-0 rounded-full bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s' }} />
-                    )}
-                  </div>
+                  />
                 )}
                 {(!isResizing || resizeDirection === "sw") && (
                   <div
@@ -797,7 +786,6 @@ export function ResizableElement({
                       boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                       border: "1px solid var(--handle-border)",
                       zIndex: 10,
-                      transition: "all 0.15s",
                       bottom: 0,
                       left: 0,
                       transform: `translate(-50%, 50%) scale(${1})`,
@@ -806,11 +794,7 @@ export function ResizableElement({
                     onMouseDown={(e) => handleResizeStart(e, "sw")}
                     onMouseEnter={() => setHandleHover(h => ({ ...h, sw: true }))}
                     onMouseLeave={() => setHandleHover(h => ({ ...h, sw: false }))}
-                  >
-                    {handleHover.sw && (
-                      <div className="absolute inset-0 rounded-full bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s' }} />
-                    )}
-                  </div>
+                  />
                 )}
                 {(!isResizing || resizeDirection === "se") && (
                   <div
@@ -822,7 +806,6 @@ export function ResizableElement({
                       boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                       border: "1px solid var(--handle-border)",
                       zIndex: 10,
-                      transition: "all 0.15s",
                       bottom: 0,
                       right: 0,
                       transform: `translate(50%, 50%) scale(${1})`,
@@ -831,11 +814,7 @@ export function ResizableElement({
                     onMouseDown={(e) => handleResizeStart(e, "se")}
                     onMouseEnter={() => setHandleHover(h => ({ ...h, se: true }))}
                     onMouseLeave={() => setHandleHover(h => ({ ...h, se: false }))}
-                  >
-                    {handleHover.se && (
-                      <div className="absolute inset-0 rounded-full bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s' }} />
-                    )}
-                  </div>
+                  />
                 )}
               </>
             )}
@@ -851,20 +830,15 @@ export function ResizableElement({
                   boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                   border: "1px solid var(--handle-border)",
                   zIndex: 10,
-                  transition: "all 0.15s",
-                  background: (rightBorderHover || getHandleBg("e") === "var(--handle-hover)") ? "#1E88E5" : "#ffffff",
                   right: 0,
                   top: `calc(50% + ${(element.height < handleSize * 2.2 ? (element.height - handleSize * 2.2) / 2 : 0)}px)`,
-                  transform: `translate(50%, -50%) scale(${1})`
+                  transform: `translate(50%, -50%) scale(${1})`,
+                  background: (rightBorderHover || getHandleBg("e") === "var(--handle-hover)") ? "#1E88E5" : "#ffffff",
                 }}
                 onMouseDown={(e) => handleResizeStart(e, "e")}
                 onMouseEnter={() => setHandleHover(h => ({ ...h, e: true }))}
                 onMouseLeave={() => setHandleHover(h => ({ ...h, e: false }))}
-              >
-                {handleHover.e && (
-                  <div className="absolute inset-0 rounded-md bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s', borderRadius: `${handleSize * 0.35}px` }} />
-                )}
-              </div>
+              />
             )}
 
             {/* Left handle with enhanced styling */}
@@ -878,20 +852,15 @@ export function ResizableElement({
                   boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                   border: "1px solid var(--handle-border)",
                   zIndex: 10,
-                  transition: "all 0.15s",
-                  background: (leftBorderHover || getHandleBg("w") === "var(--handle-hover)") ? "#1E88E5" : "#ffffff",
                   left: 0,
                   top: `calc(50% + ${(element.height < handleSize * 2.2 ? (element.height - handleSize * 2.2) / 2 : 0)}px)`,
-                  transform: `translate(-50%, -50%) scale(${1})`
+                  transform: `translate(-50%, -50%) scale(${1})`,
+                  background: (leftBorderHover || getHandleBg("w") === "var(--handle-hover)") ? "#1E88E5" : "#ffffff",
                 }}
                 onMouseDown={(e) => handleResizeStart(e, "w")}
                 onMouseEnter={() => setHandleHover(h => ({ ...h, w: true }))}
                 onMouseLeave={() => setHandleHover(h => ({ ...h, w: false }))}
-              >
-                {handleHover.w && (
-                  <div className="absolute inset-0 rounded-md bg-brand-blue-light/40 animate-ping" style={{ animationDuration: '1.2s', borderRadius: `${handleSize * 0.35}px` }} />
-                )}
-              </div>
+              />
             )}
 
             {/* Selection indicator that shows which element is selected with a subtle gradient border */}

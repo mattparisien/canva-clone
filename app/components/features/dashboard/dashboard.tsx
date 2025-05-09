@@ -478,7 +478,7 @@ export default function Dashboard() {
                       <img
                         src={design.thumbnail || getDefaultThumbnail(index)}
                         alt={design.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        className="w-full h-full object-cover"
                       />
 
                       {/* Page count indicator - show for presentations/documents */}
@@ -682,7 +682,7 @@ export default function Dashboard() {
                       <img
                         src={`/placeholder${item % 2 === 0 ? '.jpg' : '.svg'}`}
                         alt={`Template ${item}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/70 to-brand-teal/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                         <Button size="sm" variant="secondary" className="bg-white hover:bg-white/90 text-sm rounded-xl">

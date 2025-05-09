@@ -66,28 +66,38 @@ export function Sidebar() {
   return (
     <div className="flex h-full">
       {/* Main sidebar with icons */}
-      <div ref={setSidebarRef} className="flex h-full w-[72px] flex-col border-r border-gray-200 bg-white">
+      <div 
+        ref={setSidebarRef} 
+        className="flex h-full w-[72px] flex-col border-r border-gray-100 bg-white shadow-sm"
+      >
         {tabs.map((tab) => (
           <div
             key={tab.id}
             className={cn(
-              "flex cursor-pointer flex-col items-center justify-center py-4 text-xs transition-colors",
+              "flex cursor-pointer flex-col items-center justify-center py-4 text-xs transition-all group",
               activeTab === tab.id
-                ? "text-primary bg-primary-50"
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50",
+                ? "text-brand-blue-dark"
+                : "text-gray-500 hover:text-brand-blue",
             )}
             onClick={() => setActiveTab(tab.id)}
             onMouseEnter={tab.id === "text" ? () => setTextTabHovered(true) : undefined}
             onMouseLeave={tab.id === "text" ? () => setTextTabHovered(false) : undefined}
           >
-            <tab.icon className="mb-1.5 h-5 w-5" />
-            <span className="text-[11px]">{tab.label}</span>
+            <div className={cn(
+              "mb-1.5 flex items-center justify-center p-1.5 transition-all rounded-md",
+              activeTab === tab.id
+                ? "text-gray-500 shadow-[0_0_12px_rgba(0,0,0,0.15)]"
+                : "text-gray-500 group-hover:text-brand-blue group-hover:shadow-[0_0_12px_rgba(0,0,0,0.15)]"
+            )}>
+              <tab.icon className="h-5 w-5" />
+            </div>
+            <span className="text-[11px] font-medium">{tab.label}</span>
           </div>
         ))}
 
         {/* Magic button at bottom */}
         <div className="mt-auto mb-4 flex justify-center">
-          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200">
+          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-blue to-brand-teal text-white shadow-md hover:shadow-lg transition-shadow duration-300">
             <Sparkles className="h-5 w-5" />
           </button>
         </div>
@@ -95,8 +105,8 @@ export function Sidebar() {
       {/* The popover is now absolutely positioned and overlays the canvas */}
       {activeTab === "text" && (textTabHovered || popoverHovered) && (
         <div
-          className="fixed z-[70] mt-4 mb-4 w-[320px] rounded-xl bg-white shadow-md flex flex-col h-[calc(100vh-8rem)]"
-          style={{ left: sidebarLeft, top: '4rem' }} // 4rem = 64px, matches typical header height
+          className="fixed z-[70] mt-4 mb-4 w-[320px] rounded-xl bg-white shadow-lg border border-gray-100 flex flex-col h-[calc(100vh-8rem)]"
+          style={{ left: sidebarLeft, top: '4rem' }} 
           onMouseEnter={() => setPopoverHovered(true)}
           onMouseLeave={() => setPopoverHovered(false)}
         >
@@ -107,13 +117,13 @@ export function Sidebar() {
                 <Input
                   type="text"
                   placeholder="Search fonts and combinations"
-                  className="h-10 border-gray-200 bg-gray-50 pl-10 pr-4 text-sm rounded-lg"
+                  className="h-10 border-gray-100 bg-gray-50 pl-10 pr-4 text-sm rounded-lg focus-within:ring-brand-blue/20 focus-within:border-brand-blue-light transition-all"
                 />
               </div>
             </div>
 
             <Button
-              className="mb-4 w-full bg-purple-600 hover:bg-purple-700 text-white h-12 rounded-lg flex items-center justify-center gap-2"
+              className="mb-4 w-full bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue-dark hover:to-brand-teal-dark text-white h-12 rounded-lg flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow"
               onClick={() => handleAddText(36, "Add a text box")}
             >
               <Type className="h-5 w-5" />
@@ -123,31 +133,31 @@ export function Sidebar() {
             <div className="mb-6 w-full">
               <Button
                 variant="outline"
-                className="w-full border-gray-200 text-gray-700 h-12 rounded-lg flex items-center justify-center gap-2"
+                className="w-full border-gray-200 text-gray-700 h-12 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-blue-light/30 hover:border-brand-blue-light hover:text-brand-blue transition-colors"
                 onClick={() => handleAddText(36, "Magic Write", "bold")}
               >
-                <Sparkles className="h-5 w-5" />
+                <Sparkles className="h-5 w-5 text-brand-blue" />
                 <span className="font-medium">Magic Write</span>
               </Button>
             </div>
 
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-800">Brand Kit</h3>
-              <Button variant="ghost" className="h-8 text-xs text-primary hover:bg-primary-50">
+              <Button variant="ghost" className="h-8 text-xs text-brand-blue hover:bg-brand-blue-light/50 hover:text-brand-blue-dark transition-colors">
                 Edit
               </Button>
             </div>
 
             <div className="space-y-3 mb-8">
               <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
                 onClick={() => handleAddText(32, "Title", "bold")}
               >
                 <p className="text-2xl font-bold">Title</p>
               </div>
 
               <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
                 onClick={() => handleAddText(24, "Heading", "semibold")}
               >
                 <p className="text-xl font-semibold">Heading</p>
@@ -160,14 +170,14 @@ export function Sidebar() {
 
             <div className="space-y-3 mb-8">
               <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
                 onClick={() => handleAddText(18, "Add a subheading")}
               >
                 <p className="text-lg">Add a subheading</p>
               </div>
 
               <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-soft"
+                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
                 onClick={() => handleAddText(14, "Add a little bit of body text")}
               >
                 <p className="text-sm">Add a little bit of body text</p>
@@ -178,8 +188,8 @@ export function Sidebar() {
               <h3 className="text-sm font-semibold text-gray-800">Dynamic text</h3>
             </div>
 
-            <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-primary-200 hover:shadow-soft flex items-center">
-              <div className="h-12 w-12 rounded bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold mr-3">
+            <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-all hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)] flex items-center">
+              <div className="h-12 w-12 rounded bg-gradient-to-br from-brand-blue to-brand-teal flex items-center justify-center text-white font-bold mr-3">
                 1
               </div>
               <span className="text-sm font-medium">Page numbers</span>
