@@ -1,15 +1,7 @@
 "use client"
 
-import { Badge } from "@components/ui/badge"
 import { Button } from "@components/ui/button"
 import { Card } from "@components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu"
 import { Input } from "@components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs"
 import {
@@ -19,26 +11,21 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip"
 import { useToast } from "@components/ui/use-toast"
-import { designsAPI, Design } from "@lib/api" // Import Design from api.ts
+import { Design, designsAPI } from "@lib/api"; // Import Design from api.ts
 import {
-  Clock,
   Filter,
   Grid3x3,
   List,
-  MoreHorizontal,
   Plus,
   Search,
-  Share2,
   SlidersHorizontal,
-  Star,
-  StarOff,
   Trash2
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
-import { upperFirst } from "lodash";
-import { getRelativeTime } from "@utils/utils"
+import GridView from "./grid-view"
+import ListView from "./list-view"
 
 export default function Dashboard() {
   const router = useRouter()
@@ -54,13 +41,13 @@ export default function Dashboard() {
   const [selectedDesigns, setSelectedDesigns] = useState<Record<string, boolean>>({})
 
   // Toggle selection of a design
-  const toggleDesignSelection = (id: string, e: React.MouseEvent) => {
+  const toggleDesignSelection = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent navigating to the design when clicking the checkbox
     setSelectedDesigns(prev => ({
       ...prev,
       [id]: !prev[id]
     }));
-  }
+  }, [setSelectedDesigns])
 
   // Check if a design is selected
   const isDesignSelected = (id: string) => !!selectedDesigns[id];
@@ -87,7 +74,6 @@ export default function Dashboard() {
 
     fetchDesigns()
   }, [toast])
-
 
 
   // Create new presentation
@@ -152,12 +138,12 @@ export default function Dashboard() {
   }
 
   // Open existing design
-  const handleOpenDesign = (id: string) => {
+  const handleOpenDesign = useCallback((id: string) => {
     router.push(`/editor?id=${id}`)
-  }
+  }, [router])
 
   // Delete design
-  const handleDeleteDesign = async (id: string, e: React.MouseEvent) => {
+  const handleDeleteDesign = useCallback(async (id: string, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent triggering the card click
 
     try {
@@ -177,10 +163,10 @@ export default function Dashboard() {
         variant: "destructive"
       })
     }
-  }
+  }, [designs, toast, setDesigns])
 
   // Toggle star status
-  const toggleStar = async (id: string, e: React.MouseEvent) => {
+  const toggleStar = useCallback(async (id: string, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent triggering the card click
 
     const design = designs.find(d => d._id === id)
@@ -202,10 +188,10 @@ export default function Dashboard() {
         variant: "destructive"
       })
     }
-  }
+  }, [designs, toast, setDesigns])
 
   // Get visible designs based on active tab and search query
-  const getVisibleDesigns = () => {
+  const getVisibleDesigns = useCallback(() => {
     let filteredDesigns = designs;
 
     // Filter by tab first
@@ -234,9 +220,9 @@ export default function Dashboard() {
     }
 
     return filteredDesigns;
-  }
+  }, [designs, activeTab, searchQuery])
 
-  const getDefaultThumbnail = (index: number) => {
+  const getDefaultThumbnail = useCallback((index: number) => {
     const thumbnails = [
       "/abstract-geometric-shapes.png",
       "/placeholder.jpg",
@@ -245,13 +231,13 @@ export default function Dashboard() {
       "/placeholder.svg"
     ]
     return thumbnails[index % thumbnails.length]
-  }
+  }, [])
 
   // Get count of selected designs
   const selectedCount = Object.values(selectedDesigns).filter(Boolean).length;
 
   // Delete multiple designs
-  const handleDeleteSelectedDesigns = async () => {
+  const handleDeleteSelectedDesigns = useCallback(async () => {
     try {
       const selectedIds = Object.entries(selectedDesigns)
         .filter(([_, isSelected]) => isSelected)
@@ -281,16 +267,13 @@ export default function Dashboard() {
         variant: "destructive"
       });
     }
-  };
+  }, [selectedDesigns, designs, toast, setDesigns, setSelectedDesigns]);
 
   return (
-    <main className="container mx-auto pb-10 pt-5 max-w-7xl">
+    <div className="container mx-auto pb-10 pt-5 max-w-7xl">
       {/* Hero section */}
       <div className="mb-6">
         <h1 className="text-4xl font-bold tracking-tight mb-2 text-black">Your Designs</h1>
-        <p className="text-gray-500 max-w-3xl">
-          Create, edit and share stunning designs. All your creative work in one place.
-        </p>
       </div>
 
       {/* Sticky Tabs and Controls */}
@@ -441,170 +424,25 @@ export default function Dashboard() {
       {!loading && !error && (
         <>
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {/* Design cards - Create design card removed */}
-              {getVisibleDesigns().map((design, index) => {
-                const handleCardClick = () => {
-                  handleOpenDesign(design._id);
-                };
-
-                const handleCheckboxClick = (e: React.MouseEvent) => {
-                  toggleDesignSelection(design._id, e);
-                };
-
-                return (
-                  <div
-                    key={design._id}
-                    className={`group relative rounded-lg overflow-hidden bg-white transition-all duration-300 ${isDesignSelected(design._id) ? 'ring-2 ring-brand-blue' : ''
-                      }`}
-                    onClick={handleCardClick}
-                  >
-                    {/* Preview thumbnail */}
-                    <div className="aspect-[16/9] bg-gray-100 overflow-hidden relative">
-                      <img
-                        src={design.thumbnail || getDefaultThumbnail(index)}
-                        alt={design.title}
-                        className="w-full h-full object-cover"
-                      />
-
-                      {/* Page count indicator - show for presentations/documents */}
-                      {/* {(design.type === "presentation" || design.type === "document") && (
-                        <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-md backdrop-blur-md">
-                          1 of 2
-                        </div>
-                      )} */}
-
-                      {/* Selection checkbox - visible on hover or when selected */}
-                      <div
-                        className={`absolute top-2 left-2 transition-opacity ${isDesignSelected(design._id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                          }`}
-                        onClick={handleCheckboxClick}
-                      >
-                        <div className={`h-6 w-6 rounded border-[1.2px] flex items-center justify-center cursor-pointer ${isDesignSelected(design._id)
-                          ? 'bg-brand-blue border-brand-blue text-white'
-                          : 'border-gray-400 bg-white'
-                          }`}>
-                          {isDesignSelected(design._id) && (
-                            <svg width="14" height="14" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Design info */}
-                    <div className="p-3">
-                      <h3 className="font-semibold text-sm text-gray-900 truncate">{design.title}</h3>
-                      <div className="flex items-center mt-1 text-gray-500 text-xs">
-                        <span className="truncate">
-                          {upperFirst(design.type)} · Edited {getRelativeTime(design.updatedAt)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <GridView
+              getVisibleDesigns={getVisibleDesigns}
+              handleOpenDesign={handleOpenDesign}
+              toggleDesignSelection={toggleDesignSelection}
+              getDefaultThumbnail={getDefaultThumbnail}
+              isDesignSelected={isDesignSelected}
+              designs={designs}
+            />
           ) : (
-            <div className="rounded-2xl border overflow-hidden">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gradient-to-r from-brand-blue-light/10 to-brand-teal-light/10">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Last Modified
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {getVisibleDesigns().map((design, index) => (
-                    <tr
-                      key={design._id}
-                      className="hover:bg-brand-blue-light/5 cursor-pointer transition-colors"
-                      onClick={() => handleOpenDesign(design._id)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 rounded-lg overflow-hidden bg-gray-100">
-                            <img src={design.thumbnail || getDefaultThumbnail(index)} alt="" className="h-10 w-10 object-cover" />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{design.title}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <Badge variant="outline" className="bg-brand-teal-light/10 border-brand-teal-light/20">
-                          {upperFirst(design.category) || upperFirst(design.type) || "Design"}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {upperFirst(getRelativeTime(design.updatedAt))}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {design.shared && (
-                            <Badge variant="secondary" className="bg-brand-blue-light/10 text-brand-blue border-brand-blue-light/20">
-                              <Share2 className="h-3 w-3 mr-1" /> Shared
-                            </Badge>
-                          )}
-                          {design.starred && (
-                            <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                              <Star className="h-3 w-3 mr-1 fill-yellow-500" /> Starred
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="sm" className="h-8" onClick={(e) => toggleStar(design._id, e)}>
-                            {design.starred ? (
-                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            ) : (
-                              <StarOff className="h-4 w-4 text-gray-400" />
-                            )}
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8">
-                            <Share2 className="h-4 w-4 text-gray-500" />
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8">
-                                <MoreHorizontal className="h-4 w-4 text-gray-500" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="rounded-xl">
-                              <DropdownMenuItem className="cursor-pointer">Rename</DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer">Duplicate</DropdownMenuItem>
-                              <DropdownMenuItem className="cursor-pointer">Download</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="cursor-pointer text-red-500 focus:text-red-500"
-                                onClick={(e) => handleDeleteDesign(design._id, e)}
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ListView
+              getVisibleDesigns={getVisibleDesigns}
+              handleOpenDesign={handleOpenDesign}
+              toggleDesignSelection={toggleDesignSelection}
+              getDefaultThumbnail={getDefaultThumbnail}
+              isDesignSelected={isDesignSelected}
+              designs={designs}
+              handleDeleteDesign={handleDeleteDesign}
+              toggleStar={toggleStar}
+            />
           )}
 
           {/* Empty state */}
@@ -700,6 +538,6 @@ export default function Dashboard() {
           </Button>
         </div>
       )}
-    </main>
+    </div>
   )
 }
