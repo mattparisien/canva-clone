@@ -65,8 +65,38 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
     --handle-border: #e5e7eb;
     --handle-hover: #8b5cf6;
-
     
+    /* Core color palette */
+    --color-blue-50: #E3F2FD;
+    --color-blue-500: #1E88E5;
+    --color-blue-700: #1565C0;
+    --color-teal-50: #E0F7FA;
+    --color-teal-500: #20B2AA;
+    --color-teal-700: #00796B;
+    --color-purple-50: #f5f3ff;
+    --color-purple-100: #ede9fe;
+    --color-purple-200: #ddd6fe;
+    --color-purple-300: #c4b5fd;
+    --color-purple-400: #a78bfa;
+    --color-purple-500: #8b5cf6;
+    --color-purple-600: #7c5dfa;
+    --color-purple-700: #6d28d9;
+    --color-purple-800: #5b21b6;
+    --color-purple-900: #4c1d95;
+    --color-purple-950: #2e1065;
+    --color-secondary: #9277FF;
+    
+    /* Brand colors (referencing core colors) */
+    --color-brand-blue: var(--color-blue-500);
+    --color-brand-blue-light: var(--color-blue-50);
+    --color-brand-blue-dark: var(--color-blue-700);
+    --color-brand-teal: var(--color-teal-500);
+    --color-brand-teal-light: var(--color-teal-50);
+    --color-brand-teal-dark: var(--color-teal-700);
+    --color-brand-primary: var(--color-brand-blue);
+    --color-brand-primary-foreground: #ffffff;
+    --color-brand-secondary: var(--color-secondary);
+    --color-brand-secondary-foreground: #ffffff;
   }
 
   .dark {
@@ -102,6 +132,20 @@ body {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Dark mode adjustments for core and brand colors */
+    --color-blue-50: #0D47A1;
+    --color-blue-500: #2196F3;
+    --color-blue-700: #64B5F6;
+    --color-teal-50: #004D40;
+    --color-teal-500: #26A69A;
+    --color-teal-700: #80CBC4;
+    --color-brand-blue: var(--color-blue-500);
+    --color-brand-blue-light: var(--color-blue-50);
+    --color-brand-blue-dark: var(--color-blue-700);
+    --color-brand-teal: var(--color-teal-500);
+    --color-brand-teal-light: var(--color-teal-50);
+    --color-brand-teal-dark: var(--color-teal-700);
   }
 }
 

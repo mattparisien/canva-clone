@@ -27,34 +27,34 @@ const config: Config = {
         // Brand colors
         brand: {
           blue: {
-            DEFAULT: "#1E88E5", // Our main blue color
-            light: "#E3F2FD",
-            dark: "#1565C0",
+            DEFAULT: "var(--color-brand-blue)",
+            light: "var(--color-brand-blue-light)",
+            dark: "var(--color-brand-blue-dark)",
           },
           teal: {
-            DEFAULT: "#20B2AA", // Our main teal color
-            light: "#E0F7FA",
-            dark: "#00796B",
+            DEFAULT: "var(--color-brand-teal)",
+            light: "var(--color-brand-teal-light)",
+            dark: "var(--color-brand-teal-dark)",
           }
         },
         primary: {
-          DEFAULT: "#7C5DFA",
-          foreground: "#ffffff",
-          50: "#f5f3ff",
-          100: "#ede9fe",
-          200: "#ddd6fe",
-          300: "#c4b5fd",
-          400: "#a78bfa",
-          500: "#8b5cf6",
-          600: "#7c5dfa",
-          700: "#6d28d9",
-          800: "#5b21b6",
-          900: "#4c1d95",
-          950: "#2e1065",
+          DEFAULT: "var(--color-brand-primary)",
+          foreground: "var(--color-brand-primary-foreground)",
+          50: "var(--color-purple-50)",
+          100: "var(--color-purple-100)",
+          200: "var(--color-purple-200)",
+          300: "var(--color-purple-300)",
+          400: "var(--color-purple-400)",
+          500: "var(--color-purple-500)",
+          600: "var(--color-purple-600)",
+          700: "var(--color-purple-700)",
+          800: "var(--color-purple-800)",
+          900: "var(--color-purple-900)",
+          950: "var(--color-purple-950)",
         },
         secondary: {
-          DEFAULT: "#9277FF",
-          foreground: "#ffffff",
+          DEFAULT: "var(--color-brand-secondary)",
+          foreground: "var(--color-brand-secondary-foreground)",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
