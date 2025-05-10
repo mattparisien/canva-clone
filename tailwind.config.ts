@@ -102,6 +102,12 @@ const config: Config = {
         "toolbar-float": "0px 0px 0px 1px rgba(64,87,109,.04),0px 6px 20px -4px rgba(64,87,109,.3)",
         "popover": "0px 0px 0px 1px rgba(64,87,109,.04),0px 4px 20px -4px rgba(64,87,109,.3)",
       },
+      width: {
+        'sidebar': 'var(--sidebar-width)',
+      },
+      spacing: {
+        'sidebar': 'var(--sidebar-width)',
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
