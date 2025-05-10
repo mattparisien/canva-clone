@@ -230,11 +230,18 @@ interface Presentation {
   updatedAt: string;
 }
 
-interface Design {
+export interface Design { // Added export
   _id: string;
-  name: string;
-  elements: any[];
+  title: string; 
+  type: string; 
   userId: string;
+  thumbnail?: string; 
+  category?: string; 
+  starred: boolean; 
+  shared: boolean; 
+  description?: string; 
+  canvasSize?: any;    
+  pages?: any[];       
   createdAt: string;
   updatedAt: string;
 }

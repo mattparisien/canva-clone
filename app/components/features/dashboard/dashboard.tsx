@@ -19,7 +19,7 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip"
 import { useToast } from "@components/ui/use-toast"
-import { designsAPI } from "@lib/api"
+import { designsAPI, Design } from "@lib/api" // Import Design from api.ts
 import {
   Clock,
   Filter,
@@ -39,20 +39,6 @@ import { useEffect, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
 import { upperFirst } from "lodash";
 import { getRelativeTime } from "@utils/utils"
-
-// Design interface
-interface Design {
-  _id: string
-  title: string
-  type: string
-  userId: string
-  thumbnail?: string
-  category?: string
-  starred: boolean
-  shared: boolean
-  createdAt: string
-  updatedAt: string
-}
 
 export default function Dashboard() {
   const router = useRouter()
@@ -301,7 +287,7 @@ export default function Dashboard() {
     <main className="container mx-auto pb-10 pt-5 max-w-7xl">
       {/* Hero section */}
       <div className="mb-6">
-        <h1 className="text-4xl font-bold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-teal">Your Designs</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-2 text-black">Your Designs</h1>
         <p className="text-gray-500 max-w-3xl">
           Create, edit and share stunning designs. All your creative work in one place.
         </p>
@@ -318,11 +304,11 @@ export default function Dashboard() {
                 onValueChange={setActiveTab}
                 className="w-full md:w-auto"
               >
-                <TabsList className="bg-gray-100/50 w-full md:w-auto">
-                  <TabsTrigger value="all" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-blue-light data-[state=active]:to-brand-teal-light data-[state=active]:text-gray-800">All</TabsTrigger>
-                  <TabsTrigger value="recent" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-blue-light data-[state=active]:to-brand-teal-light data-[state=active]:text-gray-800">Recent</TabsTrigger>
-                  <TabsTrigger value="starred" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-blue-light data-[state=active]:to-brand-teal-light data-[state=active]:text-gray-800">Starred</TabsTrigger>
-                  <TabsTrigger value="shared" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-blue-light data-[state=active]:to-brand-teal-light data-[state=active]:text-gray-800">Shared</TabsTrigger>
+                <TabsList className="inline-flex h-auto items-center justify-center rounded-full bg-gray-100 p-1 space-x-1 w-full md:w-auto">
+                  <TabsTrigger value="all" className="inline-flex items-center justify-center whitespace-nowrap !rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 text-gray-600 hover:text-brand-blue data-[state=active]:bg-brand-blue/[.06] data-[state=active]:text-gray-800 data-[state=active]:shadow-sm">All</TabsTrigger>
+                  <TabsTrigger value="recent" className="inline-flex items-center justify-center whitespace-nowrap !rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 text-gray-600 hover:text-brand-blue data-[state=active]:bg-brand-blue/[.06] data-[state=active]:text-gray-800 data-[state=active]:shadow-sm">Recent</TabsTrigger>
+                  <TabsTrigger value="starred" className="inline-flex items-center justify-center whitespace-nowrap !rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 text-gray-600 hover:text-brand-blue data-[state=active]:bg-brand-blue/[.06] data-[state=active]:text-gray-800 data-[state=active]:shadow-sm">Starred</TabsTrigger>
+                  <TabsTrigger value="shared" className="inline-flex items-center justify-center whitespace-nowrap !rounded-full px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 focus-visible:ring-offset-gray-100 text-gray-600 hover:text-brand-blue data-[state=active]:bg-brand-blue/[.06] data-[state=active]:text-gray-800 data-[state=active]:shadow-sm">Shared</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -409,7 +395,7 @@ export default function Dashboard() {
                       </span>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="left">
+                  <TooltipContent side="top">
                     <div className="px-2 py-1 text-sm">Create new design</div>
                   </TooltipContent>
                 </Tooltip>
@@ -674,7 +660,7 @@ export default function Dashboard() {
           {/* Recently used templates section */}
           {activeTab === "all" && !loading && getVisibleDesigns().length > 0 && (
             <div className="mt-16">
-              <h2 className="text-xl font-semibold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-teal">Recently Used Templates</h2>
+              <h2 className="text-xl font-semibold mb-6 text-black">Recently Used Templates</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((item) => (
                   <Card key={item} className="cursor-pointer overflow-hidden group h-40 transition-all rounded-2xl border-gray-100">
