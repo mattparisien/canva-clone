@@ -11,9 +11,11 @@ export default function SiteLayout({
     return (
         <>
             <NavigationSidebar items={GLOBAL_NAVIGATION_ITEMS} />
-            <main className="flex flex-col flex-1 pl-sidebar min-h-screen">
-                <div className="flex-grow">
-                    {children}
+            <main className="flex flex-col flex-1 pl-sidebar min-h-screen bg">
+                <div className='px-5'>
+                    <div className="flex-grow">
+                        {children}
+                    </div>
                 </div>
             </main>
         </>

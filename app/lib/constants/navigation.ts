@@ -7,9 +7,9 @@ export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
         label: "Home"
     },
     {
-        path: "/projects",
+        path: "/files",
         iconName: "folder-kanban",
-        label: "Projects",
+        label: "Files",
     },
     {
         path: "/brands",
