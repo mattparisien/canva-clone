@@ -371,3 +371,9 @@ export const designsAPI = {
   },
 };
 
+// Re-export all API modules and types from the new modular structure
+export * from './api/index';
+
+// This file is maintained for backward compatibility
+// New code should import directly from the modular API files in /lib/api/
+
