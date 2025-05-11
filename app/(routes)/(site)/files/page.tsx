@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Folder, Plus, Upload, File, Trash, FolderOpen, ArrowLeft } from "lucide-react"
+import { Folder, Plus, Upload, File, Trash, FolderOpen, ArrowLeft, Heading1 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
@@ -36,13 +36,23 @@ export default function FilesPage() {
                     session.user.id,
                     currentFolder?._id || null
                 )
-                setFolders(userFolders)
+
+                console.log('Fetched folders:', userFolders)
+
+                // If we're at the root level, filter out any folder specifically named "Root"
+                if (currentFolder === null) {
+                    setFolders(userFolders.filter(folder => folder.name !== "Root"))
+                } else {
+                    setFolders(userFolders)
+                }
 
                 // Fetch assets
                 const userAssets = await assetsAPI.getAll(
                     session.user.id,
                     currentFolder?._id || null
                 )
+
+                console.log('Fetched assets:', userAssets)
                 setAssets(userAssets)
 
                 // If we're in a subfolder, build breadcrumbs
@@ -50,22 +60,22 @@ export default function FilesPage() {
                     const buildBreadcrumbs = async (folder: FolderType) => {
                         const breadcrumbTrail: FolderType[] = [folder]
                         let parent = folder.parentId
-                        
+
                         while (parent) {
                             const parentFolder = await foldersAPI.getById(parent)
                             breadcrumbTrail.unshift(parentFolder)
                             parent = parentFolder.parentId
                         }
-                        
+
                         return breadcrumbTrail
                     }
-                    
+
                     const breadcrumbTrail = await buildBreadcrumbs(currentFolder)
                     setBreadcrumbs(breadcrumbTrail)
                 } else {
                     setBreadcrumbs([])
                 }
-                
+
             } catch (error) {
                 console.error("Failed to fetch data:", error)
                 toast({
@@ -106,14 +116,14 @@ export default function FilesPage() {
                 userId: session.user.id,
                 parentId: currentFolder?._id || null
             })
-            
+
             setFolders(prev => [...prev, newFolder])
-            
+
             toast({
                 title: "Success",
                 description: `Folder "${folderName}" created successfully!`,
             })
-            
+
             setFolderName("")
             setIsCreatingFolder(false)
             setIsPopoverOpen(false)
@@ -139,9 +149,9 @@ export default function FilesPage() {
             title: "Upload started",
             description: `Uploading ${files.length} file(s)...`,
         })
-        
+
         setIsPopoverOpen(false)
-        
+
         // Handle each file
         const uploadPromises = Array.from(files).map(async (file) => {
             try {
@@ -150,28 +160,28 @@ export default function FilesPage() {
                     userId: session.user.id,
                     folderId: currentFolder?._id || null
                 })
-                
+
                 return { success: true, asset }
             } catch (error) {
                 console.error(`Failed to upload ${file.name}:`, error)
                 return { success: false, filename: file.name }
             }
         })
-        
+
         const results = await Promise.all(uploadPromises)
-        
+
         // Add successful uploads to state
         const successfulAssets = results
             .filter((result): result is { success: true, asset: Asset } => result.success)
             .map(result => result.asset)
-            
+
         if (successfulAssets.length > 0) {
             setAssets(prev => [...prev, ...successfulAssets])
         }
-        
+
         // Report results
         const failedCount = results.filter(r => !r.success).length
-        
+
         if (failedCount === 0) {
             toast({
                 title: "Upload complete",
@@ -184,7 +194,7 @@ export default function FilesPage() {
                 variant: failedCount === results.length ? "destructive" : "default"
             })
         }
-        
+
         // Reset the file input
         e.target.value = ''
     }
@@ -205,15 +215,15 @@ export default function FilesPage() {
 
     const handleDeleteFolder = async (folder: FolderType, e: React.MouseEvent) => {
         e.stopPropagation() // Prevent opening the folder
-        
+
         if (!confirm(`Are you sure you want to delete the folder "${folder.name}" and all its contents?`)) {
             return
         }
-        
+
         try {
             await foldersAPI.delete(folder._id)
             setFolders(prev => prev.filter(f => f._id !== folder._id))
-            
+
             toast({
                 title: "Success",
                 description: `Folder "${folder.name}" deleted successfully!`,
@@ -230,15 +240,15 @@ export default function FilesPage() {
 
     const handleDeleteAsset = async (asset: Asset, e: React.MouseEvent) => {
         e.stopPropagation() // Prevent triggering any parent click handlers
-        
+
         if (!confirm(`Are you sure you want to delete the file "${asset.name}"?`)) {
             return
         }
-        
+
         try {
             await assetsAPI.delete(asset._id)
             setAssets(prev => prev.filter(a => a._id !== asset._id))
-            
+
             toast({
                 title: "Success",
                 description: `File "${asset.name}" deleted successfully!`,
@@ -252,18 +262,22 @@ export default function FilesPage() {
             })
         }
     }
-    
+
     // Function to generate a thumbnail URL for assets
     const getThumbnailUrl = (asset: Asset) => {
-        if (asset.thumbnail) return asset.thumbnail
-        
-        if (asset.type === 'image') return asset.url
-        
+        if (asset.thumbnail) {
+            return asset.thumbnail.startsWith('http') ? asset.thumbnail : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${asset.thumbnail}`;
+        }
+
+        if (asset.type === 'image') {
+            return asset.url?.startsWith('http') ? asset.url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${asset.url}`;
+        }
+
         // Return appropriate icon based on file type
-        if (asset.type === 'video') return '/placeholder.jpg'
-        if (asset.type === 'document') return '/placeholder.svg'
-        
-        return '/placeholder-logo.svg' // Default placeholder
+        if (asset.type === 'video') return '/placeholder.jpg';
+        if (asset.type === 'document') return '/placeholder.svg';
+
+        return '/placeholder-logo.svg'; // Default placeholder
     }
 
     return (
@@ -274,15 +288,16 @@ export default function FilesPage() {
                         <h1 className="text-2xl font-bold">Files</h1>
                         <p className="text-muted-foreground">Manage your files and folders</p>
                     </div>
-                    
+
                     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                         <PopoverTrigger asChild>
                             <Button className="flex items-center gap-2">
-                                <Plus size={16} />
+                                <Plus size={50} />
                                 <span>Create</span>
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-56 p-3" align="end">
+                        <PopoverContent className="w-56 py-3 px-0 font-semibold" align="end">
+                            <h3 className="px-3 pb-3">Create New</h3>
                             {isCreatingFolder ? (
                                 <div className="space-y-2">
                                     <h3 className="font-medium">New Folder</h3>
@@ -292,15 +307,17 @@ export default function FilesPage() {
                                         onChange={(e) => setFolderName(e.target.value)}
                                         className="h-8"
                                     />
-                                    <div className="flex justify-end gap-2 mt-2">
-                                        <Button 
-                                            variant="outline" 
+                                    <div className="flex justify-end gap-1 mt-2">
+                                        <Button
+                                            rounded="none"
+                                            variant="outline"
                                             size="sm"
                                             onClick={() => setIsCreatingFolder(false)}
                                         >
                                             Cancel
                                         </Button>
-                                        <Button 
+                                        <Button
+                                            rounded="none"
                                             size="sm"
                                             onClick={handleCreateFolder}
                                         >
@@ -310,27 +327,27 @@ export default function FilesPage() {
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-1">
-                                    <Button 
-                                        variant="ghost" 
-                                        className="w-full justify-start gap-2 px-2" 
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start gap-2 px-3"
                                         onClick={() => setIsCreatingFolder(true)}
                                     >
                                         <Folder className="h-4 w-4" />
                                         <span>Create folder</span>
                                     </Button>
-                                    <Button 
-                                        variant="ghost" 
-                                        className="w-full justify-start gap-2 px-2"
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full justify-start gap-2 px-3"
                                         onClick={handleFileUpload}
                                     >
                                         <Upload className="h-4 w-4" />
                                         <span>Upload file</span>
                                     </Button>
-                                    <input 
-                                        id="file-upload" 
-                                        type="file" 
-                                        multiple 
-                                        className="hidden" 
+                                    <input
+                                        id="file-upload"
+                                        type="file"
+                                        multiple
+                                        className="hidden"
                                         onChange={handleFileSelected}
                                     />
                                 </div>
@@ -338,12 +355,12 @@ export default function FilesPage() {
                         </PopoverContent>
                     </Popover>
                 </div>
-                
+
                 {/* Breadcrumbs navigation */}
                 {currentFolder && (
                     <div className="flex items-center gap-2 py-2 text-sm">
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             size="sm"
                             className="flex items-center gap-1 h-7"
                             onClick={() => setCurrentFolder(null)}
@@ -351,7 +368,7 @@ export default function FilesPage() {
                             <Folder className="h-4 w-4" />
                             <span>Root</span>
                         </Button>
-                        
+
                         {breadcrumbs.length > 0 && (
                             <>
                                 <span>/</span>
@@ -372,10 +389,10 @@ export default function FilesPage() {
                         )}
                     </div>
                 )}
-                
+
                 {/* Back button when in a folder */}
                 {currentFolder && (
-                    <Button 
+                    <Button
                         variant="outline"
                         className="flex items-center gap-2 max-w-fit mb-4"
                         onClick={navigateToParent}
@@ -424,14 +441,14 @@ export default function FilesPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {/* Folders */}
                             {folders.map(folder => (
-                                <Card 
+                                <Card
                                     key={folder._id}
                                     className="cursor-pointer hover:shadow-md transition-shadow"
                                     onClick={() => handleOpenFolder(folder)}
                                 >
                                     <CardContent className="p-4 flex flex-col items-center justify-center relative h-32">
                                         <Button
-                                            variant="ghost" 
+                                            variant="ghost"
                                             size="icon"
                                             className="absolute right-2 top-2 opacity-0 hover:opacity-100 transition-opacity focus:opacity-100 h-7 w-7"
                                             onClick={(e) => handleDeleteFolder(folder, e)}
@@ -443,28 +460,28 @@ export default function FilesPage() {
                                     </CardContent>
                                 </Card>
                             ))}
-                            
+
                             {/* Assets/Files */}
                             {assets.map(asset => (
-                                <Card 
+                                <Card
                                     key={asset._id}
                                     className="overflow-hidden"
                                 >
                                     <CardContent className="p-0 relative">
                                         <Button
-                                            variant="ghost" 
+                                            variant="ghost"
                                             size="icon"
                                             className="absolute right-2 top-2 opacity-0 hover:opacity-100 transition-opacity focus:opacity-100 bg-black/50 text-white hover:bg-black/70 hover:text-white z-10 h-7 w-7"
                                             onClick={(e) => handleDeleteAsset(asset, e)}
                                         >
                                             <Trash size={16} />
                                         </Button>
-                                        
+
                                         {/* Asset thumbnail or preview */}
                                         <div className="h-32 relative">
                                             {asset.type === 'image' ? (
-                                                <img 
-                                                    src={getThumbnailUrl(asset)} 
+                                                <img
+                                                    src={getThumbnailUrl(asset)}
                                                     alt={asset.name}
                                                     className="w-full h-full object-cover"
                                                 />
@@ -474,7 +491,7 @@ export default function FilesPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        
+
                                         {/* Asset metadata */}
                                         <div className="p-3">
                                             <p className="font-medium text-sm truncate">{asset.name}</p>

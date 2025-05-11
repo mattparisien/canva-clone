@@ -97,10 +97,15 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       boxShadow: {
-        soft: "0 2px 10px rgba(0, 0, 0, 0.05)",
         medium: "0 4px 20px rgba(0, 0, 0, 0.08)",
         "toolbar-float": "0px 0px 0px 1px rgba(64,87,109,.04),0px 6px 20px -4px rgba(64,87,109,.3)",
         "popover": "0px 0px 0px 1px rgba(64,87,109,.04),0px 4px 20px -4px rgba(64,87,109,.3)",
+        'soft-xs': '0 1px 2px 0 rgba(0 0 0 / 0.03)',
+        'soft-sm': '0 1px 3px 0 rgba(0 0 0 / 0.04), 0 1px 2px -1px rgba(0 0 0 / 0.02)',
+        'soft': '0 2px 4px -1px rgba(0 0 0 / 0.04), 0 4px 6px -1px rgba(0 0 0 / 0.03)',
+        'soft-md': '0 4px 6px -1px rgba(0 0 0 / 0.05), 0 10px 15px -3px rgba(0 0 0 / 0.04)',
+        'soft-lg': '0 10px 15px -3px rgba(0 0 0 / 0.06), 0 20px 25px -5px rgba(0 0 0 / 0.04)',
+        'soft-xl': '0 20px 25px -5px rgba(0 0 0 / 0.07), 0 40px 50px -12px rgba(0 0 0 / 0.05)',
       },
       width: {
         'sidebar': 'var(--sidebar-width)',
