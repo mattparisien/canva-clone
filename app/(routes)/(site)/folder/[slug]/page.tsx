@@ -13,12 +13,13 @@ import { useSession } from "next-auth/react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useParams } from "next/navigation"
 import { useRouter } from "next/navigation"
+import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid"
 
 export default function FolderBySlugPage() {
     const params = useParams()
     const router = useRouter()
     const folderSlug = params.slug as string
-    
+
     const { toast } = useToast()
     const { data: session } = useSession()
     const [isCreatingFolder, setIsCreatingFolder] = useState(false)
@@ -35,19 +36,19 @@ export default function FolderBySlugPage() {
     // Function to toggle selection of folder
     const toggleFolderSelection = (folderId: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        setSelectedFolders(prev => 
-            prev.includes(folderId) 
-                ? prev.filter(id => id !== folderId) 
+        setSelectedFolders(prev =>
+            prev.includes(folderId)
+                ? prev.filter(id => id !== folderId)
                 : [...prev, folderId]
         );
     }
-    
+
     // Function to toggle selection of asset
     const toggleAssetSelection = (assetId: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        setSelectedAssets(prev => 
-            prev.includes(assetId) 
-                ? prev.filter(id => id !== assetId) 
+        setSelectedAssets(prev =>
+            prev.includes(assetId)
+                ? prev.filter(id => id !== assetId)
                 : [...prev, assetId]
         );
     }
@@ -61,7 +62,7 @@ export default function FolderBySlugPage() {
         setSelectedFolders([]);
         setSelectedAssets([]);
     }
-    
+
     // To handle action on multiple items if needed
     const handleBulkActions = () => {
         // Implementation for bulk actions (delete, move, etc.)
@@ -104,7 +105,7 @@ export default function FolderBySlugPage() {
                     session.user.id,
                     currentFolder._id  // This passes the current folder ID as parent
                 )
-                
+
                 console.log("Fetched folders:", userFolders);
                 setFolders(userFolders)
 
@@ -114,7 +115,7 @@ export default function FolderBySlugPage() {
                     currentFolder._id
                 )
 
-                
+
 
                 setAssets(userAssets)
 
@@ -339,12 +340,16 @@ export default function FolderBySlugPage() {
 
     // Function to generate a thumbnail URL for assets
     const getThumbnailUrl = (asset: Asset) => {
+        // If there's a thumbnail URL, use that first
         if (asset.thumbnail) {
-            return asset.thumbnail.startsWith('http') ? asset.thumbnail : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${asset.thumbnail}`;
+            // The thumbnail URL is already a complete URL from GridFS
+            return asset.thumbnail;
         }
 
-        if (asset.type === 'image') {
-            return asset.url?.startsWith('http') ? asset.url : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${asset.url}`;
+        // If it's an image type and has a URL, use the main image
+        if (asset.type === 'image' && asset.url) {
+            // The URL is already a complete URL from GridFS
+            return asset.url;
         }
 
         // Return appropriate icon based on file type
@@ -368,56 +373,56 @@ export default function FolderBySlugPage() {
                             <span className="text-sm text-muted-foreground">
                                 {selectedFolders.length + selectedAssets.length} item{selectedFolders.length + selectedAssets.length > 1 ? 's' : ''} selected
                             </span>
-                            <Button 
+                            <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={clearSelections}
                             >
                                 Clear
                             </Button>
-                            <Button 
+                            <Button
                                 size="sm"
                                 variant="destructive"
                                 onClick={() => {
                                     // Handle bulk deletion
                                     if (confirm(`Are you sure you want to delete ${selectedFolders.length + selectedAssets.length} selected items?`)) {
                                         // Delete folders
-                                        const folderPromises = selectedFolders.map(folderId => 
+                                        const folderPromises = selectedFolders.map(folderId =>
                                             foldersAPI.delete(folderId)
                                                 .then(() => ({ success: true, id: folderId }))
                                                 .catch(() => ({ success: false, id: folderId }))
                                         );
-                                        
+
                                         // Delete assets
-                                        const assetPromises = selectedAssets.map(assetId => 
+                                        const assetPromises = selectedAssets.map(assetId =>
                                             assetsAPI.delete(assetId)
                                                 .then(() => ({ success: true, id: assetId }))
                                                 .catch(() => ({ success: false, id: assetId }))
                                         );
-                                        
+
                                         // Process all deletions
                                         Promise.all([...folderPromises, ...assetPromises])
                                             .then(results => {
                                                 const successfulFolderIds = results
                                                     .filter(r => r.success && selectedFolders.includes(r.id))
                                                     .map(r => r.id);
-                                                
+
                                                 const successfulAssetIds = results
                                                     .filter(r => r.success && selectedAssets.includes(r.id))
                                                     .map(r => r.id);
-                                                
+
                                                 setFolders(prev => prev.filter(f => !successfulFolderIds.includes(f._id)));
                                                 setAssets(prev => prev.filter(a => !successfulAssetIds.includes(a._id)));
-                                                
+
                                                 const totalSuccess = successfulFolderIds.length + successfulAssetIds.length;
                                                 const totalFailures = selectedFolders.length + selectedAssets.length - totalSuccess;
-                                                
+
                                                 toast({
                                                     title: totalFailures > 0 ? "Partial Success" : "Success",
                                                     description: `Deleted ${totalSuccess} items${totalFailures > 0 ? `, ${totalFailures} items failed` : ''}`,
                                                     variant: totalFailures > 0 ? "default" : "default"
                                                 });
-                                                
+
                                                 clearSelections();
                                             });
                                     }
@@ -581,52 +586,24 @@ export default function FolderBySlugPage() {
                         <div className="space-y-8">
                             {/* Folders Section */}
                             {folders.length > 0 && (
-                                <div>
+                                <>
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-2">
                                             <h2 className="text-xl font-bold">Folders</h2>
                                         </div>
-                                        {selectedFolders.length > 0 && (
-                                            <div className="flex gap-2">
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm"
-                                                    onClick={clearSelections}
-                                                >
-                                                    Clear selection
-                                                </Button>
-                                            </div>
-                                        )}
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                    <SelectableGrid
+                                        selectedItems={folders.filter(folder => selectedFolders.includes(folder._id))}
+                                        onSelect={(folder) => toggleFolderSelection(folder._id, new MouseEvent('click') as any)}
+                                    >
                                         {folders.map(folder => (
-                                            <div
+                                            <SelectableGridItem
                                                 key={folder._id}
-                                                className={`relative group rounded-lg border ${
-                                                    isFolderSelected(folder._id) 
-                                                        ? 'border-primary bg-primary/5 ring-2 ring-primary' 
-                                                        : 'border-border hover:border-muted-foreground/50'
-                                                } transition-all`}
+                                                item={folder}
                                             >
-                                                <div 
-                                                    className="absolute left-3 top-3 z-10"
-                                                    onClick={(e) => toggleFolderSelection(folder._id, e)}
-                                                >
-                                                    <div className={`h-6 w-6 rounded-md flex items-center justify-center ${
-                                                        isFolderSelected(folder._id) 
-                                                            ? 'bg-primary text-primary-foreground' 
-                                                            : 'bg-muted border border-border'
-                                                    }`}>
-                                                        {isFolderSelected(folder._id) && (
-                                                            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M11.4669 3.72684C11.7558 3.91574 11.8369 4.30308 11.648 4.59198L7.39799 11.092C7.29783 11.2452 7.13556 11.3467 6.95402 11.3699C6.77247 11.3931 6.58989 11.3355 6.45446 11.2124L3.70446 8.71241C3.44905 8.48022 3.43023 8.08494 3.66242 7.82953C3.89461 7.57412 4.28989 7.55529 4.5453 7.78749L6.75292 9.79441L10.6018 3.90792C10.7907 3.61902 11.178 3.53795 11.4669 3.72684Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
-                                                            </svg>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                
-                                                <div 
-                                                    className="p-4 cursor-pointer flex items-start space-x-4"
+                                                <div>hi</div>
+                                                {/* <div 
+                                                    className="flex items-start space-x-4"
                                                     onClick={() => handleOpenFolder(folder)}
                                                 >
                                                     <div className="flex-shrink-0 p-1">
@@ -642,21 +619,24 @@ export default function FolderBySlugPage() {
                                                             {folder.itemCount || 0} items
                                                         </p>
                                                     </div>
-                                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="group-hover:opacity-100 transition-opacity">
                                                         <Button
                                                             variant="ghost"
                                                             size="icon"
                                                             className="h-8 w-8"
-                                                            onClick={(e) => handleDeleteFolder(folder, e)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteFolder(folder, e);
+                                                            }}
                                                         >
                                                             <Trash size={16} />
                                                         </Button>
                                                     </div>
-                                                </div>
-                                            </div>
+                                                </div> */}
+                                            </SelectableGridItem>
                                         ))}
-                                    </div>
-                                </div>
+                                    </SelectableGrid>
+                                </>
                             )}
 
                             {/* Assets/Files Section */}
@@ -668,8 +648,8 @@ export default function FolderBySlugPage() {
                                         </div>
                                         {selectedAssets.length > 0 && (
                                             <div className="flex gap-2">
-                                                <Button 
-                                                    variant="ghost" 
+                                                <Button
+                                                    variant="ghost"
                                                     size="sm"
                                                     onClick={clearSelections}
                                                 >
@@ -682,21 +662,19 @@ export default function FolderBySlugPage() {
                                         {assets.map(asset => (
                                             <div
                                                 key={asset._id}
-                                                className={`relative group rounded-lg border ${
-                                                    isAssetSelected(asset._id) 
-                                                        ? 'border-primary bg-primary/5 ring-2 ring-primary' 
-                                                        : 'border-border hover:border-muted-foreground/50'
-                                                } transition-all`}
+                                                className={`relative group rounded-lg border ${isAssetSelected(asset._id)
+                                                    ? 'border-primary bg-primary/5 ring-2 ring-primary'
+                                                    : 'border-border hover:border-muted-foreground/50'
+                                                    } transition-all`}
                                             >
-                                                <div 
+                                                <div
                                                     className="absolute left-3 top-3 z-10"
                                                     onClick={(e) => toggleAssetSelection(asset._id, e)}
                                                 >
-                                                    <div className={`h-6 w-6 rounded-md flex items-center justify-center ${
-                                                        isAssetSelected(asset._id) 
-                                                            ? 'bg-primary text-primary-foreground' 
-                                                            : 'bg-muted border border-border'
-                                                    }`}>
+                                                    <div className={`h-6 w-6 rounded-md flex items-center justify-center ${isAssetSelected(asset._id)
+                                                        ? 'bg-primary text-primary-foreground'
+                                                        : 'bg-muted border border-border'
+                                                        }`}>
                                                         {isAssetSelected(asset._id) && (
                                                             <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                                 <path d="M11.4669 3.72684C11.7558 3.91574 11.8369 4.30308 11.648 4.59198L7.39799 11.092C7.29783 11.2452 7.13556 11.3467 6.95402 11.3699C6.77247 11.3931 6.58989 11.3355 6.45446 11.2124L3.70446 8.71241C3.44905 8.48022 3.43023 8.08494 3.66242 7.82953C3.89461 7.57412 4.28989 7.55529 4.5453 7.78749L6.75292 9.79441L10.6018 3.90792C10.7907 3.61902 11.178 3.53795 11.4669 3.72684Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
@@ -704,7 +682,7 @@ export default function FolderBySlugPage() {
                                                         )}
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="p-4">
                                                     {/* Asset thumbnail or preview */}
                                                     <div className="relative mb-3 h-24 w-full flex items-center justify-center bg-gray-100 rounded-md">
