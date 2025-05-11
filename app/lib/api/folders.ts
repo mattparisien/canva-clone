@@ -3,6 +3,7 @@ import axios from 'axios';
 export interface Folder {
   _id: string;
   name: string;
+  slug: string; // Add slug field
   userId: string;
   parentId: string | null;
   path: string;
@@ -11,6 +12,7 @@ export interface Folder {
   metadata?: Record<string, any>;
   createdAt: string;
   updatedAt: string;
+  itemCount?: number; // Optional since it's added dynamically
 }
 
 export interface CreateFolderDTO {
@@ -35,9 +37,15 @@ class FoldersAPI {
     const response = await axios.get<Folder>(`/api/folders/${id}`);
     return response.data;
   }
+  
+  async getBySlug(slug: string, userId: string) {
+    const response = await axios.get<Folder>(`/api/folders/slug/${slug}?userId=${userId}`);
+    return response.data;
+  }
 
   async create(folderData: CreateFolderDTO) {
     const response = await axios.post<Folder>(`/api/folders`, folderData);
+    console.log(response);
     return response.data;
   }
 

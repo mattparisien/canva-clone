@@ -7,7 +7,7 @@ export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
         label: "Home"
     },
     {
-        path: "/files",
+        path: "/folder/root",
         iconName: "folder-kanban",
         label: "Files",
     },
