@@ -1,5 +1,6 @@
-import React, { Children, ReactElement, cloneElement, useState } from 'react';
-import { Check } from 'lucide-react';
+import React, { Children, ReactElement, cloneElement, useState, useEffect } from 'react';
+import { Check, Trash, X } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 interface SelectableGridItemProps<T> {
     item: T;
@@ -8,16 +9,59 @@ interface SelectableGridItemProps<T> {
     children: React.ReactNode;
 }
 
+interface SelectionPopoverProps<T> {
+    selectedItems: T[];
+    onClearSelection: () => void;
+    onDelete: () => void;
+}
+
+export function SelectionPopoverContent<T>({
+    selectedItems,
+    onClearSelection,
+    onDelete
+}: SelectionPopoverProps<T>) {
+    return (
+        <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-2">
+                <span className="font-medium">{selectedItems.length} selected</span>
+                <button
+                    onClick={onClearSelection}
+                    className="p-1 rounded-full hover:bg-gray-100"
+                    aria-label="Clear selection"
+                >
+                    <X size={18} className="text-gray-500" />
+                </button>
+            </div>
+            <div className="h-6 w-[1px] bg-gray-200 mx-1" />
+            <button
+                onClick={onDelete}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-md flex items-center gap-1"
+                aria-label="Delete selected items"
+            >
+                <Trash size={18} />
+            </button>
+        </div>
+    );
+}
+
 export function SelectableGrid<T>({
     children,
     onSelect,
     initialSelectedItems = [],
+    onDelete,
 }: {
     children: React.ReactNode;
     onSelect?: (item: T) => void;
     initialSelectedItems?: T[];
+    onDelete?: (items: T[]) => void;
 }) {
     const [selectedItems, setSelectedItems] = useState<T[]>(initialSelectedItems);
+    const [open, setOpen] = useState(false);
+
+    // Update the popover visibility when selection changes
+    useEffect(() => {
+        setOpen(selectedItems.length > 0);
+    }, [selectedItems.length]);
 
     const handleSelect = (item: T) => {
         setSelectedItems(prev => {
@@ -35,29 +79,63 @@ export function SelectableGrid<T>({
         });
     };
 
+    const handleClearSelection = () => {
+        setSelectedItems([]);
+    };
+
+    const handleDelete = () => {
+        onDelete?.(selectedItems);
+        setSelectedItems([]);
+    };
+
+    useEffect(() => {
+        console.log(selectedItems, 'selectedItems');
+    }, [selectedItems]);
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {Children.map(children, (child) => {
-                if (React.isValidElement(child)) {
-                    // Type assertion for child props
-                    const childProps = child.props as { item?: T };
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {Children.map(children, (child) => {
+                    if (React.isValidElement(child)) {
+                        // Type assertion for child props
+                        const childProps = child.props as { item?: T };
 
-                    if (childProps.item) {
-                        const item = childProps.item;
-                        const isSelected = selectedItems.includes(item);
+                        if (childProps.item) {
+                            const item = childProps.item;
+                            const isSelected = selectedItems.includes(item);
 
-                        return cloneElement(
-                            child as ReactElement<SelectableGridItemProps<T>>,
-                            {
-                                isSelected,
-                                onClick: () => handleSelect(item),
-                            }
-                        );
+                            return cloneElement(
+                                child as ReactElement<SelectableGridItemProps<T>>,
+                                {
+                                    isSelected,
+                                    onClick: () => handleSelect(item),
+                                }
+                            );
+                        }
                     }
-                }
-                return child;
-            })}
-        </div>
+                    return child;
+                })}
+            </div>
+
+            {/* Using the existing Popover component instead of custom one */}
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                    {/* This is an invisible trigger that is always at the bottom of the screen */}
+                    <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1" />
+                </PopoverTrigger>
+                <PopoverContent
+                    className="fixed bottom-4 left-1/2 transform -translate-x-1/2 p-2 shadow-lg rounded-lg z-50 flex"
+                    align="center"
+                    side="top"
+                >
+                    <SelectionPopoverContent
+                        selectedItems={selectedItems}
+                        onClearSelection={handleClearSelection}
+                        onDelete={handleDelete}
+                    />
+                </PopoverContent>
+            </Popover>
+        </>
     );
 }
 

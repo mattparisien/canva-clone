@@ -1,19 +1,17 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Folder as FolderIcon, Plus, Upload, File, Trash, FolderOpen, ArrowLeft } from "lucide-react"
-import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
-import { Card, CardContent } from "@/components/ui/card"
 import { assetsAPI, type Asset } from "@/lib/api/assets"
 import { foldersAPI, type Folder as FolderType } from "@/lib/api/folders"
+import { ArrowLeft, File, Folder as FolderIcon, FolderOpen, Plus, Trash, Upload } from "lucide-react"
 import { useSession } from "next-auth/react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useParams } from "next/navigation"
-import { useRouter } from "next/navigation"
-import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid"
+import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function FolderBySlugPage() {
     const params = useParams()
@@ -313,6 +311,31 @@ export default function FolderBySlugPage() {
         }
     }
 
+    const handleDeleteFolders = async (folderIds: string[]) => {
+
+
+        if (!confirm(`Are you sure you want to delete ${folderIds.length} folders?`)) {
+            return
+        }
+
+        try {
+            await Promise.all(folderIds.map(id => foldersAPI.delete(id)))
+            setFolders(prev => prev.filter(f => !folderIds.includes(f._id)))
+
+            toast({
+                title: "Success",
+                description: `Deleted ${folderIds.length} folders successfully!`,
+            })
+        } catch (error) {
+            console.error("Failed to delete folders:", error)
+            toast({
+                title: "Error",
+                description: "Failed to delete folders. Please try again.",
+                variant: "destructive"
+            })
+        }
+    }
+
     const handleDeleteAsset = async (asset: Asset, e: React.MouseEvent) => {
         e.stopPropagation() // Prevent triggering any parent click handlers
 
@@ -439,7 +462,7 @@ export default function FolderBySlugPage() {
                                     <span>Create</span>
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-56 py-3 px-0 font-semibold" align="end">
+                            <PopoverContent className="w-56" align="end">
                                 <h3 className="px-3 pb-3">Create New</h3>
                                 {isCreatingFolder ? (
                                     <div className="space-y-2">
@@ -592,8 +615,9 @@ export default function FolderBySlugPage() {
                                             <h2 className="text-xl font-bold">Folders</h2>
                                         </div>
                                     </div>
-                                    <SelectableGrid
-                                        onSelect={(folder) => toggleFolderSelection(folder._id, new MouseEvent('click') as any)}
+                                    <SelectableGrid<FolderType>
+                                        // onSelect={(folder) => toggleFolderSelection(folder._id, new MouseEvent('click') as any)}
+                                        onDelete={(selectedItems) => handleDeleteFolders(selectedItems.map((x: FolderType) => x._id))}
                                     >
                                         {folders.map(folder => (
                                             <SelectableGridItem
