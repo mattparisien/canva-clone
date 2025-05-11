@@ -413,8 +413,8 @@ export default function FilesPage() {
                         ))}
                     </div>
                 ) : (
-                    // Display folders and files
                     folders.length === 0 && assets.length === 0 ? (
+                        // Empty state
                         <div className="border rounded-md p-8 flex flex-col items-center justify-center text-center text-muted-foreground">
                             <div className="rounded-full bg-muted p-3 mb-3">
                                 {currentFolder ? <FolderOpen size={24} /> : <File size={24} />}
@@ -438,70 +438,103 @@ export default function FilesPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {/* Folders */}
-                            {folders.map(folder => (
-                                <Card
-                                    key={folder._id}
-                                    className="cursor-pointer hover:shadow-md transition-shadow"
-                                    onClick={() => handleOpenFolder(folder)}
-                                >
-                                    <CardContent className="p-4 flex flex-col items-center justify-center relative h-32">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="absolute right-2 top-2 opacity-0 hover:opacity-100 transition-opacity focus:opacity-100 h-7 w-7"
-                                            onClick={(e) => handleDeleteFolder(folder, e)}
-                                        >
-                                            <Trash size={16} />
-                                        </Button>
-                                        <Folder size={40} className="text-blue-500 mb-2" />
-                                        <p className="font-medium text-sm truncate max-w-full">{folder.name}</p>
-                                    </CardContent>
-                                </Card>
-                            ))}
-
-                            {/* Assets/Files */}
-                            {assets.map(asset => (
-                                <Card
-                                    key={asset._id}
-                                    className="overflow-hidden"
-                                >
-                                    <CardContent className="p-0 relative">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="absolute right-2 top-2 opacity-0 hover:opacity-100 transition-opacity focus:opacity-100 bg-black/50 text-white hover:bg-black/70 hover:text-white z-10 h-7 w-7"
-                                            onClick={(e) => handleDeleteAsset(asset, e)}
-                                        >
-                                            <Trash size={16} />
-                                        </Button>
-
-                                        {/* Asset thumbnail or preview */}
-                                        <div className="h-32 relative">
-                                            {asset.type === 'image' ? (
-                                                <img
-                                                    src={getThumbnailUrl(asset)}
-                                                    alt={asset.name}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="bg-muted w-full h-full flex items-center justify-center">
-                                                    <File size={32} className="text-muted-foreground" />
-                                                </div>
-                                            )}
+                        // Folders and Assets sections
+                        <div className="space-y-8">
+                            {/* Folders Section */}
+                            {folders.length > 0 && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <h2 className="text-xl font-bold">Folders</h2>
                                         </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {folders.map(folder => (
+                                            <Card
+                                                key={folder._id}
+                                                className="cursor-pointer hover:shadow-md transition-shadow"
+                                                onClick={() => handleOpenFolder(folder)}
+                                            >
+                                                <CardContent className="p-4 flex flex-col items-center justify-center relative h-32">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute right-2 top-2 opacity-0 hover:opacity-100 transition-opacity focus:opacity-100 h-7 w-7"
+                                                        onClick={(e) => handleDeleteFolder(folder, e)}
+                                                    >
+                                                        <Trash size={16} />
+                                                    </Button>
+                                                    <Folder size={40} className="text-blue-500 mb-2" />
+                                                    <p className="font-medium text-sm truncate max-w-full">{folder.name}</p>
+                                                    {folder.itemCount > 0 && (
+                                                        <span className="text-xs text-muted-foreground mt-1">
+                                                            {folder.itemCount} items
+                                                        </span>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                                        {/* Asset metadata */}
-                                        <div className="p-3">
-                                            <p className="font-medium text-sm truncate">{asset.name}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                {(asset.fileSize / (1024 * 1024)).toFixed(2)} MB
-                                            </p>
+                            {/* Assets/Files Section */}
+                            {assets.length > 0 && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <h2 className="text-xl font-bold">Files</h2>
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                                        {assets.length > 4 && (
+                                            <Button variant="ghost" size="sm">
+                                                See all
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        {assets.map(asset => (
+                                            <Card
+                                                key={asset._id}
+                                                className="overflow-hidden"
+                                            >
+                                                <CardContent className="p-0 relative">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="absolute right-2 top-2 opacity-0 hover:opacity-100 transition-opacity focus:opacity-100 bg-black/50 text-white hover:bg-black/70 hover:text-white z-10 h-7 w-7"
+                                                        onClick={(e) => handleDeleteAsset(asset, e)}
+                                                    >
+                                                        <Trash size={16} />
+                                                    </Button>
+
+                                                    {/* Asset thumbnail or preview */}
+                                                    <div className="h-32 relative">
+                                                        {asset.type === 'image' ? (
+                                                            <img
+                                                                src={getThumbnailUrl(asset)}
+                                                                alt={asset.name}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="bg-muted w-full h-full flex items-center justify-center">
+                                                                <File size={32} className="text-muted-foreground" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Asset metadata */}
+                                                    <div className="p-3">
+                                                        <p className="font-medium text-sm truncate">{asset.name}</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {(asset.fileSize / (1024 * 1024)).toFixed(2)} MB
+                                                        </p>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )
                 )}
