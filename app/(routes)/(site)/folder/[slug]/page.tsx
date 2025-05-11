@@ -593,7 +593,6 @@ export default function FolderBySlugPage() {
                                         </div>
                                     </div>
                                     <SelectableGrid
-                                        selectedItems={folders.filter(folder => selectedFolders.includes(folder._id))}
                                         onSelect={(folder) => toggleFolderSelection(folder._id, new MouseEvent('click') as any)}
                                     >
                                         {folders.map(folder => (
@@ -601,15 +600,13 @@ export default function FolderBySlugPage() {
                                                 key={folder._id}
                                                 item={folder}
                                             >
-                                                <div>hi</div>
-                                                {/* <div 
-                                                    className="flex items-start space-x-4"
+
+                                                <div
+                                                    className="flex items-center space-x-4"
                                                     onClick={() => handleOpenFolder(folder)}
                                                 >
-                                                    <div className="flex-shrink-0 p-1">
-                                                        <div className="bg-gray-100 rounded-md p-2">
-                                                            <FolderIcon size={24} className="text-blue-500" />
-                                                        </div>
+                                                    <div className="flex-shrink-0">
+                                                        <FolderIcon size={60} className="text-transparent fill-gray-200" />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-sm font-medium text-gray-900 truncate">
@@ -619,20 +616,8 @@ export default function FolderBySlugPage() {
                                                             {folder.itemCount || 0} items
                                                         </p>
                                                     </div>
-                                                    <div className="group-hover:opacity-100 transition-opacity">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-8 w-8"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteFolder(folder, e);
-                                                            }}
-                                                        >
-                                                            <Trash size={16} />
-                                                        </Button>
-                                                    </div>
-                                                </div> */}
+
+                                                </div>
                                             </SelectableGridItem>
                                         ))}
                                     </SelectableGrid>
