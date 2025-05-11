@@ -1,13 +1,13 @@
-import { type Design } from "@/lib/api";
+import { type Project } from "@/lib/api";
 import { upperFirst } from "lodash";
 import { getRelativeTime } from "@/lib/utils/utils";
 
 interface GridViewProps {
-    designs: Design[];
+    designs: Project[];
     // selectedDesigns: string[]; // Removed
     handleOpenDesign: (designId: string) => void;
     toggleDesignSelection: (designId: string, e: React.MouseEvent) => void;
-    getVisibleDesigns: () => Design[];
+    getVisibleDesigns: () => Project[];
     getDefaultThumbnail: (index: number) => string;
     isDesignSelected: (designId: string) => boolean;
 }

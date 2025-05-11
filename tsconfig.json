@@ -30,6 +30,7 @@
       "@constants/*": ["./app/lib/constants/*"],
       "@types/*": ["./app/lib/types/*"],
       "@factories/*": ["./app/lib/factories/*"],
+      "@features/*": ["./app/features/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

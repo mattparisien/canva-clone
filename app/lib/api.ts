@@ -220,7 +220,7 @@ export const userAPI = {
   },
 };
 
-// Define interfaces for presentation and design
+// Define interfaces for presentation and project
 interface Presentation {
   _id: string;
   title: string;
@@ -230,7 +230,7 @@ interface Presentation {
   updatedAt: string;
 }
 
-export interface Design { // Added export
+export interface Project { // Changed from Design to Project
   _id: string;
   title: string; 
   type: string; 
@@ -314,62 +314,65 @@ export const presentationsAPI = {
   },
 };
 
-// Designs API
-export const designsAPI = {
-  // Get all designs
+// Projects API (renamed from Designs API)
+export const projectsAPI = {
+  // Get all projects
   getAll: async () => {
     try {
-      const response = await apiClient.get<Design[]>('/designs');
+      const response = await apiClient.get<Project[]>('/projects');
       return response.data;
     } catch (error: any) {
-      console.error('Error fetching designs:', error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to fetch designs');
+      console.error('Error fetching projects:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch projects');
     }
   },
   
-  // Get design by ID
+  // Get project by ID
   getById: async (id: string) => {
     try {
-      const response = await apiClient.get<Design>(`/designs/${id}`);
+      const response = await apiClient.get<Project>(`/projects/${id}`);
       return response.data;
     } catch (error: any) {
-      console.error(`Error fetching design ${id}:`, error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to fetch design');
+      console.error(`Error fetching project ${id}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch project');
     }
   },
   
-  // Create new design
-  create: async (data: Partial<Design>) => {
+  // Create new project
+  create: async (data: Partial<Project>) => {
     try {
-      const response = await apiClient.post<Design>('/designs', data);
+      const response = await apiClient.post<Project>('/projects', data);
       return response.data;
     } catch (error: any) {
-      console.error('Error creating design:', error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to create design');
+      console.error('Error creating project:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to create project');
     }
   },
   
-  // Update design
-  update: async (id: string, data: Partial<Design>) => {
+  // Update project
+  update: async (id: string, data: Partial<Project>) => {
     try {
-      const response = await apiClient.put<Design>(`/designs/${id}`, data);
+      const response = await apiClient.put<Project>(`/projects/${id}`, data);
       return response.data;
     } catch (error: any) {
-      console.error(`Error updating design ${id}:`, error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to update design');
+      console.error(`Error updating project ${id}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to update project');
     }
   },
   
-  // Delete design
+  // Delete project
   delete: async (id: string) => {
     try {
-      await apiClient.delete(`/designs/${id}`);
+      await apiClient.delete(`/projects/${id}`);
     } catch (error: any) {
-      console.error(`Error deleting design ${id}:`, error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to delete design');
+      console.error(`Error deleting project ${id}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to delete project');
     }
   },
 };
+
+// For backward compatibility with existing code
+export const designsAPI = projectsAPI;
 
 // Re-export all API modules and types from the new modular structure
 export * from './api/index';

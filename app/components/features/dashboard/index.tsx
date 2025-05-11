@@ -2,8 +2,6 @@
 
 import { Button } from "@components/ui/button"
 import { Card } from "@components/ui/card"
-import { Input } from "@components/ui/input"
-import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs"
 import {
   Tooltip,
   TooltipContent,
@@ -11,18 +9,17 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip"
 import { useToast } from "@components/ui/use-toast"
-import { Design, designsAPI } from "@lib/api"; // Import Design from api.ts
+import { useProjectQuery } from "@features/projects/use-projects"
 import {
   Filter,
   Grid3x3,
   List,
   Plus,
-  Search,
   SlidersHorizontal,
   Trash2
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
 import GridView from "./grid-view"
 import ListView from "./list-view"
@@ -30,51 +27,34 @@ import ListView from "./list-view"
 export default function Dashboard() {
   const router = useRouter()
   const { toast } = useToast()
-  const [designs, setDesigns] = useState<Design[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
+  const {
+    projects,
+    isLoading,
+    isError,
+    createProject,
+    deleteProject,
+    toggleStar,
+    deleteMultipleProjects
+  } = useProjectQuery()
+
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [activeTab, setActiveTab] = useState("all")
   const [isCreating, setIsCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState<string>("")
   // Move selected state up here to track all selected items
-  const [selectedDesigns, setSelectedDesigns] = useState<Record<string, boolean>>({})
+  const [selectedProjects, setSelectedProjects] = useState<Record<string, boolean>>({})
 
-  // Toggle selection of a design
-  const toggleDesignSelection = useCallback((id: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent navigating to the design when clicking the checkbox
-    setSelectedDesigns(prev => ({
+  // Toggle selection of a project
+  const toggleProjectSelection = useCallback((id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigating to the project when clicking the checkbox
+    setSelectedProjects(prev => ({
       ...prev,
       [id]: !prev[id]
     }));
-  }, [setSelectedDesigns])
+  }, [setSelectedProjects])
 
-  // Check if a design is selected
-  const isDesignSelected = (id: string) => !!selectedDesigns[id];
-
-  // Fetch designs from the backend
-  useEffect(() => {
-    const fetchDesigns = async () => {
-      try {
-        setLoading(true)
-        const data = await designsAPI.getAll()
-        setDesigns(data)
-      } catch (err) {
-        console.error('Error fetching designs:', err)
-        setError('Failed to load designs. Please try again later.')
-        toast({
-          title: "Error",
-          description: "Failed to load designs. Please try again later.",
-          variant: "destructive"
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchDesigns()
-  }, [toast])
-
+  // Check if a project is selected
+  const isProjectSelected = (id: string) => !!selectedProjects[id];
 
   // Create new presentation
   const handleCreatePresentation = async () => {
@@ -82,8 +62,8 @@ export default function Dashboard() {
       setIsCreating(true)
 
       // Create default presentation document
-      const newDesign = {
-        title: 'Untitled Design',
+      const newProject = {
+        title: 'Untitled Project',
         description: "",
         type: "presentation",
         userId: "user123", // Replace with actual user ID from auth
@@ -111,25 +91,19 @@ export default function Dashboard() {
         shared: false
       }
 
-      // Create the document in MongoDB
-      const createdDesign = await designsAPI.create(newDesign)
+      // Create the document using the mutation from useProjectQuery
+      createProject(newProject)
 
-      // Add the newly created design to the state
-      setDesigns(prevDesigns => [createdDesign, ...prevDesigns])
+      // Navigate to editor with the new project ID
+      // Note: We'll need to handle this differently since we don't get the ID back immediately
+      // For now, navigate to the dashboard and users will see the new project there
+      router.push(`/editor`)
 
-      // Navigate to editor with the new design ID
-      router.push(`/editor?id=${createdDesign._id}`)
-
-      toast({
-        title: "Success",
-        description: "New design created successfully!",
-        variant: "default"
-      })
     } catch (error) {
-      console.error("Failed to create design:", error)
+      console.error("Failed to create project:", error)
       toast({
         title: "Error",
-        description: "Failed to create design. Please try again.",
+        description: "Failed to create project. Please try again.",
         variant: "destructive"
       })
     } finally {
@@ -137,73 +111,53 @@ export default function Dashboard() {
     }
   }
 
-  // Open existing design
-  const handleOpenDesign = useCallback((id: string) => {
+  // Open existing project
+  const handleOpenProject = useCallback((id: string) => {
     router.push(`/editor?id=${id}`)
   }, [router])
 
-  // Delete design
-  const handleDeleteDesign = useCallback(async (id: string, e: React.MouseEvent) => {
+  // Handle project deletion
+  const handleDeleteProject = useCallback((id: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering the card click
+    deleteProject(id)
+  }, [deleteProject])
+
+  // Handle star toggling
+  const handleToggleStar = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation() // Prevent triggering the card click
 
-    try {
-      await designsAPI.delete(id)
-      setDesigns(designs.filter(d => d._id !== id))
+    const project = projects.find(p => p._id === id)
+    if (!project) return
 
-      toast({
-        title: "Success",
-        description: "Design deleted successfully!",
-        variant: "default"
-      })
-    } catch (error) {
-      console.error("Failed to delete design:", error)
-      toast({
-        title: "Error",
-        description: "Failed to delete design. Please try again.",
-        variant: "destructive"
-      })
-    }
-  }, [designs, toast, setDesigns])
+    toggleStar({ id, starred: !project.starred })
+  }, [projects, toggleStar])
 
-  // Toggle star status
-  const toggleStar = useCallback(async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent triggering the card click
+  // Handle deleting multiple projects
+  const handleDeleteSelectedProjects = useCallback(() => {
+    const selectedIds = Object.entries(selectedProjects)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([id]) => id);
 
-    const design = designs.find(d => d._id === id)
-    if (!design) return
+    if (selectedIds.length === 0) return;
 
-    try {
-      const updatedDesign = await designsAPI.update(id, {
-        starred: !design.starred
-      })
+    deleteMultipleProjects(selectedIds);
+    setSelectedProjects({});
+  }, [selectedProjects, deleteMultipleProjects]);
 
-      setDesigns(designs.map(d =>
-        d._id === id ? { ...d, starred: !d.starred } : d
-      ))
-    } catch (error) {
-      console.error("Failed to update design:", error)
-      toast({
-        title: "Error",
-        description: "Failed to update design. Please try again.",
-        variant: "destructive"
-      })
-    }
-  }, [designs, toast, setDesigns])
-
-  // Get visible designs based on active tab and search query
-  const getVisibleDesigns = useCallback(() => {
-    let filteredDesigns = designs;
+  // Get visible projects based on active tab and search query
+  const getVisibleProjects = useCallback(() => {
+    let filteredProjects = projects;
 
     // Filter by tab first
     switch (activeTab) {
       case "starred":
-        filteredDesigns = filteredDesigns.filter(d => d.starred)
+        filteredProjects = filteredProjects.filter(p => p.starred)
         break
       case "shared":
-        filteredDesigns = filteredDesigns.filter(d => d.shared)
+        filteredProjects = filteredProjects.filter(p => p.shared)
         break
       case "recent":
-        filteredDesigns = [...filteredDesigns].sort((a, b) =>
+        filteredProjects = [...filteredProjects].sort((a, b) =>
           new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         ).slice(0, 3)
         break
@@ -212,15 +166,15 @@ export default function Dashboard() {
     // Then filter by search query if present
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filteredDesigns = filteredDesigns.filter(
-        design => design.title.toLowerCase().includes(query) ||
-          (design.category && design.category.toLowerCase().includes(query)) ||
-          (design.type && design.type.toLowerCase().includes(query))
+      filteredProjects = filteredProjects.filter(
+        project => project.title.toLowerCase().includes(query) ||
+          (project.category && project.category.toLowerCase().includes(query)) ||
+          (project.type && project.type.toLowerCase().includes(query))
       );
     }
 
-    return filteredDesigns;
-  }, [designs, activeTab, searchQuery])
+    return filteredProjects;
+  }, [projects, activeTab, searchQuery])
 
   const getDefaultThumbnail = useCallback((index: number) => {
     const thumbnails = [
@@ -233,54 +187,21 @@ export default function Dashboard() {
     return thumbnails[index % thumbnails.length]
   }, [])
 
-  // Get count of selected designs
-  const selectedCount = Object.values(selectedDesigns).filter(Boolean).length;
-
-  // Delete multiple designs
-  const handleDeleteSelectedDesigns = useCallback(async () => {
-    try {
-      const selectedIds = Object.entries(selectedDesigns)
-        .filter(([_, isSelected]) => isSelected)
-        .map(([id]) => id);
-
-      if (selectedIds.length === 0) return;
-
-      // Delete each selected design
-      await Promise.all(selectedIds.map(id => designsAPI.delete(id)));
-
-      // Remove deleted designs from state
-      setDesigns(designs.filter(d => !selectedDesigns[d._id]));
-
-      // Clear selection
-      setSelectedDesigns({});
-
-      toast({
-        title: "Success",
-        description: `${selectedIds.length} ${selectedIds.length === 1 ? 'design' : 'designs'} deleted successfully!`,
-        variant: "default"
-      });
-    } catch (error) {
-      console.error("Failed to delete designs:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete designs. Please try again.",
-        variant: "destructive"
-      });
-    }
-  }, [selectedDesigns, designs, toast, setDesigns, setSelectedDesigns]);
+  // Get count of selected projects
+  const selectedCount = Object.values(selectedProjects).filter(Boolean).length;
 
   return (
     <div className="container mx-auto pb-10 pt-5 max-w-7xl">
       {/* Hero section */}
       <div className="mb-6">
-        <h1 className="text-4xl font-bold tracking-tight mb-2 text-black">Your Designs</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-2 text-black">Your Projects</h1>
       </div>
 
       {/* Sticky Tabs and Controls */}
       <div className="sticky top-16 z-40 -mx-4 px-4 py-3 mb-8 backdrop-blur-sm border-b border-gray-100">
         <div className="container mx-auto max-w-7xl">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-4 w-full md:w-auto flex-wrap">
+            {/* <div className="flex items-center gap-4 w-full md:w-auto flex-wrap">
               <Tabs
                 defaultValue="all"
                 value={activeTab}
@@ -295,7 +216,6 @@ export default function Dashboard() {
                 </TabsList>
               </Tabs>
 
-              {/* Search input with fixed left padding to prevent text overlap */}
               <div className="relative w-full md:w-[300px] lg:w-[350px]">
                 <div className="absolute inset-y-0 start-0 flex items-center pl-3 pointer-events-none">
                   <Search className="w-4 h-4 text-gray-400" />
@@ -303,14 +223,14 @@ export default function Dashboard() {
                 <Input
                   type="search"
                   className="pl-10 py-2 bg-white border border-gray-200 rounded-xl focus-visible:ring-brand-blue/30 focus-visible:ring-offset-0"
-                  placeholder="Search designs..."
+                  placeholder="Search projects..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-            </div>
+            </div> */}
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 ml-auto">
               <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -353,7 +273,7 @@ export default function Dashboard() {
                 </Tooltip>
               </TooltipProvider>
 
-              <TooltipProvider delayDuration={100}>
+              {/* <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -379,38 +299,38 @@ export default function Dashboard() {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="top">
-                    <div className="px-2 py-1 text-sm">Create new design</div>
+                    <div className="px-2 py-1 text-sm">Create new project</div>
                   </TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
+              </TooltipProvider> */}
             </div>
           </div>
         </div>
       </div>
 
       {/* Loading state */}
-      {loading && (
+      {isLoading && (
         <div className="flex items-center justify-center py-20">
           <div className="flex flex-col items-center">
             <svg className="animate-spin h-10 w-10 text-brand-blue mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <p className="text-gray-500">Loading your designs...</p>
+            <p className="text-gray-500">Loading your projects...</p>
           </div>
         </div>
       )}
 
       {/* Error state */}
-      {!loading && error && (
+      {!isLoading && isError && (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
           <div className="rounded-full bg-red-100 p-6 mb-4">
             <svg className="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h3 className="text-xl font-medium mb-2">Failed to Load Designs</h3>
-          <p className="text-gray-500 mb-6 max-w-sm">{error}</p>
+          <h3 className="text-xl font-medium mb-2">Failed to Load Projects</h3>
+          <p className="text-gray-500 mb-6 max-w-sm">There was an error loading your projects. Please try again.</p>
           <Button
             onClick={() => window.location.reload()}
             className="rounded-2xl bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue-dark hover:to-brand-teal-dark text-white font-medium"
@@ -421,32 +341,32 @@ export default function Dashboard() {
       )}
 
       {/* Content when not loading and no error */}
-      {!loading && !error && (
+      {!isLoading && !isError && (
         <>
           {viewMode === "grid" ? (
             <GridView
-              getVisibleDesigns={getVisibleDesigns}
-              handleOpenDesign={handleOpenDesign}
-              toggleDesignSelection={toggleDesignSelection}
+              getVisibleDesigns={getVisibleProjects}
+              handleOpenDesign={handleOpenProject}
+              toggleDesignSelection={toggleProjectSelection}
               getDefaultThumbnail={getDefaultThumbnail}
-              isDesignSelected={isDesignSelected}
-              designs={designs}
+              isDesignSelected={isProjectSelected}
+              designs={projects}
             />
           ) : (
             <ListView
-              getVisibleDesigns={getVisibleDesigns}
-              handleOpenDesign={handleOpenDesign}
-              toggleDesignSelection={toggleDesignSelection}
+              getVisibleDesigns={getVisibleProjects}
+              handleOpenDesign={handleOpenProject}
+              toggleDesignSelection={toggleProjectSelection}
               getDefaultThumbnail={getDefaultThumbnail}
-              isDesignSelected={isDesignSelected}
-              designs={designs}
-              handleDeleteDesign={handleDeleteDesign}
-              toggleStar={toggleStar}
+              isDesignSelected={isProjectSelected}
+              designs={projects}
+              handleDeleteDesign={handleDeleteProject}
+              toggleStar={handleToggleStar}
             />
           )}
 
           {/* Empty state */}
-          {getVisibleDesigns().length === 0 && (
+          {getVisibleProjects().length === 0 && (
             <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
               <div className="rounded-full bg-gradient-to-r from-brand-blue-light/20 to-brand-teal-light/20 p-6 mb-4">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-brand-blue">
@@ -459,15 +379,15 @@ export default function Dashboard() {
                   />
                 </svg>
               </div>
-              <h3 className="text-xl font-medium mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-teal">No designs found</h3>
+              <h3 className="text-xl font-medium mb-2 text-transparent bg-clip-text bg-gradient-to-r from-brand-blue to-brand-teal">No projects found</h3>
               <p className="text-gray-500 mb-6 max-w-sm">
                 {activeTab === "all"
-                  ? "You haven't created any designs yet. Create your first one now!"
+                  ? "You haven't created any projects yet. Create your first one now!"
                   : activeTab === "starred"
-                    ? "You haven't starred any designs yet."
+                    ? "You haven't starred any projects yet."
                     : activeTab === "shared"
-                      ? "You don't have any shared designs."
-                      : "No recent designs found."}
+                      ? "You don't have any shared projects."
+                      : "No recent projects found."}
               </p>
               <Button
                 onClick={handleCreatePresentation}
@@ -487,7 +407,7 @@ export default function Dashboard() {
                     </span>
                   ) : (
                     <>
-                      <Plus className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" /> Create Design
+                      <Plus className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" /> Create Project
                     </>
                   )}
                 </span>
@@ -496,7 +416,7 @@ export default function Dashboard() {
           )}
 
           {/* Recently used templates section */}
-          {activeTab === "all" && !loading && getVisibleDesigns().length > 0 && (
+          {activeTab === "all" && !isLoading && getVisibleProjects().length > 0 && (
             <div className="mt-16">
               <h2 className="text-xl font-semibold mb-6 text-black">Recently Used Templates</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -531,7 +451,7 @@ export default function Dashboard() {
             variant="ghost"
             size="icon"
             className="rounded-lg hover:bg-gray-100"
-            onClick={handleDeleteSelectedDesigns}
+            onClick={handleDeleteSelectedProjects}
             aria-label="Delete selected items"
           >
             <Trash2 className="w-10 h-10 text-gray-600" />

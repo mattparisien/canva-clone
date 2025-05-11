@@ -1,4 +1,4 @@
-import { type Design } from "@/lib/api";
+import { type Project } from "@/lib/api";
 import { getRelativeTime } from "@/lib/utils/utils";
 import { Button } from "@components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
@@ -7,11 +7,11 @@ import { MoreHorizontal, Share2, Star, StarOff } from "lucide-react";
 import { Badge } from "@components/ui/badge";
 
 interface ListViewProps {
-    designs: Design[];
+    designs: Project[];
     handleOpenDesign: (designId: string) => void;
     toggleStar: (designId: string, e: React.MouseEvent) => void;
     handleDeleteDesign: (designId: string, e: React.MouseEvent) => void;
-    getVisibleDesigns: () => Design[];
+    getVisibleDesigns: () => Project[];
     getDefaultThumbnail: (index: number) => string;
     toggleDesignSelection: (designId: string, e: React.MouseEvent) => void; // Added
     isDesignSelected: (designId: string) => boolean; // Added

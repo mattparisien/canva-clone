@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo, useRef } from "react"
 import { Element, Page, CanvasSize, EditorContextType } from "../types/canvas.types"
 import { DEFAULT_CANVAS_SIZE } from "../constants/canvas"
-import { designsAPI } from "../api"
+import { projectsAPI } from "../api"
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined)
 
@@ -55,7 +55,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         setDesignId(id);
         
         // Load the design data
-        const design = await designsAPI.getById(id);
+        const design = await projectsAPI.getById(id);
         
         if (design) {
           console.log('Design loaded:', design.title);
@@ -255,7 +255,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       console.log('Saving design:', designName, 'with ID:', idToUse);
       
       // Call the API to update the design
-      await designsAPI.update(idToUse, designData);
+      await projectsAPI.update(idToUse, designData);
       
       console.log('Design saved successfully:', designName);
       setIsDesignSaved(true);
