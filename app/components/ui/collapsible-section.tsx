@@ -26,24 +26,32 @@ export function CollapsibleSection({
   const toggleSection = () => {
     setIsOpen(!isOpen)
   }
+  
+  const handleIconClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent event from bubbling up
+    toggleSection()
+  }
 
   return (
     <div className={cn("space-y-2", className)}>
       <div 
         className={cn(
-          "flex items-center justify-between cursor-pointer group", 
+          "flex items-center cursor-pointer group", 
           headingClassName
         )}
         onClick={toggleSection}
       >
-        <h2 className="text-xl font-bold">{heading}</h2>
-        <div className="h-6 w-6 flex items-center justify-center rounded-full transition-colors group-hover:bg-muted">
+        <div 
+          className="h-6 w-6 flex items-center justify-center rounded-full transition-colors group-hover:bg-muted mr-2"
+          onClick={handleIconClick}
+        >
           {isOpen ? (
             <ChevronDown className="h-4 w-4 transition-transform" />
           ) : (
             <ChevronRight className="h-4 w-4 transition-transform" />
           )}
         </div>
+        <h2 className="text-xl font-bold">{heading}</h2>
       </div>
       
       {isOpen && (
