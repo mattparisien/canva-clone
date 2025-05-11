@@ -230,7 +230,7 @@ interface Presentation {
   updatedAt: string;
 }
 
-export interface Project { // Changed from Design to Project
+export interface Project { 
   _id: string;
   title: string; 
   type: string; 
@@ -238,7 +238,8 @@ export interface Project { // Changed from Design to Project
   thumbnail?: string; 
   category?: string; 
   starred: boolean; 
-  shared: boolean; 
+  shared: boolean;
+  isTemplate: boolean; 
   description?: string; 
   canvasSize?: any;    
   pages?: any[];       
@@ -327,6 +328,22 @@ export const projectsAPI = {
     }
   },
   
+  // Get all templates
+  getTemplates: async (category?: string, type?: string) => {
+    try {
+      const params = new URLSearchParams();
+      if (category) params.append('category', category);
+      if (type) params.append('type', type);
+      
+      const queryParams = params.toString() ? `?${params.toString()}` : '';
+      const response = await apiClient.get<Project[]>(`/projects/templates${queryParams}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching templates:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch templates');
+    }
+  },
+  
   // Get project by ID
   getById: async (id: string) => {
     try {
@@ -367,6 +384,28 @@ export const projectsAPI = {
     } catch (error: any) {
       console.error(`Error deleting project ${id}:`, error.response?.data || error.message);
       throw error.response?.data || new Error('Failed to delete project');
+    }
+  },
+  
+  // Clone project
+  clone: async (id: string, userId: string) => {
+    try {
+      const response = await apiClient.post<Project>(`/projects/${id}/clone`, { userId });
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error cloning project ${id}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to clone project');
+    }
+  },
+  
+  // Toggle template status
+  toggleTemplate: async (id: string, isTemplate: boolean) => {
+    try {
+      const response = await apiClient.put<Project>(`/projects/${id}/toggle-template`, { isTemplate });
+      return response.data;
+    } catch (error: any) {
+      console.error(`Error updating template status for project ${id}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to update template status');
     }
   },
 };

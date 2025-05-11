@@ -99,6 +99,51 @@ export function useProjectQuery() {
     }
   });
   
+  // Toggle template status
+  const toggleTemplateMutation = useMutation({
+    mutationFn: ({ id, isTemplate }: { id: string, isTemplate: boolean }) =>
+      projectsAPI.toggleTemplate(id, isTemplate),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      toast({
+        title: "Success",
+        description: data.isTemplate 
+          ? "Project converted to template successfully!" 
+          : "Template converted to project successfully!",
+        variant: "default"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update template status. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Clone project
+  const cloneProjectMutation = useMutation({
+    mutationFn: ({ id, userId }: { id: string, userId: string }) =>
+      projectsAPI.clone(id, userId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast({
+        title: "Success",
+        description: "Project cloned successfully!",
+        variant: "default"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to clone project. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Batch delete for multiple projects
   const deleteMultipleProjectsMutation = useMutation({
     mutationFn: (ids: string[]) => 
@@ -128,6 +173,8 @@ export function useProjectQuery() {
     updateProject: updateProjectMutation.mutate,
     deleteProject: deleteProjectMutation.mutate,
     toggleStar: toggleStarMutation.mutate,
+    toggleTemplate: toggleTemplateMutation.mutate,
+    cloneProject: cloneProjectMutation.mutate,
     deleteMultipleProjects: deleteMultipleProjectsMutation.mutate,
   };
 }
@@ -135,4 +182,56 @@ export function useProjectQuery() {
 // For backward compatibility
 export function useDesignQuery() {
   return useProjectQuery();
+}
+
+// New hook for template operations
+export function useTemplatesQuery(category?: string, type?: string) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  // Query for fetching all templates
+  const templatesQuery = useQuery({
+    queryKey: ['templates', { category, type }],
+    queryFn: () => projectsAPI.getTemplates(category, type),
+    gcTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Handle error outside of the query options
+  if (templatesQuery.error) {
+    toast({
+      title: "Error",
+      description: "Failed to load templates. Please try again later.",
+      variant: "destructive"
+    });
+  }
+  
+  // Use a template to create a new project
+  const useTemplateMutation = useMutation({
+    mutationFn: ({ templateId, userId }: { templateId: string, userId: string }) =>
+      projectsAPI.clone(templateId, userId),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast({
+        title: "Success",
+        description: "New project created from template!",
+        variant: "default"
+      });
+      return data; // Return the created project for further use
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create project from template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  return {
+    templates: templatesQuery.data || [],
+    isLoading: templatesQuery.isLoading,
+    isError: templatesQuery.isError,
+    useTemplate: useTemplateMutation.mutate,
+    useTemplateMutation, // Expose the full mutation object for access to more properties
+  };
 }

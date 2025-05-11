@@ -7,14 +7,19 @@ export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
         label: "Home"
     },
     {
-        path: "/desk",
+        path: "/projects",
         iconName: "folder-kanban",
-        label: "Desk",
+        label: "Projects",
     },
     {
-        path: "/brands",
+        path: "/templates",
+        iconName: "layout-template",
+        label: "Templates",
+    },
+    {
+        path: "/brand",
         iconName: "square-kanban",
-        label: 'Brands'
+        label: 'Brand'
     },
     {
         path: "/templates",

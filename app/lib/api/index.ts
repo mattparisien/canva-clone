@@ -1,5 +1,7 @@
-// Re-export API modules
-import { getImageUrlWithSize } from './apiClient';
+// Export all API modules from this central location
+export * from './apiClient';
+export * from './templates';
+// Add other API exports as needed
 
 // Re-export all API services
 export { authAPI } from './auth';
@@ -8,6 +10,3 @@ export { presentationsAPI } from './presentations';
 export { designsAPI } from './designs';
 export { foldersAPI } from './folders';
 export { assetsAPI } from './assets';
-
-// Re-export the image URL utility function
-export { getImageUrlWithSize };

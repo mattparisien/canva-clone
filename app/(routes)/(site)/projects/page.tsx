@@ -1,25 +1,25 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { CreateButton } from "@/components/ui/create-button"
 import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid"
 import { useToast } from "@/components/ui/use-toast"
 import { assetsAPI, type Asset } from "@/lib/api/assets"
 import { foldersAPI, type Folder as FolderType } from "@/lib/api/folders"
-import { Folder as FolderIcon, Plus, Upload } from "lucide-react"
+import { useProjectQuery } from "@features/projects/use-projects"
+import { File, FileImage, Folder as FolderIcon, Upload } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { CreateButton } from "@/components/ui/create-button"
+import Image from "next/image"
 
-export default function DeskPage() {
+export default function ProjectsPage() {
     const params = useParams()
     const router = useRouter()
     const folderSlug = params.slug as string
 
     const { toast } = useToast()
     const { data: session } = useSession()
+    const { projects, isLoading: isLoadingProjects, deleteProject } = useProjectQuery()
     const [isCreatingFolder, setIsCreatingFolder] = useState(false)
     const [folderName, setFolderName] = useState("")
     const [isPopoverOpen, setIsPopoverOpen] = useState(false)
@@ -29,57 +29,9 @@ export default function DeskPage() {
     const [breadcrumbs, setBreadcrumbs] = useState<FolderType[]>([])
     const [selectedFolders, setSelectedFolders] = useState<string[]>([])
     const [selectedAssets, setSelectedAssets] = useState<string[]>([])
+    const [selectedProjects, setSelectedProjects] = useState<string[]>([])
     const [isLoading, setIsLoading] = useState(false)
-
-    // // Function to toggle selection of asset
-    // const toggleAssetSelection = (assetId: string, e: React.MouseEvent) => {
-    //     e.stopPropagation();
-    //     setSelectedAssets(prev =>
-    //         prev.includes(assetId)
-    //             ? prev.filter(id => id !== assetId)
-    //             : [...prev, assetId]
-    //     );
-    // }
-
-    // // Check if item is selected
-    // const isFolderSelected = (folderId: string) => selectedFolders.includes(folderId);
-    // const isAssetSelected = (assetId: string) => selectedAssets.includes(assetId);
-
-    // // Clear selections
-    // const clearSelections = () => {
-    //     setSelectedFolders([]);
-    //     setSelectedAssets([]);
-    // }
-
-    // // To handle action on multiple items if needed
-    // const handleBulkActions = () => {
-    //     // Implementation for bulk actions (delete, move, etc.)
-    //     // This would be implemented based on your requirements
-    // }
-
-    // // Fetch folder by slug when component mounts
-    // useEffect(() => {
-    //     if (!session?.user?.id || !folderSlug) return
-
-    //     const fetchFolder = async () => {
-    //         setIsLoading(true)
-    //         try {
-    //             const folder = await foldersAPI.getBySlug(folderSlug, session.user.id)
-    //             console.log(folder);
-    //             setCurrentFolder(folder)
-    //         } catch (error) {
-    //             console.error("Failed to fetch folder:", error)
-    //             toast({
-    //                 title: "Error",
-    //                 description: "Failed to load folder",
-    //                 variant: "destructive"
-    //             })
-    //         }
-    //     }
-
-    //     fetchFolder()
-    // }, [folderSlug, session?.user?.id, toast])
-
+    
     // // Fetch folders and assets when current folder changes
     useEffect(() => {
         if (!session?.user?.id) return
@@ -229,29 +181,50 @@ export default function DeskPage() {
         router.push(`/folder/${folder.slug}`);
     }
 
-    // const navigateToParent = () => {
-    //     if (breadcrumbs.length > 1) {
-    //         // Navigate to parent folder using slug
-    //         window.location.href = `/folder/${breadcrumbs[breadcrumbs.length - 2].slug}`
-    //     } else if (breadcrumbs.length === 1 && breadcrumbs[0].parentId) {
-    //         // Navigate to parent if it exists
-    //         foldersAPI.getById(breadcrumbs[0].parentId)
-    //             .then(parentFolder => {
-    //                 window.location.href = `/folder/${parentFolder.slug}`
-    //             })
-    //             .catch(error => {
-    //                 console.error("Failed to fetch parent folder:", error)
-    //                 toast({
-    //                     title: "Error",
-    //                     description: "Failed to navigate to parent folder",
-    //                     variant: "destructive"
-    //                 })
-    //             })
-    //     } else {
-    //         // Navigate to root files page
-    //         window.location.href = "/files"
-    //     }
-    // }
+    const handleOpenProject = (projectId: string) => {
+        router.push(`/editor?id=${projectId}`);
+    }
+
+    const handleDeleteProject = async (projectId: string) => {
+        if (!confirm("Are you sure you want to delete this project?")) {
+            return;
+        }
+
+        try {
+            deleteProject(projectId);
+        } catch (error) {
+            console.error("Failed to delete project:", error);
+            toast({
+                title: "Error",
+                description: "Failed to delete project. Please try again.",
+                variant: "destructive"
+            });
+        }
+    }
+
+    const handleDeleteProjects = async (projectIds: string[]) => {
+        if (!confirm(`Are you sure you want to delete ${projectIds.length} projects?`)) {
+            return;
+        }
+
+        try {
+            for (const id of projectIds) {
+                deleteProject(id);
+            }
+
+            toast({
+                title: "Success",
+                description: `Deleted ${projectIds.length} projects successfully!`,
+            });
+        } catch (error) {
+            console.error("Failed to delete projects:", error);
+            toast({
+                title: "Error",
+                description: "Failed to delete projects. Please try again.",
+                variant: "destructive"
+            });
+        }
+    }
 
     const handleDeleteFolder = async (folder: FolderType, e: React.MouseEvent) => {
         e.stopPropagation() // Prevent opening the folder
@@ -349,18 +322,29 @@ export default function DeskPage() {
         return '/placeholder-logo.svg'; // Default placeholder
     }
 
+    // Function to get default thumbnail for projects that don't have one
+    const getDefaultThumbnail = (index: number) => {
+        const thumbnails = [
+            "/abstract-geometric-shapes.png",
+            "/placeholder.jpg",
+            "/placeholder-logo.svg",
+            "/abstract-logo.png",
+            "/placeholder.svg"
+        ];
+        return thumbnails[index % thumbnails.length];
+    }
+
     return (
         <div className="container mx-auto px-4 py-6">
             <div className="flex flex-col space-y-4">
                 <div className="flex justify-between items-center">
                     <div></div>
 
-                    {selectedFolders.length > 0 || selectedAssets.length > 0 ? (
+                    {selectedFolders.length > 0 || selectedAssets.length > 0 || selectedProjects.length > 0 ? (
                         <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">
-                                {selectedFolders.length + selectedAssets.length} item{selectedFolders.length + selectedAssets.length > 1 ? 's' : ''} selected
+                                {selectedFolders.length + selectedAssets.length + selectedProjects.length} item{selectedFolders.length + selectedAssets.length + selectedProjects.length > 1 ? 's' : ''} selected
                             </span>
-
                         </div>
                     ) : (
                         <CreateButton
@@ -385,9 +369,67 @@ export default function DeskPage() {
                     )}
                 </div>
 
-
-
                 <div className="space-y-8">
+                    {/* Designs/Projects Section */}
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-xl font-bold">Designs</h2>
+                            </div>
+                        </div>
+                        {isLoadingProjects ? (
+                            <div className="flex justify-center items-center h-40">
+                                <p className="text-gray-500">Loading your designs...</p>
+                            </div>
+                        ) : projects.length > 0 ? (
+                            <SelectableGrid
+                                onDelete={(selectedItems) => handleDeleteProjects(selectedItems.map((item: any) => item._id))}
+                            >
+                                {projects.map((project, index) => (
+                                    <SelectableGridItem
+                                        key={project._id}
+                                        item={project}
+                                        onClick={(item) => handleOpenProject(item._id)}
+                                    >
+                                        <div className="flex flex-col space-y-2">
+                                            <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-background">
+                                                {project.thumbnail ? (
+                                                    <Image
+                                                        src={project.thumbnail}
+                                                        alt={project.title}
+                                                        fill
+                                                        className="object-cover"
+                                                    />
+                                                ) : (
+                                                    <Image
+                                                        src={getDefaultThumbnail(index)}
+                                                        alt={project.title}
+                                                        fill
+                                                        className="object-cover"
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="flex items-start justify-between">
+                                                <div>
+                                                    <h3 className="font-medium line-clamp-1">{project.title}</h3>
+                                                    <p className="text-xs text-gray-500">
+                                                        {new Date(project.updatedAt).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </SelectableGridItem>
+                                ))}
+                            </SelectableGrid>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-40 border-2 border-dashed rounded-lg border-gray-300 bg-gray-50">
+                                <FileImage className="h-10 w-10 text-gray-400 mb-2" />
+                                <p className="text-sm text-gray-500">No designs yet</p>
+                                <p className="text-xs text-gray-400">Your designs will appear here</p>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Folders Section */}
                     {folders.length > 0 && (
                         <>
@@ -429,8 +471,6 @@ export default function DeskPage() {
                             </SelectableGrid>
                         </>
                     )}
-
-
                 </div>
             </div>
         </div>

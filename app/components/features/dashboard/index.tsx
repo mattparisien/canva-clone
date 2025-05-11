@@ -194,7 +194,7 @@ export default function Dashboard() {
     <div className="container mx-auto pb-10 pt-5 max-w-7xl">
       {/* Hero section */}
       <div className="mb-6">
-        <h1 className="text-4xl font-bold tracking-tight mb-2 text-black">Your Projects</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-2 text-black">Recent Designs</h1>
       </div>
 
       {/* Sticky Tabs and Controls */}
@@ -418,7 +418,7 @@ export default function Dashboard() {
           {/* Recently used templates section */}
           {activeTab === "all" && !isLoading && getVisibleProjects().length > 0 && (
             <div className="mt-16">
-              <h2 className="text-xl font-semibold mb-6 text-black">Recently Used Templates</h2>
+              <h1 className="text-3xl font-bold tracking-tight mb-4 text-black">Recently Used Templates</h1>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {[1, 2, 3, 4, 5, 6].map((item) => (
                   <Card key={item} className="cursor-pointer overflow-hidden group h-40 transition-all rounded-2xl border-gray-100">

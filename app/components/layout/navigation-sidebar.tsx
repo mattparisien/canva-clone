@@ -8,7 +8,8 @@ import {
   Home,
   FolderKanban,
   SquareKanban,
-  PanelsTopLeft
+  PanelsTopLeft,
+  LayoutTemplate
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -37,6 +38,8 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
       return <SquareKanban {...props} />
     case 'panels-top-left':
       return <PanelsTopLeft {...props} />
+    case 'layout-template':
+      return <LayoutTemplate {...props} />
     default:
       return <Home {...props} /> // Default fallback
   }
