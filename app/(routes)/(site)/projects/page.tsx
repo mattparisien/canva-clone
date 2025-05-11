@@ -1,16 +1,17 @@
 "use client"
 
+import { CollapsibleSection } from "@/components/ui/collapsible-section"
 import { CreateButton } from "@/components/ui/create-button"
 import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid"
 import { useToast } from "@/components/ui/use-toast"
 import { assetsAPI, type Asset } from "@/lib/api/assets"
 import { foldersAPI, type Folder as FolderType } from "@/lib/api/folders"
 import { useProjectQuery } from "@features/projects/use-projects"
-import { File, FileImage, Folder as FolderIcon, Upload } from "lucide-react"
+import { FileImage, Folder as FolderIcon, Upload } from "lucide-react"
 import { useSession } from "next-auth/react"
+import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import Image from "next/image"
 
 export default function ProjectsPage() {
     const params = useParams()
@@ -31,7 +32,7 @@ export default function ProjectsPage() {
     const [selectedAssets, setSelectedAssets] = useState<string[]>([])
     const [selectedProjects, setSelectedProjects] = useState<string[]>([])
     const [isLoading, setIsLoading] = useState(false)
-    
+
     // // Fetch folders and assets when current folder changes
     useEffect(() => {
         if (!session?.user?.id) return
@@ -371,12 +372,7 @@ export default function ProjectsPage() {
 
                 <div className="space-y-8">
                     {/* Designs/Projects Section */}
-                    <div>
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-xl font-bold">Designs</h2>
-                            </div>
-                        </div>
+                    <CollapsibleSection heading="Designs" defaultOpen={true}>
                         {isLoadingProjects ? (
                             <div className="flex justify-center items-center h-40">
                                 <p className="text-gray-500">Loading your designs...</p>
@@ -428,18 +424,12 @@ export default function ProjectsPage() {
                                 <p className="text-xs text-gray-400">Your designs will appear here</p>
                             </div>
                         )}
-                    </div>
+                    </CollapsibleSection>
 
                     {/* Folders Section */}
                     {folders.length > 0 && (
-                        <>
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-2">
-                                    <h2 className="text-xl font-bold">Folders</h2>
-                                </div>
-                            </div>
+                        <CollapsibleSection heading="Folders" defaultOpen={true}>
                             <SelectableGrid<FolderType>
-                                // onSelect={(folder) => toggleFolderSelection(folder._id, new MouseEvent('click') as any)}
                                 onDelete={(selectedItems) => handleDeleteFolders(selectedItems.map((x: FolderType) => x._id))}
                             >
                                 {folders.map(folder => (
@@ -448,7 +438,6 @@ export default function ProjectsPage() {
                                         item={folder}
                                         onClick={(item) => handleOpenFolder(item)}
                                     >
-
                                         <div
                                             className="flex items-center space-x-4"
                                             onClick={() => handleOpenFolder(folder)}
@@ -464,12 +453,11 @@ export default function ProjectsPage() {
                                                     {folder.itemCount || 0} items
                                                 </p>
                                             </div>
-
                                         </div>
                                     </SelectableGridItem>
                                 ))}
                             </SelectableGrid>
-                        </>
+                        </CollapsibleSection>
                     )}
                 </div>
             </div>
