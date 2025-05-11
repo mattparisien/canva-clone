@@ -5,7 +5,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 interface SelectableGridItemProps<T> {
     item: T;
     isSelected?: boolean;
-    onClick?: () => void;
+    onSelect?: () => void;
+    onClick?: (item: T) => void;
     children: React.ReactNode;
 }
 
@@ -108,7 +109,7 @@ export function SelectableGrid<T>({
                                 child as ReactElement<SelectableGridItemProps<T>>,
                                 {
                                     isSelected,
-                                    onClick: () => handleSelect(item),
+                                    onSelect: () => handleSelect(item),
                                 }
                             );
                         }
@@ -143,6 +144,7 @@ export function SelectableGridItem<T>({
     item,
     isSelected,
     onClick,
+    onSelect,
     children,
 }: SelectableGridItemProps<T>) {
     const [isHovered, setIsHovered] = useState(false);
@@ -150,7 +152,10 @@ export function SelectableGridItem<T>({
 
     return (
         <div
-            onClick={onClick}
+            onClick={e => {
+                e.stopPropagation();
+                onClick && onClick(item);
+            }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             className={`relative border-2 ${isSelected
@@ -163,7 +168,7 @@ export function SelectableGridItem<T>({
                     className={`absolute left-0 top-0 z-10 transition-opacity ${isSelected || isHovered ? 'opacity-100' : 'opacity-0'}`}
                     onClick={(e) => {
                         e.stopPropagation();
-                        onClick && onClick();
+                        onSelect?.();
                     }}
                 >
                     <div className={`h-6 w-6 rounded-md flex items-center justify-center ${isSelected

@@ -12,6 +12,8 @@ import { ArrowLeft, File, Folder as FolderIcon, FolderOpen, Plus, Trash, Upload 
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { pathToBreadcrumbs } from "@/lib/utils/folder-utils";
 
 export default function FolderBySlugPage() {
     const params = useParams()
@@ -30,16 +32,6 @@ export default function FolderBySlugPage() {
     const [breadcrumbs, setBreadcrumbs] = useState<FolderType[]>([])
     const [selectedFolders, setSelectedFolders] = useState<string[]>([])
     const [selectedAssets, setSelectedAssets] = useState<string[]>([])
-
-    // Function to toggle selection of folder
-    const toggleFolderSelection = (folderId: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setSelectedFolders(prev =>
-            prev.includes(folderId)
-                ? prev.filter(id => id !== folderId)
-                : [...prev, folderId]
-        );
-    }
 
     // Function to toggle selection of asset
     const toggleAssetSelection = (assetId: string, e: React.MouseEvent) => {
@@ -149,7 +141,7 @@ export default function FolderBySlugPage() {
     }, [currentFolder, session?.user?.id, toast])
 
     const handleCreateFolder = async () => {
-        if (!session?.user?.id || !currentFolder) {
+        if (!session?.user?.id) {
             toast({
                 title: "Error",
                 description: "You must be logged in to create folders",
@@ -171,7 +163,7 @@ export default function FolderBySlugPage() {
             const newFolder = await foldersAPI.create({
                 name: folderName.trim(),
                 userId: session.user.id,
-                parentId: currentFolder._id
+                parentId: null
             })
 
             console.log(newFolder);
@@ -523,38 +515,36 @@ export default function FolderBySlugPage() {
                     )}
                 </div>
 
-                {/* Breadcrumbs navigation */}
-                {currentFolder && currentFolder.slug !== 'root' && (
-                    <div className="flex items-center gap-2 py-2 text-sm">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex items-center gap-1 h-7"
-                            onClick={() => window.location.href = "/files"}
-                        >
-                            <FolderIcon className="h-4 w-4" />
-                            <span>Root</span>
-                        </Button>
-
-                        {breadcrumbs.length > 0 && (
-                            <>
-                                <span>/</span>
-                                {breadcrumbs.map((folder, index) => (
-                                    <div key={folder._id} className="flex items-center gap-1">
-                                        {index > 0 && <span>/</span>}
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-7"
-                                            onClick={() => window.location.href = `/folder/${folder.slug}`}
-                                        >
-                                            {folder.name}
-                                        </Button>
-                                    </div>
-                                ))}
-                            </>
-                        )}
-                    </div>
+                {/* Use our new utility function for breadcrumbs */}
+                {currentFolder && (
+                    <Breadcrumbs 
+                        className="py-2"
+                        items={
+                            // If paths array exists, use it; otherwise fall back to the computed breadcrumbs
+                            currentFolder.paths && currentFolder.paths.length > 0
+                                ? pathToBreadcrumbs(
+                                    currentFolder.paths,
+                                    // Create a slug mapping from the breadcrumbs array for correct links
+                                    Object.fromEntries(
+                                        breadcrumbs.map(folder => [folder.name.toLowerCase(), folder.slug])
+                                    )
+                                  )
+                                : [
+                                    { 
+                                        label: "Root", 
+                                        href: "/files", 
+                                        icon: <FolderIcon className="h-4 w-4" />
+                                    },
+                                    ...breadcrumbs
+                                        .filter(folder => folder.slug !== 'root')
+                                        .map(folder => ({
+                                            label: folder.name,
+                                            href: `/folder/${folder.slug}`,
+                                            icon: <FolderIcon className="h-4 w-4" />
+                                        }))
+                                  ]
+                        }
+                    />
                 )}
 
                 {/* Back button when in a folder */}

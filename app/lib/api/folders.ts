@@ -3,10 +3,11 @@ import axios from 'axios';
 export interface Folder {
   _id: string;
   name: string;
-  slug: string; // Add slug field
+  slug: string; 
   userId: string;
   parentId: string | null;
   path: string;
+  paths?: string[]; // Array of path segments
   isShared: boolean;
   sharedWith: string[];
   metadata?: Record<string, any>;
@@ -44,7 +45,13 @@ class FoldersAPI {
   }
 
   async create(folderData: CreateFolderDTO) {
-    const response = await axios.post<Folder>(`/api/folders`, folderData);
+    // Ensure we're explicitly passing null for root-level folders
+    const data = {
+      ...folderData,
+      parentId: folderData.parentId || null
+    };
+    
+    const response = await axios.post<Folder>(`/api/folders`, data);
     console.log(response);
     return response.data;
   }
@@ -60,7 +67,10 @@ class FoldersAPI {
   }
 
   async move(id: string, newParentId: string | null) {
-    const response = await axios.patch<Folder>(`/api/folders/${id}/move`, { newParentId });
+    // Always send a value for newParentId (null for root)
+    const response = await axios.patch<Folder>(`/api/folders/${id}/move`, { 
+      newParentId: newParentId || null 
+    });
     return response.data;
   }
 }
