@@ -1,5 +1,6 @@
 "use client"
 
+import { Section } from "@/components/ui/section"
 import { SelectionActions } from "@components/features/common/selection-actions"
 import { Button } from "@components/ui/button"
 import { Card } from "@components/ui/card"
@@ -29,7 +30,6 @@ import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
 import ListView from "./list-view"
-import { Section } from "@/components/ui/section"
 
 // Main Dashboard component that wraps everything with SelectionProvider
 export default function Dashboard() {
@@ -439,7 +439,7 @@ function DashboardContent() {
         )}
       </Section>}
 
-      
+
       {/* Selection Actions */}
       <SelectionActions
         onDelete={handleDeleteSelectedProjects}
