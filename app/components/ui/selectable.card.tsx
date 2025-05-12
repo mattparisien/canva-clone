@@ -31,7 +31,7 @@ export function SelectableCard({
     const { isSelected, toggleSelection } = useSelection();
     const [isHovered, setIsHovered] = useState(false);
     const [isCheckmarkHovering, setIsCheckmarkHovering] = useState(false);
-    
+
     const selected = isSelected(id);
 
     return (
@@ -47,13 +47,17 @@ export function SelectableCard({
                 'border-gray-100 hover:border-gray-200': !selected,
                 'border-primary': selected,
             })}>
-                {/* {image && (
-                    <Image
-                        src={image.src}
-                        alt={image.alt}
-                        className="w-full h-full object-cover"
-                    />
-                )} */}
+                {image && (
+                    <div className="w-full h-full scale-[0.8] shadow-md">
+
+                        <Image
+                            src={image.src}
+                            alt={image.alt}
+                            fill
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                )}
                 <div
                     className={`absolute left-2 top-2 z-10 transition-opacity ${selected || isHovered ? 'opacity-100' : 'opacity-0'}`}
                     onClick={(e) => {
