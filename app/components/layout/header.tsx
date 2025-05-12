@@ -1,19 +1,17 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar"
-import { Button } from "@components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from "@components/ui/dropdown-menu"
+} from "@components/ui/dropdown-menu";
 import { getImageUrlWithSize } from "@lib/api"; // Fixed import path
-import { useAuth } from "@lib/context/auth-context"
-import { Bell, HelpCircle } from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useAuth } from "@lib/context/auth-context";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 // Define thumbnail size constant for the header
 const HEADER_AVATAR_SIZE = {

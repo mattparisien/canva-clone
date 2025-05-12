@@ -53,11 +53,6 @@ export default function FolderBySlugPage() {
         setSelectedAssets([]);
     }
 
-    // To handle action on multiple items if needed
-    const handleBulkActions = () => {
-        // Implementation for bulk actions (delete, move, etc.)
-        // This would be implemented based on your requirements
-    }
 
     // Fetch folder by slug when component mounts
     useEffect(() => {

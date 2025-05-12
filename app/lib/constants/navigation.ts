@@ -20,10 +20,5 @@ export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
         path: "/brand",
         iconName: "square-kanban",
         label: 'Brand'
-    },
-    {
-        path: "/templates",
-        iconName: "panels-top-left",
-        label: "Templates",
     }
 ]

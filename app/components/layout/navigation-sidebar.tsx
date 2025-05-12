@@ -14,6 +14,10 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "../ui/button";
+import { useProjectQuery } from "@/features/projects/use-projects";
+import { Project } from "@/lib/api";
+import { v4 as uuid } from "uuid";
+import { useAuth } from "@/lib/context/auth-context";
 
 
 interface SidebarLinkProps {
@@ -33,7 +37,7 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
     case 'home':
       return <Home {...props} />
     case 'folder-kanban':
-      return <FolderKanban {...props}/>
+      return <FolderKanban {...props} />
     case 'square-kanban':
       return <SquareKanban {...props} />
     case 'panels-top-left':
@@ -46,7 +50,6 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
 };
 
 const SidebarLink = ({ href, iconName, label, isActive }: SidebarLinkProps) => {
-  console.log(isActive)
   return (
     <Link
       href={href}
@@ -72,6 +75,8 @@ const SidebarLink = ({ href, iconName, label, isActive }: SidebarLinkProps) => {
 
 export function NavigationSidebar({ items }: NavigationSidebarProps) {
   const pathname = usePathname();
+  const { user } = useAuth()
+  const { createProject } = useProjectQuery();
 
   // Fix the active state logic to prevent multiple selections
   const getIsActive = (path: string): boolean => {
@@ -92,6 +97,46 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
     return false;
   };
 
+  const handleCreateProject = async () => {
+    try {
+      const project = {
+        title: 'Untitled Design',
+        description: "",
+        type: "presentation",
+        userId: user?.id, // Replace with actual user ID from auth
+        canvasSize: {
+          name: "Presentation 16:9",
+          width: 1920,
+          height: 1080
+        },
+        pages: [
+          {
+            id: uuid(),
+            canvasSize: {
+              name: "Presentation 16:9",
+              width: 1920,
+              height: 1080
+            },
+            elements: [],
+            background: {
+              type: "color",
+              value: "#ffffff"
+            }
+          }
+        ],
+        starred: false,
+        shared: false
+      }
+      const newProject = createProject(project);
+      console.log("New project created:", newProject);
+      // if (newProject) {
+      // Redirect to the new project page
+      // window.location.href = `/editor?id=${newProject._id}`;
+    } catch (error) {
+      console.error("Error creating project:", error);
+    }
+  }
+
   return (
     <div className="h-screen w-sidebar bg-white flex flex-col fixed left-0 top-0 shadow-[1px_0_10px_rgba(0,0,0,0.01),_3px_0_15px_rgba(0,0,0,0.05)]">
       {/* Create New Button */}
@@ -101,6 +146,7 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
             <TooltipTrigger asChild>
               <Button
                 className="group relative h-14 w-14 rounded-full shadow-lg shadow-brand-blue/30 hover:shadow-xl hover:shadow-brand-blue/40 transition-all duration-300 overflow-hidden"
+                onClick={handleCreateProject}
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-brand-blue to-brand-teal transition-opacity duration-200 ease-in-out"></span>
                 <span className="absolute inset-0 bg-gradient-to-r from-brand-blue-dark to-brand-teal-dark opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"></span>

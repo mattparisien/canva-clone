@@ -146,15 +146,39 @@ export function useProjectQuery() {
   
   // Batch delete for multiple projects
   const deleteMultipleProjectsMutation = useMutation({
-    mutationFn: (ids: string[]) => 
-      Promise.all(ids.map(id => projectsAPI.delete(id))),
-    onSuccess: (_data, variables) => {
+    mutationFn: async (ids: string[]) => {
+      // Using allSettled to allow some deletions to fail without failing the whole batch
+      const results = await Promise.allSettled(ids.map(id => projectsAPI.delete(id)));
+      
+      // Count successful and failed deletions
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+      
+      // If all failed, throw an error
+      if (successful === 0 && failed > 0) {
+        throw new Error('Failed to delete any projects');
+      }
+      
+      // Return summary
+      return { successful, failed, total: ids.length };
+    },
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
-      toast({
-        title: "Success",
-        description: `${variables.length} ${variables.length === 1 ? 'project' : 'projects'} deleted successfully!`,
-        variant: "default"
-      });
+      
+      // Show appropriate message based on partial or complete success
+      if (result.failed > 0) {
+        toast({
+          title: "Partial Success",
+          description: `${result.successful} projects deleted. ${result.failed} operations failed.`,
+          variant: "default"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `${result.successful} ${result.successful === 1 ? 'project' : 'projects'} deleted successfully!`,
+          variant: "default"
+        });
+      }
     },
     onError: (error) => {
       toast({

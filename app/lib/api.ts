@@ -328,6 +328,35 @@ export const projectsAPI = {
     }
   },
   
+  // Get projects with pagination
+  getProjects: async (page = 1, limit = 10, filters = {}) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+      
+      // Add any filters to the query params
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, String(value));
+        }
+      });
+      
+      const queryParams = params.toString() ? `?${params.toString()}` : '';
+      const response = await apiClient.get<{
+        projects: Project[],
+        totalProjects: number,
+        totalPages: number,
+        currentPage: number
+      }>(`/projects/paginated${queryParams}`);
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching paginated projects:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch paginated projects');
+    }
+  },
+  
   // Get all templates
   getTemplates: async (category?: string, type?: string) => {
     try {
