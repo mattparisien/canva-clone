@@ -1,23 +1,23 @@
 "use client";
 
-import { NavigationItem, NavigationIconName } from "@/lib/types/navigation.types";
+import { useProjectQuery } from "@/features/projects/use-projects";
+import { useAuth } from "@/lib/context/auth-context";
+import { NavigationIconName, NavigationItem } from "@/lib/types/navigation.types";
 import { cn } from "@/lib/utils/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
+import { useRouter } from "next/navigation";
 import {
-  Plus,
-  Home,
   FolderKanban,
-  SquareKanban,
+  Home,
+  LayoutTemplate,
   PanelsTopLeft,
-  LayoutTemplate
+  Plus,
+  SquareKanban
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "../ui/button";
-import { useProjectQuery } from "@/features/projects/use-projects";
-import { Project } from "@/lib/api";
 import { v4 as uuid } from "uuid";
-import { useAuth } from "@/lib/context/auth-context";
+import { Button } from "../ui/button";
 
 
 interface SidebarLinkProps {
@@ -75,6 +75,7 @@ const SidebarLink = ({ href, iconName, label, isActive }: SidebarLinkProps) => {
 
 export function NavigationSidebar({ items }: NavigationSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuth()
   const { createProject } = useProjectQuery();
 
@@ -127,8 +128,10 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
         starred: false,
         shared: false
       }
-      const newProject = createProject(project);
-      console.log("New project created:", newProject);
+      const newProject = await createProject(project);
+
+      if (newProject) router.push(`/editor?id=${newProject._id}`);
+  
       // if (newProject) {
       // Redirect to the new project page
       // window.location.href = `/editor?id=${newProject._id}`;

@@ -126,16 +126,14 @@ function DashboardContent() {
         shared: false
       }
 
-      // Create the document using the mutation from useProjectQuery
-      await createProject(newProject)
-
+      // Now we can directly await the result since we're using mutateAsync
+      const project = await createProject(newProject)
+      
       // Refresh the project list after creation
       refetch()
-
+      
       // Navigate to editor with the new project ID
-      // Note: We'll need to handle this differently since we don't get the ID back immediately
-      // For now, navigate to the dashboard and users will see the new project there
-      router.push(`/editor`)
+      router.push(`/editor?id=${project._id}`)
 
     } catch (error) {
       console.error("Failed to create project:", error)

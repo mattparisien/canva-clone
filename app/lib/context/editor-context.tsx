@@ -68,6 +68,15 @@ export function EditorProvider({ children }: { children: ReactNode }) {
           }
           
           setIsDesignSaved(true);
+          
+          // Check if this is a brand new design (no thumbnail yet)
+          if (!design.thumbnail) {
+            console.log('New design detected, scheduling initial save for thumbnail generation');
+            // Schedule an initial save after a short delay to let the canvas render
+            setTimeout(() => {
+              saveDesign();
+            }, 1500);
+          }
         }
       } catch (error) {
         console.error('Error loading design:', error);

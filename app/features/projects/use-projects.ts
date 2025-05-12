@@ -198,13 +198,13 @@ export function useProjectQuery() {
     projects: projectsQuery.data || [],
     isLoading: projectsQuery.isLoading,
     isError: projectsQuery.isError,
-    createProject: createProjectMutation.mutate,
-    updateProject: updateProjectMutation.mutate,
-    deleteProject: deleteProjectMutation.mutate,
-    toggleStar: toggleStarMutation.mutate,
-    toggleTemplate: toggleTemplateMutation.mutate,
-    cloneProject: cloneProjectMutation.mutate,
-    deleteMultipleProjects: deleteMultipleProjectsMutation.mutate,
+    createProject: createProjectMutation.mutateAsync,
+    updateProject: updateProjectMutation.mutateAsync,
+    deleteProject: deleteProjectMutation.mutateAsync,
+    toggleStar: toggleStarMutation.mutateAsync,
+    toggleTemplate: toggleTemplateMutation.mutateAsync,
+    cloneProject: cloneProjectMutation.mutateAsync,
+    deleteMultipleProjects: deleteMultipleProjectsMutation.mutateAsync,
   };
 }
 
