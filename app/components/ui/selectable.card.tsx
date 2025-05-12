@@ -4,6 +4,7 @@ import { useState } from "react";
 import CheckmarkIcon from "./checkmark-icon";
 import classNames from "classnames";
 import { useSelection } from "@lib/context/selection-context";
+import Image from "next/image";
 
 interface SelectableCardProps {
     id: string; // Add id prop for identification
@@ -46,13 +47,13 @@ export function SelectableCard({
                 'border-gray-100 hover:border-gray-200': !selected,
                 'border-primary': selected,
             })}>
-                {image && (
-                    <img
+                {/* {image && (
+                    <Image
                         src={image.src}
                         alt={image.alt}
                         className="w-full h-full object-cover"
                     />
-                )}
+                )} */}
                 <div
                     className={`absolute left-2 top-2 z-10 transition-opacity ${selected || isHovered ? 'opacity-100' : 'opacity-0'}`}
                     onClick={(e) => {

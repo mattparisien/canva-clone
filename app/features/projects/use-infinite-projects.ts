@@ -43,6 +43,7 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     queryFn: async ({ pageParam = 1 }) => {
       // Call the API with the current page and filters
       const result = await projectsAPI.getProjects(pageParam, limit, filters);
+      console.log(result);
       return result;
     },
     getNextPageParam: (lastPage: ProjectsPageData) => {
