@@ -12,6 +12,8 @@ import { useSession } from "next-auth/react"
 import Image from "next/image"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { Hero } from "@/components/ui/hero"
+import Link from "next/link"
 
 export default function ProjectsPage() {
     const params = useParams()
@@ -336,131 +338,136 @@ export default function ProjectsPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-6">
-            <div className="flex flex-col space-y-4">
-                <div className="flex justify-between items-center">
-                    <div></div>
+        <>
+            <Hero
+                heading="Projects"
+                backgroundImage="/banner.png"
+            />
+            <div className="container mx-auto px-4 py-6">
+                <div className="flex flex-col space-y-4">
+                    <div className="flex justify-between items-center">
+                        <div></div>
 
-                    {selectedFolders.length > 0 || selectedAssets.length > 0 || selectedProjects.length > 0 ? (
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">
-                                {selectedFolders.length + selectedAssets.length + selectedProjects.length} item{selectedFolders.length + selectedAssets.length + selectedProjects.length > 1 ? 's' : ''} selected
-                            </span>
-                        </div>
-                    ) : (
-                        <CreateButton
-                            buttonText="Create New"
-                            items={[
-                                {
-                                    id: "folder",
-                                    label: "Folder",
-                                    icon: <FolderIcon className="h-4 w-4" />,
-                                    action: handleCreateFolder
-                                },
-                                {
-                                    id: "file",
-                                    label: "Upload File",
-                                    icon: <Upload className="h-4 w-4" />,
-                                    isFileUpload: true,
-                                    acceptFileTypes: "image/*",
-                                    action: handleFileUpload
-                                }
-                            ]}
-                        />
-                    )}
-                </div>
-
-                <div className="space-y-8">
-                    {/* Designs/Projects Section */}
-                    <CollapsibleSection heading="Designs" defaultOpen={true}>
-                        {isLoadingProjects ? (
-                            <div className="flex justify-center items-center h-40">
-                                <p className="text-gray-500">Loading your designs...</p>
+                        {selectedFolders.length > 0 || selectedAssets.length > 0 || selectedProjects.length > 0 ? (
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">
+                                    {selectedFolders.length + selectedAssets.length + selectedProjects.length} item{selectedFolders.length + selectedAssets.length + selectedProjects.length > 1 ? 's' : ''} selected
+                                </span>
                             </div>
-                        ) : projects.length > 0 ? (
-                            <SelectableGrid
-                                onDelete={(selectedItems) => handleDeleteProjects(selectedItems.map((item: any) => item._id))}
-                            >
-                                {projects.map((project, index) => (
-                                    <SelectableGridItem
-                                        key={project._id}
-                                        item={project}
-                                        onClick={(item) => handleOpenProject(item._id)}
-                                    >
-                                        <div className="flex flex-col space-y-2">
-                                            <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-background">
-                                                {project.thumbnail ? (
-                                                    <Image
-                                                        src={project.thumbnail}
-                                                        alt={project.title}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
-                                                ) : (
-                                                    <Image
-                                                        src={getDefaultThumbnail(index)}
-                                                        alt={project.title}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
-                                                )}
-                                            </div>
-                                            <div className="flex items-start justify-between">
-                                                <div>
-                                                    <h3 className="font-medium line-clamp-1">{project.title}</h3>
-                                                    <p className="text-xs text-gray-500">
-                                                        {new Date(project.updatedAt).toLocaleDateString()}
+                        ) : (
+                            <CreateButton
+                                buttonText="Create New"
+                                items={[
+                                    {
+                                        id: "folder",
+                                        label: "Folder",
+                                        icon: <FolderIcon className="h-4 w-4" />,
+                                        action: handleCreateFolder
+                                    },
+                                    {
+                                        id: "file",
+                                        label: "Upload File",
+                                        icon: <Upload className="h-4 w-4" />,
+                                        isFileUpload: true,
+                                        acceptFileTypes: "image/*",
+                                        action: handleFileUpload
+                                    }
+                                ]}
+                            />
+                        )}
+                    </div>
+
+                    <div className="space-y-8">
+                        {/* Designs/Projects Section */}
+                        <CollapsibleSection heading="Designs" defaultOpen={true}>
+                            {isLoadingProjects ? (
+                                <div className="flex justify-center items-center h-40">
+                                    <p className="text-gray-500">Loading your designs...</p>
+                                </div>
+                            ) : projects.length > 0 ? (
+                                <SelectableGrid
+                                    onDelete={(selectedItems) => handleDeleteProjects(selectedItems.map((item: any) => item._id))}
+                                >
+                                    {projects.map((project, index) => (
+                                        <SelectableGridItem
+                                            key={project._id}
+                                            item={project}
+                                            className="group"
+                                        // onClick={(item) => handleOpenProject(item._id)}
+                                        >
+                                            <Link href={`/editor?id=${project._id}`} target="_blank">
+                                                <div className="flex flex-col space-y-2">
+                                                    <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-gray-100 group-hover:bg-gray-200 transition-colors duration-200">
+                                                        {project.thumbnail && (
+                                                            <Image
+                                                                src={project.thumbnail}
+                                                                alt={project.title}
+                                                                fill
+                                                                className="object-cover"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-start justify-between">
+                                                        <div>
+                                                            <h3 className="font-medium line-clamp-1">{project.title}</h3>
+                                                            <p className="text-xs text-gray-500">
+                                                                {new Date(project.updatedAt).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </SelectableGridItem>
+                                    ))}
+                                </SelectableGrid>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-40 border-2 border-dashed rounded-lg border-gray-300 bg-gray-50">
+                                    <FileImage className="h-10 w-10 text-gray-400 mb-2" />
+                                    <p className="text-sm text-gray-500">No designs yet</p>
+                                    <p className="text-xs text-gray-400">Your designs will appear here</p>
+                                </div>
+                            )}
+                        </CollapsibleSection>
+
+                        {/* Folders Section */}
+                        {folders.length > 0 && (
+                            <CollapsibleSection heading="Folders" defaultOpen={true}>
+                                <SelectableGrid<FolderType>
+                                    onDelete={(selectedItems) => handleDeleteFolders(selectedItems.map((x: FolderType) => x._id))}
+                                >
+                                    {folders.map(folder => (
+                                        <SelectableGridItem
+                                            key={folder._id}
+                                            item={folder}
+                                            onClick={(item) => handleOpenFolder(item)}
+                                            hoverEffect="neutral"
+                                        >
+                                            <div
+                                                className="flex items-center space-x-4"
+                                                onClick={() => handleOpenFolder(folder)}
+                                            >
+                                                <div className="flex-shrink-0">
+                                                    <FolderIcon size={60} className="text-transparent fill-gray-200" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                                        {folder.name}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500">
+                                                        {folder.itemCount || 0} items
                                                     </p>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </SelectableGridItem>
-                                ))}
-                            </SelectableGrid>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-40 border-2 border-dashed rounded-lg border-gray-300 bg-gray-50">
-                                <FileImage className="h-10 w-10 text-gray-400 mb-2" />
-                                <p className="text-sm text-gray-500">No designs yet</p>
-                                <p className="text-xs text-gray-400">Your designs will appear here</p>
-                            </div>
+                                        </SelectableGridItem>
+                                    ))}
+                                </SelectableGrid>
+                            </CollapsibleSection>
                         )}
-                    </CollapsibleSection>
-
-                    {/* Folders Section */}
-                    {folders.length > 0 && (
-                        <CollapsibleSection heading="Folders" defaultOpen={true}>
-                            <SelectableGrid<FolderType>
-                                onDelete={(selectedItems) => handleDeleteFolders(selectedItems.map((x: FolderType) => x._id))}
-                            >
-                                {folders.map(folder => (
-                                    <SelectableGridItem
-                                        key={folder._id}
-                                        item={folder}
-                                        onClick={(item) => handleOpenFolder(item)}
-                                    >
-                                        <div
-                                            className="flex items-center space-x-4"
-                                            onClick={() => handleOpenFolder(folder)}
-                                        >
-                                            <div className="flex-shrink-0">
-                                                <FolderIcon size={60} className="text-transparent fill-gray-200" />
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-gray-900 truncate">
-                                                    {folder.name}
-                                                </p>
-                                                <p className="text-sm text-gray-500">
-                                                    {folder.itemCount || 0} items
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </SelectableGridItem>
-                                ))}
-                            </SelectableGrid>
-                        </CollapsibleSection>
-                    )}
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
+
     )
+
 }

@@ -194,7 +194,7 @@ export default function Dashboard() {
     <div className="container mx-auto pb-10 pt-5 max-w-7xl">
       {/* Hero section */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight mb-2 text-black">Recent Designs</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-2 text-black">My Designs</h1>
       </div>
 
       {/* Sticky Tabs and Controls */}
@@ -345,11 +345,7 @@ export default function Dashboard() {
         <>
           {viewMode === "grid" ? (
             <GridView
-              getVisibleDesigns={getVisibleProjects}
-              handleOpenDesign={handleOpenProject}
-              toggleDesignSelection={toggleProjectSelection}
-              getDefaultThumbnail={getDefaultThumbnail}
-              isDesignSelected={isProjectSelected}
+
               designs={projects}
             />
           ) : (

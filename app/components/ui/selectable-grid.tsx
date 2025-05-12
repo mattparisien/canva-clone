@@ -1,6 +1,7 @@
 import React, { Children, ReactElement, cloneElement, useState, useEffect } from 'react';
 import { Check, Trash, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { cn } from "@utils/utils";
 
 interface SelectableGridItemProps<T> {
     item: T;
@@ -8,6 +9,8 @@ interface SelectableGridItemProps<T> {
     onSelect?: () => void;
     onClick?: (item: T) => void;
     children: React.ReactNode;
+    className?: string;
+    hoverEffect?: "neutral" | "primary" | "secondary";
 }
 
 interface SelectionPopoverProps<T> {
@@ -146,6 +149,8 @@ export function SelectableGridItem<T>({
     onClick,
     onSelect,
     children,
+    className,
+    hoverEffect
 }: SelectableGridItemProps<T>) {
     const [isHovered, setIsHovered] = useState(false);
     const [isCheckmarkHovering, setIsCheckmarkHovering] = useState(false);
@@ -160,8 +165,8 @@ export function SelectableGridItem<T>({
             onMouseLeave={() => setIsHovered(false)}
             className={`relative border-2 ${isSelected
                 ? 'border-primary bg-blue-50'
-                : 'border-transparent hover:bg-gray-50'
-                } p-1 transition-all duration-200 rounded-xl cursor-pointer`}
+                : `border-transparent ${hoverEffect === "neutral" ? 'hover:bg-gray-50' : ''}`
+                } p-1 transition-all duration-200 rounded-xl cursor-pointer ${className ? className : ''}`}
         >
             <div className="relative w-full h-full">
                 <div
