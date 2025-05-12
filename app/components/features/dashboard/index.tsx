@@ -172,34 +172,36 @@ function DashboardContent() {
   // Handle deleting multiple projects with better error handling and UI updates
   const handleDeleteSelectedProjects = useCallback(async () => {
     if (selectedIds.length === 0) return;
-
+    
     try {
       // Show a loading toast
       toast({
         title: "Deleting projects...",
         description: `Deleting ${selectedIds.length} selected projects.`
       });
-
+      
       // Delete the projects
       const result = await deleteMultipleProjects(selectedIds);
-
+      
       // Clear the selection after successful deletion
       clearSelection();
-
-      // Important: Explicitly refresh the data after deletion
-      await refetch();
-
-      // Success toast is now handled by the mutation's onSuccess callback
+      
+      // Force refresh the data - using an immediate refetch after deletion
+      // This ensures the UI is updated even if cache invalidation is delayed
+      setTimeout(() => {
+        refetch();
+      }, 300); // Small delay to ensure the backend has processed the deletion
+      
     } catch (error) {
       console.error("Error deleting projects:", error);
-
+      
       // Show error toast
       toast({
         title: "Error",
         description: "Failed to delete one or more projects.",
         variant: "destructive"
       });
-
+      
       // Still try to refresh the data to get the current state
       refetch();
     }
