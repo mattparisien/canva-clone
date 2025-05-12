@@ -10,7 +10,7 @@ interface SelectableCardProps {
     image: {
         src: string;
         alt: string;
-    },
+    } | undefined,
     title: string;
     subtitleLeft?: string;
     subtitleRight?: string;

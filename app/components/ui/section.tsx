@@ -4,44 +4,48 @@ import * as React from "react"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { cn } from "@utils/utils"
 
-interface CollapsibleSectionProps {
-  heading: string
+interface SectionProps {
+  heading?: string
   defaultOpen?: boolean
+  isCollapsible?: boolean
   className?: string
   headingClassName?: string
   contentClassName?: string
-  children: React.ReactNode
+  children?: React.ReactNode
 }
 
-export function CollapsibleSection({
+export function Section({
   heading,
   defaultOpen = true,
+  isCollapsible = false,
   className,
   headingClassName,
   contentClassName,
   children
-}: CollapsibleSectionProps) {
+}: SectionProps) {
   const [isOpen, setIsOpen] = React.useState(defaultOpen)
 
   const toggleSection = () => {
-    setIsOpen(!isOpen)
+    if (isCollapsible) {
+      setIsOpen(!isOpen)
+    }
   }
-  
+
   const handleIconClick = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent event from bubbling up
     toggleSection()
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <div 
+    <section className={cn("mb-10", className)}>
+      <div
         className={cn(
-          "flex items-center cursor-pointer group", 
+          "flex items-center cursor-pointer group",
           headingClassName
         )}
         onClick={toggleSection}
       >
-        <div 
+        {isCollapsible && <div
           className="h-6 w-6 flex items-center justify-center rounded-full transition-colors group-hover:bg-muted mr-2"
           onClick={handleIconClick}
         >
@@ -50,15 +54,15 @@ export function CollapsibleSection({
           ) : (
             <ChevronRight className="h-4 w-4 transition-transform" />
           )}
-        </div>
-        <h2 className="text-xl font-bold">{heading}</h2>
+        </div>}
+        <h2 className="text-2xl font-bold">{heading}</h2>
       </div>
-      
+
       {isOpen && (
         <div className={cn("transition-all", contentClassName)}>
           {children}
         </div>
       )}
-    </div>
+    </section>
   )
 }
