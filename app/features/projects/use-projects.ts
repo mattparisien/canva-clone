@@ -67,7 +67,10 @@ export function useProjectQuery() {
   const deleteProjectMutation = useMutation({
     mutationFn: (id: string) => projectsAPI.delete(id),
     onSuccess: () => {
+      // Invalidate both standard project queries and infinite project queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
+      
       toast({
         title: "Success",
         description: "Project deleted successfully!",
@@ -163,7 +166,9 @@ export function useProjectQuery() {
       return { successful, failed, total: ids.length };
     },
     onSuccess: (result) => {
+      // Invalidate both standard project queries and infinite project queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
       
       // Show appropriate message based on partial or complete success
       if (result.failed > 0) {
