@@ -11,23 +11,28 @@ async function getAuthHeader() {
   return headersList.get('authorization') || '';
 }
 
-// PUT: Update user profile
-export async function PUT(req: NextRequest) {
+// GET: Fetch paginated projects with filters
+export async function GET(req: NextRequest) {
   try {
-    const body = await req.json();
+    // Get all query parameters from the URL
+    const { searchParams } = new URL(req.url);
 
-    const response = await axios.put(`${BACKEND_URL}/api/auth/update-profile`, body, {
+    // Forward all query parameters to the backend
+    // This ensures any filtering parameters are passed along
+    const endpoint = `/api/projects/paginated?${searchParams.toString()}`;
+
+    // Make request to backend
+    const response = await axios.get(`${BACKEND_URL}${endpoint}`, {
       headers: {
         Authorization: await getAuthHeader(),
-        'Content-Type': 'application/json',
       },
     });
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error('Profile update error:', error.response?.data || error.message);
+    console.error('Error fetching paginated projects:', error.response?.data || error.message);
     return NextResponse.json(
-      { message: error.response?.data?.message || 'Failed to update profile' },
+      { message: error.response?.data?.message || 'Failed to fetch paginated projects' },
       { status: error.response?.status || 500 }
     );
   }

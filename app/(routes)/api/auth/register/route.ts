@@ -1,36 +1,26 @@
+import axios from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Environment variables
-const API_URL = process.env.API_URL || 'http://localhost:5000';
+// Get the backend URL from environment variables
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 
-export async function POST(request: NextRequest) {
+// POST: Register a new user
+export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await request.json();
-    
-    // Make the request to the backend API
-    const response = await fetch(`${API_URL}/api/auth/register`, {
-      method: 'POST',
+    const body = await req.json();
+
+    const response = await axios.post(`${BACKEND_URL}/api/auth/register`, body, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ name, email, password }),
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      return NextResponse.json(
-        { error: errorData.message || 'Failed to register' }, 
-        { status: response.status }
-      );
-    }
-    
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error registering:', error);
+
+    return NextResponse.json(response.data);
+  } catch (error: any) {
+    console.error('Registration error:', error.response?.data || error.message);
     return NextResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
+      { message: error.response?.data?.message || 'Registration failed' },
+      { status: error.response?.status || 500 }
     );
   }
 }

@@ -1,41 +1,31 @@
+import axios from 'axios';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@lib/auth';
 
-// Environment variables
-const API_URL = process.env.API_URL || 'http://localhost:5000';
+// Get the backend URL from environment variables
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 
-export async function GET(request: NextRequest) {
-  // Get session to verify authentication
-  const session = await getServerSession(authOptions);
-  
-  if (!session) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-  }
-  
+// Helper function to forward the authorization header
+async function getAuthHeader() {
+  const headersList = await headers();
+  return headersList.get('authorization') || '';
+}
+
+// GET: Verify user token and get user info
+export async function GET(req: NextRequest) {
   try {
-    // Make the request to the backend API
-    const response = await fetch(`${API_URL}/api/auth/me`, {
+    const response = await axios.get(`${BACKEND_URL}/api/auth/me`, {
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`
-      }
+        Authorization: await getAuthHeader(),
+      },
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      return NextResponse.json(
-        { error: errorData.message || 'Failed to verify token' }, 
-        { status: response.status }
-      );
-    }
-    
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error verifying token:', error);
+
+    return NextResponse.json(response.data);
+  } catch (error: any) {
+    console.error('Token verification error:', error.response?.data || error.message);
     return NextResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
+      { message: error.response?.data?.message || 'Token verification failed' },
+      { status: error.response?.status || 401 }
     );
   }
 }

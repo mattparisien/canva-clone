@@ -1,4 +1,3 @@
-import type { Folder } from "@/lib/api/folders";
 import type { BreadcrumbItem } from "@/components/ui/breadcrumbs";
 import { FolderIcon } from "lucide-react";
 import React from "react";
@@ -10,14 +9,14 @@ import React from "react";
  * @returns An array of breadcrumb items ready to use in the Breadcrumbs component
  */
 export function pathToBreadcrumbs(
-  paths: string[], 
+  paths: string[],
   slugMap: Record<string, string> = {}
 ): BreadcrumbItem[] {
   if (!paths || !Array.isArray(paths) || paths.length === 0) {
     // Default to just the root if no paths
     return [
-      { 
-        label: "Root", 
+      {
+        label: "Root",
         href: "/files",
         icon: React.createElement(FolderIcon, { className: "h-4 w-4" })
       }
@@ -28,11 +27,11 @@ export function pathToBreadcrumbs(
     // For each segment, create a breadcrumb item
     const isLast = index === paths.length - 1;
     const label = segment.charAt(0).toUpperCase() + segment.slice(1); // Capitalize first letter
-    
+
     // Build the href based on the segment and any provided slug mappings
     const slug = slugMap[segment] || segment;
     const href = index === 0 ? "/files" : `/folder/${slug}`;
-    
+
     return {
       label,
       href: isLast ? undefined : href, // Last item doesn't need a link
@@ -50,6 +49,6 @@ export function buildFolderPathString(paths: string[]): string {
   if (!paths || !Array.isArray(paths) || paths.length === 0) {
     return "/";
   }
-  
+
   return "/" + paths.join("/");
 }

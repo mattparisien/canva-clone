@@ -11,12 +11,16 @@ async function getAuthHeader() {
   return headersList.get('authorization') || '';
 }
 
-// PUT: Update user profile
-export async function PUT(req: NextRequest) {
+// PUT: Toggle a project's template status
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const body = await req.json();
+    const { id } = params;
+    const body = await req.json(); // Should contain isTemplate boolean
 
-    const response = await axios.put(`${BACKEND_URL}/api/auth/update-profile`, body, {
+    const response = await axios.put(`${BACKEND_URL}/api/projects/${id}/toggle-template`, body, {
       headers: {
         Authorization: await getAuthHeader(),
         'Content-Type': 'application/json',
@@ -25,9 +29,9 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error('Profile update error:', error.response?.data || error.message);
+    console.error(`Error toggling template status for project ${params.id}:`, error.response?.data || error.message);
     return NextResponse.json(
-      { message: error.response?.data?.message || 'Failed to update profile' },
+      { message: error.response?.data?.message || 'Failed to toggle template status' },
       { status: error.response?.status || 500 }
     );
   }

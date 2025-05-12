@@ -11,12 +11,16 @@ async function getAuthHeader() {
   return headersList.get('authorization') || '';
 }
 
-// PUT: Update user profile
-export async function PUT(req: NextRequest) {
+// POST: Clone a project
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const body = await req.json();
+    const { id } = params;
+    const body = await req.json(); // Should contain userId
 
-    const response = await axios.put(`${BACKEND_URL}/api/auth/update-profile`, body, {
+    const response = await axios.post(`${BACKEND_URL}/api/projects/${id}/clone`, body, {
       headers: {
         Authorization: await getAuthHeader(),
         'Content-Type': 'application/json',
@@ -25,9 +29,9 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error('Profile update error:', error.response?.data || error.message);
+    console.error(`Error cloning project ${params.id}:`, error.response?.data || error.message);
     return NextResponse.json(
-      { message: error.response?.data?.message || 'Failed to update profile' },
+      { message: error.response?.data?.message || 'Failed to clone project' },
       { status: error.response?.status || 500 }
     );
   }

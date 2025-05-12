@@ -15,7 +15,7 @@ import {
 import { useToast } from "@components/ui/use-toast"
 import { useInfiniteProjects } from "@features/projects/use-infinite-projects"
 import { useProjectQuery } from "@features/projects/use-projects"
-import { type Project } from "@lib/api"
+import { type Project } from "@lib/api/api"
 import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import { getRelativeTime } from "@lib/utils/utils"
 import { upperFirst } from "lodash"
@@ -128,10 +128,10 @@ function DashboardContent() {
 
       // Now we can directly await the result since we're using mutateAsync
       const project = await createProject(newProject)
-      
+
       // Refresh the project list after creation
       refetch()
-      
+
       // Navigate to editor with the new project ID
       router.push(`/editor?id=${project._id}`)
 

@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo, useRef } from "react"
 import { Element, Page, CanvasSize, EditorContextType } from "../types/canvas.types"
 import { DEFAULT_CANVAS_SIZE } from "../constants/canvas"
-import { projectsAPI } from "../api"
+import { projectsAPI } from "@/lib/api/api"
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined)
 
@@ -278,7 +278,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   }, [designName, pages, designId]);
 
   // Function to capture canvas screenshot
-  const captureCanvasScreenshot = useCallback(async (): Promise<string | null> => {
+  const captureCanvasScreenshot = useCallback(async (): Promise<string | undefined> => {
     return new Promise((resolve) => {
       try {
         // Use a longer delay to ensure all rendering and text calculations are complete
@@ -288,7 +288,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
           
           if (!canvasElement) {
             console.error('Canvas element not found for screenshot');
-            resolve(null);
+            resolve(undefined);
             return;
           }
 
@@ -330,12 +330,12 @@ export function EditorProvider({ children }: { children: ReactNode }) {
             resolve(thumbnailDataUrl);
           } catch (err) {
             console.error('Failed to generate canvas screenshot:', err);
-            resolve(null);
+            resolve(undefined);
           }
         }, 300); // Longer delay to ensure rendering is complete
       } catch (error) {
         console.error('Error in screenshot capture process:', error);
-        resolve(null);
+        resolve(undefined);
       }
     });
   }, []);

@@ -1,4 +1,4 @@
-import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 // Base URL for backend API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -51,19 +51,19 @@ export async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): 
 // Helper to construct image URLs with size parameters
 export const getImageUrlWithSize = (url: string | undefined, width?: number, height?: number): string => {
   if (!url) return '';
-  
+
   // If the URL already has query parameters, add size parameters with &
   // Otherwise, add size parameters with ?
   const separator = url.includes('?') ? '&' : '?';
-  
+
   // Add width and/or height parameters if provided
   const params = [];
   if (width) params.push(`width=${width}`);
   if (height) params.push(`height=${height}`);
-  
+
   // Return original URL if no size parameters
   if (params.length === 0) return url;
-  
+
   return `${url}${separator}${params.join('&')}`;
 };
 

@@ -1,11 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { type Project, projectsAPI } from '@/lib/api';
 import { useToast } from '@/components/ui/use-toast';
+import { type Project, projectsAPI } from '@/lib/api/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useProjectQuery() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   // Query for fetching all projects
   const projectsQuery = useQuery({
     queryKey: ['projects'],
@@ -21,7 +21,7 @@ export function useProjectQuery() {
       variant: "destructive"
     });
   }
-  
+
   // Mutation for creating a new project
   const createProjectMutation = useMutation({
     mutationFn: (newProject: Partial<Project>) => projectsAPI.create(newProject),
@@ -41,10 +41,10 @@ export function useProjectQuery() {
       });
     }
   });
-  
+
   // Mutation for updating a project
   const updateProjectMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string, data: Partial<Project> }) => 
+    mutationFn: ({ id, data }: { id: string, data: Partial<Project> }) =>
       projectsAPI.update(id, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -62,7 +62,7 @@ export function useProjectQuery() {
       });
     }
   });
-  
+
   // Mutation for deleting a project
   const deleteProjectMutation = useMutation({
     mutationFn: (id: string) => projectsAPI.delete(id),
@@ -70,7 +70,7 @@ export function useProjectQuery() {
       // Invalidate both standard project queries and infinite project queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
-      
+
       toast({
         title: "Success",
         description: "Project deleted successfully!",
@@ -85,7 +85,7 @@ export function useProjectQuery() {
       });
     }
   });
-  
+
   // Specialized function for toggling star status
   const toggleStarMutation = useMutation({
     mutationFn: ({ id, starred }: { id: string, starred: boolean }) =>
@@ -101,7 +101,7 @@ export function useProjectQuery() {
       });
     }
   });
-  
+
   // Toggle template status
   const toggleTemplateMutation = useMutation({
     mutationFn: ({ id, isTemplate }: { id: string, isTemplate: boolean }) =>
@@ -111,8 +111,8 @@ export function useProjectQuery() {
       queryClient.invalidateQueries({ queryKey: ['templates'] });
       toast({
         title: "Success",
-        description: data.isTemplate 
-          ? "Project converted to template successfully!" 
+        description: data.isTemplate
+          ? "Project converted to template successfully!"
           : "Template converted to project successfully!",
         variant: "default"
       });
@@ -125,7 +125,7 @@ export function useProjectQuery() {
       });
     }
   });
-  
+
   // Clone project
   const cloneProjectMutation = useMutation({
     mutationFn: ({ id, userId }: { id: string, userId: string }) =>
@@ -146,22 +146,22 @@ export function useProjectQuery() {
       });
     }
   });
-  
+
   // Batch delete for multiple projects
   const deleteMultipleProjectsMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       // Using allSettled to allow some deletions to fail without failing the whole batch
       const results = await Promise.allSettled(ids.map(id => projectsAPI.delete(id)));
-      
+
       // Count successful and failed deletions
       const successful = results.filter(r => r.status === 'fulfilled').length;
       const failed = results.filter(r => r.status === 'rejected').length;
-      
+
       // If all failed, throw an error
       if (successful === 0 && failed > 0) {
         throw new Error('Failed to delete any projects');
       }
-      
+
       // Return summary
       return { successful, failed, total: ids.length };
     },
@@ -169,7 +169,7 @@ export function useProjectQuery() {
       // Invalidate both standard project queries and infinite project queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
-      
+
       // Show appropriate message based on partial or complete success
       if (result.failed > 0) {
         toast({
@@ -193,7 +193,7 @@ export function useProjectQuery() {
       });
     }
   });
-  
+
   return {
     projects: projectsQuery.data || [],
     isLoading: projectsQuery.isLoading,
@@ -217,7 +217,7 @@ export function useDesignQuery() {
 export function useTemplatesQuery(category?: string, type?: string) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   // Query for fetching all templates
   const templatesQuery = useQuery({
     queryKey: ['templates', { category, type }],
@@ -233,7 +233,7 @@ export function useTemplatesQuery(category?: string, type?: string) {
       variant: "destructive"
     });
   }
-  
+
   // Use a template to create a new project
   const useTemplateMutation = useMutation({
     mutationFn: ({ templateId, userId }: { templateId: string, userId: string }) =>
@@ -255,7 +255,7 @@ export function useTemplatesQuery(category?: string, type?: string) {
       });
     }
   });
-  
+
   return {
     templates: templatesQuery.data || [],
     isLoading: templatesQuery.isLoading,

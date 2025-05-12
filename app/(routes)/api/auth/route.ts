@@ -11,12 +11,25 @@ async function getAuthHeader() {
   return headersList.get('authorization') || '';
 }
 
-// PUT: Update user profile
-export async function PUT(req: NextRequest) {
+// Login endpoint
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const path = req.nextUrl.pathname.split('/').pop();
 
-    const response = await axios.put(`${BACKEND_URL}/api/auth/update-profile`, body, {
+    // Determine the specific auth endpoint
+    // Default to login if not specified in the path
+    let endpoint = '/api/auth/login';
+
+    if (path === 'register') {
+      endpoint = '/api/auth/register';
+    } else if (path === 'logout') {
+      endpoint = '/api/auth/logout';
+    } else if (path === 'forgot-password') {
+      endpoint = '/api/auth/forgot-password';
+    }
+
+    const response = await axios.post(`${BACKEND_URL}${endpoint}`, body, {
       headers: {
         Authorization: await getAuthHeader(),
         'Content-Type': 'application/json',
@@ -25,9 +38,9 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error('Profile update error:', error.response?.data || error.message);
+    console.error('Auth error:', error.response?.data || error.message);
     return NextResponse.json(
-      { message: error.response?.data?.message || 'Failed to update profile' },
+      { message: error.response?.data?.message || 'Authentication failed' },
       { status: error.response?.status || 500 }
     );
   }

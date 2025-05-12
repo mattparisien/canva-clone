@@ -5,7 +5,6 @@ import { useAuth } from "@/lib/context/auth-context";
 import { NavigationIconName, NavigationItem } from "@/lib/types/navigation.types";
 import { cn } from "@/lib/utils/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
-import { useRouter } from "next/navigation";
 import {
   FolderKanban,
   Home,
@@ -15,7 +14,7 @@ import {
   SquareKanban
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { Button } from "../ui/button";
 
@@ -131,7 +130,7 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
       const newProject = await createProject(project);
 
       if (newProject) router.push(`/editor?id=${newProject._id}`);
-  
+
       // if (newProject) {
       // Redirect to the new project page
       // window.location.href = `/editor?id=${newProject._id}`;

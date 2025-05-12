@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { projectsAPI, Project } from "@lib/api";
+import { projectsAPI, Project } from "@lib/api/api";
 import { useMemo } from "react";
 
 interface ProjectsPageData {

@@ -1,5 +1,6 @@
 "use client"
 
+import { Breadcrumbs } from "@/components/ui/breadcrumbs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -8,12 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
 import { assetsAPI, type Asset } from "@/lib/api/assets"
 import { foldersAPI, type Folder as FolderType } from "@/lib/api/folders"
+import { pathToBreadcrumbs } from "@/lib/utils/folder-utils"
 import { ArrowLeft, File, Folder as FolderIcon, FolderOpen, Plus, Trash, Upload } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { pathToBreadcrumbs } from "@/lib/utils/folder-utils";
 
 export default function FolderBySlugPage() {
     const params = useParams()
@@ -512,7 +512,7 @@ export default function FolderBySlugPage() {
 
                 {/* Use our new utility function for breadcrumbs */}
                 {currentFolder && (
-                    <Breadcrumbs 
+                    <Breadcrumbs
                         className="py-2"
                         items={
                             // If paths array exists, use it; otherwise fall back to the computed breadcrumbs
@@ -523,11 +523,11 @@ export default function FolderBySlugPage() {
                                     Object.fromEntries(
                                         breadcrumbs.map(folder => [folder.name.toLowerCase(), folder.slug])
                                     )
-                                  )
+                                )
                                 : [
-                                    { 
-                                        label: "Root", 
-                                        href: "/files", 
+                                    {
+                                        label: "Root",
+                                        href: "/files",
                                         icon: <FolderIcon className="h-4 w-4" />
                                     },
                                     ...breadcrumbs
@@ -537,7 +537,7 @@ export default function FolderBySlugPage() {
                                             href: `/folder/${folder.slug}`,
                                             icon: <FolderIcon className="h-4 w-4" />
                                         }))
-                                  ]
+                                ]
                         }
                     />
                 )}
