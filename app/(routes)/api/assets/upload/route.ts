@@ -35,18 +35,23 @@ export async function POST(req: NextRequest) {
     // Create a new FormData to send to the backend
     const backendFormData = new FormData();
     
+    // Debug logging
+    console.log('Received form data keys:', [...formData.keys()]);
+    
     // Copy all entries from the incoming form data
     for (const [key, value] of formData.entries()) {
       if (value instanceof File) {
         // Handle file entries
+        console.log(`Processing file: ${key}, name: ${value.name}, type: ${value.type}, size: ${value.size}`);
         backendFormData.append(key, new Blob([await value.arrayBuffer()]), value.name);
       } else {
         // Handle non-file entries
+        console.log(`Processing field: ${key}, value: ${value}`);
         backendFormData.append(key, value);
       }
     }
 
-    // Forward the request to the backend
+    // Forward the request to the backend - fix URL path
     const response = await axios.post(`${BACKEND_URL}/api/assets/upload`, backendFormData, {
       headers: {
         ...headers,
@@ -58,6 +63,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error('Error uploading asset:', error.response?.data || error.message);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
     return NextResponse.json(
       { error: error.response?.data?.message || 'Failed to upload asset' },
       { status: error.response?.status || 500 }
