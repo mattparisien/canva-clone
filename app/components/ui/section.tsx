@@ -6,6 +6,7 @@ import { cn } from "@utils/utils"
 
 interface SectionProps {
   heading?: string
+  subHeading?: string
   defaultOpen?: boolean
   isCollapsible?: boolean
   className?: string
@@ -16,6 +17,7 @@ interface SectionProps {
 
 export function Section({
   heading,
+  subHeading,
   defaultOpen = true,
   isCollapsible = false,
   className,
@@ -37,10 +39,10 @@ export function Section({
   }
 
   return (
-    <section className={cn("mb-10", className)}>
+    <section className={cn("container mb-10", className)}>
       <div
         className={cn(
-          "flex items-center cursor-pointer group",
+          "flex items-center cursor-pointer group ",
           headingClassName
         )}
         onClick={toggleSection}
@@ -55,7 +57,10 @@ export function Section({
             <ChevronRight className="h-4 w-4 transition-transform" />
           )}
         </div>}
-        <h2 className="text-2xl font-bold">{heading}</h2>
+        <div className="flex flex-col md:mb-10 mb-5">
+          {heading && <h2 className="text-2xl font-bold">{heading}</h2>}
+          {subHeading && <p className="text-gray-500 text-sm">{subHeading}</p>}
+        </div>
       </div>
 
       {isOpen && (

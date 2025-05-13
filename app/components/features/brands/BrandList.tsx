@@ -16,7 +16,7 @@ export function BrandList() {
   // State management
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const router = useRouter()
-  
+
   // Use the brands hook
   const { brands, isLoading, error, refetchBrands } = useBrands()
 
@@ -55,17 +55,8 @@ export function BrandList() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Brand Assets</h1>
-          <p className="text-gray-500 text-sm">Manage your brand identities</p>
-        </div>
-        <Button onClick={() => setIsSheetOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Brand
-        </Button>
-      </div>
+    <>
+
 
       {isLoading ? (
         <div className="flex justify-center py-20">
@@ -121,8 +112,8 @@ export function BrandList() {
               <CardFooter className="border-t bg-gray-50">
                 <div className="w-full flex justify-between items-center">
                   <span className="text-xs text-gray-500">Created {new Date(brand.createdAt).toLocaleDateString()}</span>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleViewDetails(brand._id)}
                   >
@@ -150,14 +141,14 @@ export function BrandList() {
               <TabsTrigger value="upload" className="flex-1">Document Upload</TabsTrigger>
               <TabsTrigger value="manual" className="flex-1">Manual Creation</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="upload" className="mt-0">
               <BrandDocumentUpload
                 onSuccess={handleBrandCreated}
                 onCancel={() => setIsSheetOpen(false)}
               />
             </TabsContent>
-            
+
             <TabsContent value="manual" className="mt-0">
               <div className="py-10 text-center">
                 <p className="text-gray-500">
@@ -168,6 +159,6 @@ export function BrandList() {
           </Tabs>
         </SheetContent>
       </Sheet>
-    </div>
+    </>
   )
 }
