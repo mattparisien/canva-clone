@@ -738,13 +738,33 @@ async function uploadFileAsAsset(file: File): Promise<string | null> {
     const tags = ['brand-generation', 'auto-upload'];
     formData.append('tags', JSON.stringify(tags));
     
+    // Get userId from localStorage - critical for asset creation
+    const token = getAuthToken();
+    let userId = '';
+    if (token) {
+      try {
+        // Decode the JWT to get the user ID
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        userId = decoded.id || decoded.userId || decoded.sub;
+      } catch (e) {
+        console.error('Error decoding token to get userId:', e);
+      }
+    }
+    
+    // Include the userId which is required by the backend
+    if (userId) {
+      formData.append('userId', userId);
+    } else {
+      console.error('No userId available for asset upload');
+    }
+    
     const response = await apiClient.post('/assets/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
     });
     
-    return response.data.data._id;
+    return response.data._id;
   } catch (error) {
     console.error('Error uploading file:', file.name, error);
     return null;
