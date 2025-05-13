@@ -27,8 +27,8 @@ export async function GET(req: NextRequest) {
     // Add query parameters to the URL if they exist
     const queryString = queryParams.toString();
     const endpoint = queryString
-      ? `/api/projects/templates?${queryString}`
-      : '/api/projects/templates';
+      ? `/api/templates?${queryString}`
+      : '/api/templates';
 
     // Make request to backend
     const response = await axios.get(`${BACKEND_URL}${endpoint}`, {
