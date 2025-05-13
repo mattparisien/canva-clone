@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { SelectionProvider } from "@lib/context/selection-context"
-import { SelectableCard } from "@components/ui/selectable.card"
+import { SelectableCard } from "@/components/composite/InteractiveCard/InteractiveCard"
 import { SelectionActions } from "@/components/composite/SelectionActions"
 import { Button } from "@components/ui/button"
 import { useToast } from "@components/ui/use-toast"

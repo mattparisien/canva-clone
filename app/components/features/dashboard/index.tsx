@@ -5,7 +5,7 @@ import { SelectionActions } from "@/components/composite/SelectionActions"
 import { Button } from "@components/ui/button"
 import { Card } from "@components/ui/card"
 import { LazyGrid } from "@/components/composite/LazyGrid"
-import { SelectableCard } from "@components/ui/selectable.card"
+import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveCard"
 import {
   Tooltip,
   TooltipContent,
@@ -68,13 +68,11 @@ function DashboardContent() {
   // Use our new infinite projects hook
   const {
     projects,
-    totalProjects,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
     isLoading,
     isError,
-    error,
     refetch
   } = useInfiniteProjects({
     limit: 12,
@@ -212,7 +210,7 @@ function DashboardContent() {
 
   // Handle project title change
   const handleTitleChange = useCallback(async (id: string, newTitle: string) => {
-    
+
     try {
       const projectToUpdate = projects.find(p => p._id === id);
       if (!projectToUpdate) return;
@@ -240,7 +238,7 @@ function DashboardContent() {
   // Render a grid item for LazyGrid
   const renderGridItem = useCallback((project: Project, index: number) => {
     return (
-      <SelectableCard
+      <InteractiveCard
         key={project._id}
         id={project._id}
         image={project.thumbnail ? {
