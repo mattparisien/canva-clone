@@ -148,6 +148,7 @@ export function useBrands() {
       setIsLoading(true);
       setError(null);
       const brand = await brandsAPI.uploadDocumentsAndGenerate(files, brandName);
+      console.log(brand);
       toast({
         title: 'Brand created',
         description: 'Your brand has been successfully created from the uploaded documents.',

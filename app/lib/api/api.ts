@@ -643,6 +643,7 @@ export const brandsAPI = {
   generateFromAssets: async (request: GenerateBrandFromAssetsRequest): Promise<BrandType> => {
     try {
       const response = await apiClient.post(`/brands/generate`, request);
+      console.log(response);
       return response.data.data;
     } catch (error: any) {
       console.error('Error generating brand from assets:', error.response?.data || error.message);

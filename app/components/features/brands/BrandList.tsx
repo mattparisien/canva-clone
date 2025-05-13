@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
@@ -14,6 +15,7 @@ import { useBrands } from "@/features/brands/use-brands"
 export function BrandList() {
   // State management
   const [isSheetOpen, setIsSheetOpen] = useState(false)
+  const router = useRouter()
   
   // Use the brands hook
   const { brands, isLoading, error, refetchBrands } = useBrands()
@@ -24,6 +26,11 @@ export function BrandList() {
     // The useBrands hook will handle invalidation and refetching
     setIsSheetOpen(false)
     refetchBrands()
+  }
+
+  // Navigate to brand details page
+  const handleViewDetails = (brandId: string) => {
+    router.push(`/brands/${brandId}`)
   }
 
   // Render color palette circles
@@ -114,7 +121,13 @@ export function BrandList() {
               <CardFooter className="border-t bg-gray-50">
                 <div className="w-full flex justify-between items-center">
                   <span className="text-xs text-gray-500">Created {new Date(brand.createdAt).toLocaleDateString()}</span>
-                  <Button variant="ghost" size="sm">View Details</Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleViewDetails(brand._id)}
+                  >
+                    View Details
+                  </Button>
                 </div>
               </CardFooter>
             </Card>
