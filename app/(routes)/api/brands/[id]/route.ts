@@ -21,16 +21,16 @@ const getHeadersWithAuth = (req: NextRequest) => {
 // Get a specific brand by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { brandId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { brandId } = params;
+    const { id } = params;
     const headers = getHeadersWithAuth(req);
     
-    const response = await axios.get(`${BACKEND_URL}/api/brands/${brandId}`, { headers });
+    const response = await axios.get(`${BACKEND_URL}/api/brands/${id}`, { headers });
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error(`Error fetching brand ${params.brandId}:`, error.response?.data || error.message);
+    console.error(`Error fetching brand ${params.id}:`, error.response?.data || error.message);
     return NextResponse.json(
       { error: error.response?.data?.message || 'Failed to fetch brand' },
       { status: error.response?.status || 500 }
@@ -41,17 +41,17 @@ export async function GET(
 // Update a specific brand
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { brandId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { brandId } = params;
+    const { id } = params;
     const body = await req.json();
     const headers = getHeadersWithAuth(req);
     
-    const response = await axios.put(`${BACKEND_URL}/api/brands/${brandId}`, body, { headers });
+    const response = await axios.put(`${BACKEND_URL}/api/brands/${id}`, body, { headers });
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error(`Error updating brand ${params.brandId}:`, error.response?.data || error.message);
+    console.error(`Error updating brand ${params.id}:`, error.response?.data || error.message);
     return NextResponse.json(
       { error: error.response?.data?.message || 'Failed to update brand' },
       { status: error.response?.status || 500 }
@@ -62,16 +62,16 @@ export async function PUT(
 // Delete a specific brand
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { brandId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { brandId } = params;
+    const { id } = params;
     const headers = getHeadersWithAuth(req);
     
-    const response = await axios.delete(`${BACKEND_URL}/api/brands/${brandId}`, { headers });
+    const response = await axios.delete(`${BACKEND_URL}/api/brands/${id}`, { headers });
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error(`Error deleting brand ${params.brandId}:`, error.response?.data || error.message);
+    console.error(`Error deleting brand ${params.id}:`, error.response?.data || error.message);
     return NextResponse.json(
       { error: error.response?.data?.message || 'Failed to delete brand' },
       { status: error.response?.status || 500 }
