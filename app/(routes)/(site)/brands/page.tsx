@@ -1,6 +1,6 @@
 "use client"
 
-import { BrandList } from "@/components/features/brands/BrandList"
+import { BrandList } from "./components/BrandList"
 import { Section } from "@/components/ui/section"
 
 export default function BrandsPage() {

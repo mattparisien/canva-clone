@@ -50,7 +50,7 @@ export function SelectionActions({
   }
   
   return (
-    <div className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-white border border-gray-200 shadow-lg rounded-lg px-4 py-3 flex items-center z-50 ${className}`}>
+    <div className={`fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-white border border-gray-100 shadow-lg rounded-2xl px-4 py-3 flex items-center z-50 ${className}`}>
       <span className="text-sm font-medium text-gray-700 mr-6">
         {selectedIds.length} selected
       </span>
