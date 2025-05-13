@@ -1,10 +1,10 @@
 "use client"
 
 import { Section } from "@/components/ui/section"
-import { SelectionActions } from "@components/features/common/selection-actions"
+import { SelectionActions } from "@/components/composite/SelectionActions"
 import { Button } from "@components/ui/button"
 import { Card } from "@components/ui/card"
-import { LazyGrid } from "@components/ui/lazy-grid"
+import { LazyGrid } from "@/components/composite/LazyGrid"
 import { SelectableCard } from "@components/ui/selectable.card"
 import {
   Tooltip,
@@ -49,7 +49,8 @@ function DashboardContent() {
     createProject,
     deleteProject,
     toggleStar,
-    deleteMultipleProjects
+    deleteMultipleProjects,
+    updateProject
   } = useProjectQuery()
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -209,6 +210,32 @@ function DashboardContent() {
     }
   }, [deleteMultipleProjects, refetch, selectedIds, toast, clearSelection]);
 
+  // Handle project title change
+  const handleTitleChange = useCallback(async (id: string, newTitle: string) => {
+    
+    try {
+      const projectToUpdate = projects.find(p => p._id === id);
+      if (!projectToUpdate) return;
+
+      await updateProject({ id, data: { title: newTitle } });
+
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Project title updated successfully",
+      });
+
+      // Refresh the project list
+      refetch();
+    } catch (error) {
+      console.error("Failed to update project title:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update project title. Please try again.",
+        variant: "destructive"
+      });
+    }
+  }, [projects, updateProject, refetch, toast]);
 
   // Render a grid item for LazyGrid
   const renderGridItem = useCallback((project: Project, index: number) => {
@@ -227,9 +254,10 @@ function DashboardContent() {
         onSelect={(id, isSelected) => {
           console.log(`Project ${id} selection state: ${isSelected}`);
         }}
+        onTitleChange={handleTitleChange}
       />
     );
-  }, [handleOpenProject]);
+  }, [handleOpenProject, handleTitleChange]);
 
   return (
     <>
@@ -344,7 +372,7 @@ function DashboardContent() {
                 designs={projects}
                 handleDeleteDesign={handleDeleteProject}
                 toggleStar={handleToggleStar}
-                getDefaultThumbnail={() => { }}
+                getDefaultThumbnail={(index: number) => `/placeholder${index % 2 === 0 ? '.jpg' : '.svg'}`}
                 toggleDesignSelection={(id, e) => {
                   // Handle selection toggle here
                   console.log(`Toggling selection for ${id}`);

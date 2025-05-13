@@ -14,6 +14,7 @@ async function getAuthHeader() {
 // GET: Fetch all projects
 export async function GET(req: NextRequest) {
   try {
+    
     // Check if the request is for templates
     const { searchParams } = new URL(req.url);
     const isTemplates = req.nextUrl.pathname.includes('templates');

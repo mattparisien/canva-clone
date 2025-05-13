@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react"
 import { SelectionProvider } from "@lib/context/selection-context"
 import { SelectableCard } from "@components/ui/selectable.card"
-import { SelectionActions } from "@components/features/common/selection-actions"
+import { SelectionActions } from "@/components/composite/SelectionActions"
 import { Button } from "@components/ui/button"
+import { useToast } from "@components/ui/use-toast"
+import { projectsAPI } from "@lib/api/api"
 
 // Mock project type for demonstration
 interface Project {
@@ -17,6 +19,7 @@ interface Project {
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { toast } = useToast();
 
   useEffect(() => {
     // Mock fetch projects
@@ -60,18 +63,51 @@ export default function ProjectsPage() {
     // Navigate to project
   }
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => {
     // In a real implementation, you'd call your API to delete the projects
     console.log("Delete selected projects")
+    return Promise.resolve();
   }
 
-  const handleDuplicateSelected = () => {
+  const handleDuplicateSelected = async () => {
     console.log("Duplicate selected projects")
+    return Promise.resolve();
   }
 
-  const handleMoveSelected = () => {
+  const handleMoveSelected = async () => {
     console.log("Move selected projects")
+    return Promise.resolve();
   }
+
+  // Handle project title update
+  const handleTitleChange = async (id: string, newTitle: string) => {
+    try {
+      // Call API to update project title
+      await projectsAPI.update(id, { title: newTitle });
+      
+      // Update the project title in the local state
+      setProjects(prevProjects => 
+        prevProjects.map(project => 
+          project.id === id 
+            ? { ...project, title: newTitle }
+            : project
+        )
+      );
+      
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Project title updated successfully",
+      });
+    } catch (error) {
+      console.error("Failed to update project title:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update project title. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const formatUpdatedAt = (dateString: string) => {
     const date = new Date(dateString)
@@ -107,6 +143,7 @@ export default function ProjectsPage() {
               subtitleRight={formatUpdatedAt(project.updatedAt)}
               onClick={() => handleOpenProject(project.id)}
               onSelect={handleSelectProject}
+              onTitleChange={handleTitleChange}
             />
           ))}
         </div>

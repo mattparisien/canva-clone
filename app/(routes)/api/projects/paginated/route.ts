@@ -28,6 +28,8 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    console.log(response);
+
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error('Error fetching paginated projects:', error.response?.data || error.message);

@@ -17,7 +17,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    // Properly await the params object before accessing its properties
+    const id = params?.id;
 
     const response = await axios.get(`${BACKEND_URL}/api/projects/${id}`, {
       headers: {
@@ -27,7 +28,7 @@ export async function GET(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error(`Error fetching project ${params.id}:`, error.response?.data || error.message);
+    console.error(`Error fetching project ${params?.id}:`, error.response?.data || error.message);
     return NextResponse.json(
       { message: error.response?.data?.message || 'Failed to fetch project' },
       { status: error.response?.status || 500 }
@@ -41,7 +42,8 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    // Properly await the params object before accessing its properties
+    const id = params?.id;
     const body = await req.json();
 
     const response = await axios.put(`${BACKEND_URL}/api/projects/${id}`, body, {
@@ -53,7 +55,7 @@ export async function PUT(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error(`Error updating project ${params.id}:`, error.response?.data || error.message);
+    console.error(`Error updating project ${params?.id}:`, error.response?.data || error.message);
     return NextResponse.json(
       { message: error.response?.data?.message || 'Failed to update project' },
       { status: error.response?.status || 500 }
@@ -67,7 +69,8 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    // Properly await the params object before accessing its properties
+    const id = params?.id;
 
     await axios.delete(`${BACKEND_URL}/api/projects/${id}`, {
       headers: {
@@ -77,9 +80,8 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Project deleted successfully' });
   } catch (error: any) {
-    console.error(`Error deleting project ${params.id}:`, error.response?.data || error.message);
+    console.error(`Error deleting project ${params?.id}:`, error.response?.data || error.message);
     return NextResponse.json(
-      { message: error.response?.data?.message || 'Failed to delete project' },
       { status: error.response?.status || 500 }
     );
   }
