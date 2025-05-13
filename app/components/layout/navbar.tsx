@@ -3,12 +3,18 @@
 import { Avatar, AvatarFallback } from "@components/ui/avatar"
 import { Button } from "@components/ui/button"
 import { ArrowLeft, ArrowRight, ChevronDown, Save, Share2, Edit, Eye } from "lucide-react"
-import { useEditor } from "@lib/context/editor-context"
+import useEditorStore from "@lib/stores/useEditorStore"
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
 import { useCallback, useState, KeyboardEvent, useRef, useEffect } from "react"
 
-export function Navbar() {
-  const { saveDesign, isDesignSaved, isSaving, toggleEditMode, isEditMode, designName, renameDesign } = useEditor()
+export default function EditorNavbar() {
+  const saveDesign = useEditorStore(state => state.saveDesign)
+  const isDesignSaved = useEditorStore(state => state.isDesignSaved)
+  const isSaving = useEditorStore(state => state.isSaving)
+  const toggleEditMode = useEditorStore(state => state.toggleEditMode)
+  const isEditMode = useEditorStore(state => state.isEditMode)
+  const designName = useEditorStore(state => state.designName)
+  const renameDesign = useEditorStore(state => state.renameDesign)
   const [isPopoverOpen, setIsPopoverOpen] = useState(false)
   const [editingName, setEditingName] = useState(false)
   const [nameValue, setNameValue] = useState(designName)

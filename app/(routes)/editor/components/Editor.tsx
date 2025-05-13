@@ -1,23 +1,24 @@
 "use client"
 
-import { Canvas } from "@components/features/editor/canvas"
-import { TextToolbar } from "@components/features/editor/text-toolbar"
+import Canvas from "./Canvas";
+import { TextToolbar } from "@/(routes)/editor/components/TextToolbar"
 import { Slider } from "@components/ui/slider"
 import { Button } from "@components/ui/button"
 import { Badge } from "@components/ui/badge"
-import { useCanvas } from "@lib/context/canvas-context"
-import { useEditor } from "@lib/context/editor-context"
 import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor"
 import { HelpCircle, LayoutGrid, Maximize, Minus, PenLine, Plus, ZoomIn } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
-import BottomBar from "./bottom-bar"
-import PageNavigation from "./page-navigation"
+import BottomBar from "./BottomBar"
+import PageNavigation from "./PageNavigation"
+import { Element as CanvasElement } from "@lib/types/canvas.types" // Add explicit import for Element type
+import useEditorStore, { useCurrentPage } from "@lib/stores/useEditorStore"
+import useCanvasStore, { useCurrentPageElements, useCurrentCanvasSize } from "@lib/stores/useCanvasStore"
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.
  * It focuses exclusively on the canvas area and related editing functionality.
  */
-export function Editor() {
+export default function Editor() {
     // Reference for the editor container
     const editorContainerRef = useRef<HTMLDivElement>(null)
     const [zoom, setZoom] = useState(100) // 25 – 200 %
@@ -25,25 +26,30 @@ export function Editor() {
     // Track which page thumbnail is selected (for delete functionality)
     const [selectedPageThumbnail, setSelectedPageThumbnail] = useState<string | null>(null)
 
-    // Get editor-level state (pages, navigation)
-    const {
-        pages,
-        currentPageIndex,
-        currentPageId,
-        goToPage,
-        addPage,
-        deletePage
-    } = useEditor();
-
-    // Get canvas-level state (elements, selection)
-    const {
-        canvasSize,
-        selectedElement,
-        updateElement,
-        selectElement,
-        clearSelection,
-        selectCanvas
-    } = useCanvas();
+    // Use Zustand stores directly
+    const currentPage = useCurrentPage()
+    const currentPageId = useEditorStore(state => state.currentPageId)
+    const pages = useEditorStore(state => state.pages)
+    const currentPageIndex = useEditorStore(state => state.currentPageIndex)
+    const addPage = useEditorStore(state => state.addPage)
+    const goToPage = useEditorStore(state => state.goToPage)
+    const goToNextPage = useEditorStore(state => state.goToNextPage)
+    const goToPreviousPage = useEditorStore(state => state.goToPreviousPage)
+    const deletePage = useEditorStore(state => state.deletePage)
+    const duplicateCurrentPage = useEditorStore(state => state.duplicateCurrentPage)
+    const isEditMode = useEditorStore(state => state.isEditMode)
+    
+    // Canvas store selectors
+    const canvasSize = useCurrentCanvasSize()
+    const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
+    const selectedElement = useCanvasStore(state => state.selectedElement)
+    const updateElement = useCanvasStore(state => state.updateElement)
+    const clearSelection = useCanvasStore(state => state.clearSelection)
+    const undo = useCanvasStore(state => state.undo)
+    const redo = useCanvasStore(state => state.redo)
+    const canUndo = useCanvasStore(state => state.canUndo)
+    const canRedo = useCanvasStore(state => state.canRedo)
+    const elements = useCurrentPageElements()
 
     // Handle clicks outside the canvas to deselect everything
     const handleEditorClick = useCallback((e: React.MouseEvent) => {

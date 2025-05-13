@@ -51,7 +51,102 @@ export const AVAILABLE_CANVAS_SIZES: CanvasSize[] = [
   { name: "Portrait", width: 720, height: 1280, category: "Custom" },
 ]
 
-// Default canvas size
-export const DEFAULT_CANVAS_SIZE = AVAILABLE_CANVAS_SIZES.find(
-  (size) => size.name === "Presentation 16:9"
-) || AVAILABLE_CANVAS_SIZES[0]
+// Canvas constants
+export const DEFAULT_CANVAS_SIZE = {
+  name: "Presentation (16:9)",
+  width: 1280,
+  height: 720
+};
+
+// Default element settings
+export const DEFAULT_TEXT_ELEMENT = {
+  type: "text" as const,
+  x: 100,
+  y: 100,
+  width: 200,
+  height: 100,
+  content: "Text element",
+  fontSize: 20,
+  fontFamily: "Inter",
+  textAlign: "left" as const,
+  isNew: true,
+  isBold: false,
+  isItalic: false,
+  isUnderlined: false,
+  isStrikethrough: false
+};
+
+// Default canvas sizes
+export const CANVAS_SIZES = [
+  DEFAULT_CANVAS_SIZE,
+  {
+    name: "Instagram Post (1:1)",
+    width: 1080,
+    height: 1080,
+    category: "Social Media"
+  },
+  {
+    name: "Instagram Story (9:16)",
+    width: 1080,
+    height: 1920,
+    category: "Social Media"
+  },
+  {
+    name: "Facebook Post (1.91:1)",
+    width: 1200,
+    height: 628,
+    category: "Social Media"
+  },
+  {
+    name: "Twitter Post (16:9)",
+    width: 1200,
+    height: 675,
+    category: "Social Media"
+  },
+  {
+    name: "LinkedIn Post (1:1)",
+    width: 1104,
+    height: 1104,
+    category: "Social Media"
+  },
+  {
+    name: "YouTube Thumbnail (16:9)",
+    width: 1280,
+    height: 720,
+    category: "Video"
+  },
+  {
+    name: "A4 Document",
+    width: 794,
+    height: 1123,
+    category: "Print"
+  },
+  {
+    name: "US Letter",
+    width: 816,
+    height: 1056,
+    category: "Print"
+  }
+];
+
+// Zoom levels
+export const MIN_ZOOM = 0.1;
+export const MAX_ZOOM = 5;
+export const DEFAULT_ZOOM = 1;
+export const ZOOM_STEP = 0.1;
+
+// Text formatting
+export const TEXT_SIZES = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 96];
+export const FONT_FAMILIES = [
+  "Inter",
+  "Roboto",
+  "Open Sans",
+  "Lato",
+  "Montserrat",
+  "Playfair Display",
+  "Merriweather",
+  "Source Sans Pro",
+];
+
+// Selection constants
+export const SELECTION_HANDLE_SIZE = 8;

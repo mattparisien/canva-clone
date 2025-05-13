@@ -2,16 +2,20 @@
 
 import { Button } from "@components/ui/button"
 import { Input } from "@components/ui/input"
-import { useCanvas } from "@lib/context/canvas-context"
 import { cn } from "@/lib/utils/utils"
 import { AppWindow, Crown, Folder, LayoutGrid, Search, Settings, Shapes, Sparkles, Type, Upload } from "lucide-react"
 import { useEffect, useState } from "react"
+import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore"
 
-export function Sidebar() {
+export default function Sidebar() {
+  // Use the Zustand store directly
+  const addElement = useCanvasStore(state => state.addElement)
+  // Use the selector for canvas size
+  const canvasSize = useCurrentCanvasSize()
+
   const [activeTab, setActiveTab] = useState<string>("text")
   const [textTabHovered, setTextTabHovered] = useState(false)
   const [popoverHovered, setPopoverHovered] = useState(false)
-  const { addElement, canvasSize } = useCanvas()
 
   const tabs = [
     { id: "design", icon: LayoutGrid, label: "Design" },

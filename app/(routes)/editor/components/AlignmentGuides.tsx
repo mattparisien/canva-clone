@@ -1,11 +1,11 @@
 "use client"
 
-import type { Element } from "@context/canvas-context"
+import { Element as CanvasElement } from "@lib/types/canvas.types"
 import { useEffect, useState } from "react"
 
 interface AlignmentGuidesProps {
-  activeElement: Element
-  elements: Element[]
+  activeElement: CanvasElement
+  elements: CanvasElement[]
   canvasWidth: number
   canvasHeight: number
   alignments: {

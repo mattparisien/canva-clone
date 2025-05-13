@@ -2,22 +2,22 @@
 
 import type React from "react"
 
-import { TextEditor } from "@components/features/editor/text-editor"
-import type { Element } from "@lib/context/canvas-context"
-import { useCanvas } from "@lib/context/canvas-context"
+import { TextEditor } from "./TextEditor"
+import { Element as CanvasElement } from "@lib/types/canvas.types" // Change Element import to CanvasElement
 import { HANDLE_BASE_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react"
+import useCanvasStore from "@lib/stores/useCanvasStore"
 
 interface ResizableElementProps {
-  element: Element
+  element: CanvasElement // Change Element to CanvasElement
   isSelected: boolean
   scale: number
   canvasRef: React.RefObject<HTMLDivElement>
-  allElements: Element[]
+  allElements: CanvasElement[] // Change Element[] to CanvasElement[]
   canvasWidth: number
   canvasHeight: number
-  onDragStart: (element: Element) => void
-  onDrag: (element: Element, x: number, y: number, alignments: { horizontal: number[]; vertical: number[] }, isMultiSelectionDrag: boolean) => void
+  onDragStart: (element: CanvasElement) => void // Change Element to CanvasElement
+  onDrag: (element: CanvasElement, x: number, y: number, alignments: { horizontal: number[]; vertical: number[] }, isMultiSelectionDrag: boolean) => void // Change Element to CanvasElement
   onDragEnd: () => void
   onHover: (id: string | null) => void
   isEditMode: boolean // Add isEditMode prop
@@ -37,7 +37,11 @@ export function ResizableElement({
   onHover,
   isEditMode, // Accept the new prop
 }: ResizableElementProps) {
-  const { updateElement, selectElement, clearNewElementFlag, deleteElement, selectedElementIds } = useCanvas()
+  const updateElement = useCanvasStore(state => state.updateElement)
+  const selectElement = useCanvasStore(state => state.selectElement)
+  const clearNewElementFlag = useCanvasStore(state => state.clearNewElementFlag)
+  const deleteElement = useCanvasStore(state => state.deleteElement)
+  const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [resizeDirection, setResizeDirection] = useState<string | null>(null)
@@ -206,7 +210,7 @@ export function ResizableElement({
 
 
   // Find the closest snap point if within threshold
-  const getSnappedPosition = (currentX: number, currentY: number, otherElements: Element[]) => {
+  const getSnappedPosition = (currentX: number, currentY: number, otherElements: CanvasElement[]) => {
     if (!isSelected || !isDragging) return { x: currentX, y: currentY, alignments: { horizontal: [], vertical: [] } }
 
     const elementRight = currentX + element.width

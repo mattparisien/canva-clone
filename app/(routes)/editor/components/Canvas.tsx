@@ -1,12 +1,13 @@
 "use client"
 
-import { AlignmentGuides } from "@components/features/editor/alignment-guides"
-import { ResizableElement } from "@components/features/editor/resizable-element"
-import { useCanvas } from "@lib/context/canvas-context"
-import { useEditor } from "@lib/context/editor-context"
+import { AlignmentGuides } from "@/(routes)/editor/components/AlignmentGuides"
+import { ResizableElement } from "@/(routes)/editor/components/ResizableElement"
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"
+import { Element as CanvasElement } from "@lib/types/canvas.types" // Added explicit Element type import
+import useEditorStore from "@lib/stores/useEditorStore"
+import useCanvasStore, { useCurrentPageElements, useCurrentCanvasSize } from "@lib/stores/useCanvasStore"
 
-export function Canvas({
+export default function Canvas({
   zoom,
   setZoom
 }: {
@@ -16,23 +17,21 @@ export function Canvas({
   /* ------------------------------------------------------------------
    * Context / refs
    * ------------------------------------------------------------------ */
-  const {
-    elements,
-    selectedElement,
-    selectedElementIds,
-    selectElement,
-    isCanvasSelected,
-    selectCanvas,
-    canvasSize,
-    updateElement,
-    updateMultipleElements,
-    addElement,
-    fitCanvasToView,
-    isLoaded
-  } = useCanvas()
+  // Use Zustand stores directly
+  const isEditMode = useEditorStore(state => state.isEditMode)
   
-  // Get edit mode from editor context
-  const { isEditMode } = useEditor()
+  // Canvas store selectors
+  const elements = useCurrentPageElements()
+  const canvasSize = useCurrentCanvasSize()
+  const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
+  const selectElement = useCanvasStore(state => state.selectElement)
+  const selectCanvas = useCanvasStore(state => state.selectCanvas)
+  const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected)
+  const fitCanvasToView = useCanvasStore(state => state.fitCanvasToView)
+  const isElementSelected = useCanvasStore(state => state.isElementSelected)
+  const selectedElement = useCanvasStore(state => state.selectedElement)
+  const isLoaded = useCanvasStore(state => state.isLoaded)
+  const updateMultipleElements = useCanvasStore(state => state.updateMultipleElements)
 
   const scaleWrapperRef = useRef<HTMLDivElement>(null) // wrapper that gets the CSS scale()
   const canvasRef = useRef<HTMLDivElement>(null) // un‑scaled logical canvas
