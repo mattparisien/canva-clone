@@ -82,6 +82,7 @@ export async function DELETE(
   } catch (error: any) {
     console.error(`Error deleting project ${params?.id}:`, error.response?.data || error.message);
     return NextResponse.json(
+      { message: error.response?.data?.message || 'Failed to delete project' },
       { status: error.response?.status || 500 }
     );
   }

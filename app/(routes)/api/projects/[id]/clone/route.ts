@@ -17,7 +17,8 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    // Properly await the params object before accessing its properties
+    const id = params?.id;
     const body = await req.json(); // Should contain userId
 
     const response = await axios.post(`${BACKEND_URL}/api/projects/${id}/clone`, body, {
@@ -29,7 +30,7 @@ export async function POST(
 
     return NextResponse.json(response.data);
   } catch (error: any) {
-    console.error(`Error cloning project ${params.id}:`, error.response?.data || error.message);
+    console.error(`Error cloning project ${params?.id}:`, error.response?.data || error.message);
     return NextResponse.json(
       { message: error.response?.data?.message || 'Failed to clone project' },
       { status: error.response?.status || 500 }
