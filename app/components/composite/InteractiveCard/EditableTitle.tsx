@@ -10,8 +10,19 @@ interface EditableTitleProps {
 export function EditableTitle({ id, title, onTitleChange }: EditableTitleProps) {
     const [isTitleHovered, setIsTitleHovered] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    // Add local title state to display optimistically
+    const [localTitle, setLocalTitle] = useState(title);
     const [editedTitle, setEditedTitle] = useState(title);
     const inputRef = useRef<HTMLInputElement>(null);
+    const titleRef = useRef<HTMLHeadingElement>(null);
+    const [titleWidth, setTitleWidth] = useState<number | null>(null);
+
+    // Measure title element width to match input width
+    useEffect(() => {
+        if (titleRef.current && !isEditing) {
+            setTitleWidth(titleRef.current.clientWidth);
+        }
+    }, [localTitle, isEditing]);
 
     // Focus input when editing starts
     useEffect(() => {
@@ -21,9 +32,10 @@ export function EditableTitle({ id, title, onTitleChange }: EditableTitleProps) 
         }
     }, [isEditing]);
 
-    // Update edited title if the original title changes
+    // Update edited title and local title if the original title changes from props
     useEffect(() => {
         setEditedTitle(title);
+        setLocalTitle(title);
     }, [title]);
 
     const handleTitleClick = (e: React.MouseEvent) => {
@@ -34,10 +46,17 @@ export function EditableTitle({ id, title, onTitleChange }: EditableTitleProps) 
     };
 
     const handleTitleSubmit = () => {
-        if (editedTitle.trim() !== "" && editedTitle !== title) {
-            onTitleChange?.(id, editedTitle);
+        if (editedTitle.trim() !== "") {
+            // Update local title immediately for better UX
+            setLocalTitle(editedTitle);
+            
+            // Only call the API if the title actually changed
+            if (editedTitle !== title) {
+                onTitleChange?.(id, editedTitle);
+            }
         } else {
-            setEditedTitle(title); // Reset to original if empty
+            // If empty, revert to the original title
+            setEditedTitle(localTitle);
         }
         setIsEditing(false);
     };
@@ -46,7 +65,7 @@ export function EditableTitle({ id, title, onTitleChange }: EditableTitleProps) 
         if (e.key === "Enter") {
             handleTitleSubmit();
         } else if (e.key === "Escape") {
-            setEditedTitle(title); // Reset to original
+            setEditedTitle(localTitle); // Reset to current local title
             setIsEditing(false);
         }
     };
@@ -68,44 +87,50 @@ export function EditableTitle({ id, title, onTitleChange }: EditableTitleProps) 
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isEditing, editedTitle, title]);
+    }, [isEditing, editedTitle, localTitle]);
 
     return (
         <div 
-            className="relative flex items-center"
+            className="relative flex items-center min-h-[1.5rem]"
             onMouseEnter={() => setIsTitleHovered(true)}
             onMouseLeave={() => setIsTitleHovered(false)}
         >
-            {isEditing ? (
-                <input
-                    ref={inputRef}
-                    type="text"
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onBlur={handleTitleSubmit}
-                    className="w-full font-medium text-gray-900 border-b border-primary outline-none px-1 py-0.5 focus:ring-0"
-                    onClick={(e) => e.stopPropagation()}
-                />
-            ) : (
-                <div className="flex items-center justify-between w-full">
+            <div className="flex items-center justify-between w-full">
+                {isEditing ? (
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        onBlur={handleTitleSubmit}
+                        style={{ 
+                            width: titleWidth ? `${titleWidth + 4}px` : '100%',
+                            minWidth: '80%' 
+                        }}
+                        className="font-medium text-gray-900 outline-none border-b border-primary px-0 py-0 m-0 h-[1.5rem] focus:ring-0 box-border transition-all duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                ) : (
                     <h3 
-                        className="font-medium text-gray-900 truncate transition-colors duration-200 flex-1"
+                        ref={titleRef}
+                        className="font-medium text-gray-900 truncate transition-colors duration-200 flex-1 cursor-pointer h-[1.5rem] py-0 m-0 box-border"
                         onClick={handleTitleClick}
                     >
-                        {title}
+                        {localTitle}
                     </h3>
-                    {onTitleChange && isTitleHovered && (
-                        <button 
-                            onClick={handleTitleClick}
-                            className="ml-2 text-gray-400 hover:text-primary transition-colors"
-                            aria-label="Edit title"
-                        >
-                            <Pencil size={14} />
-                        </button>
-                    )}
-                </div>
-            )}
+                )}
+                
+                {onTitleChange && isTitleHovered && !isEditing && (
+                    <button 
+                        onClick={handleTitleClick}
+                        className="ml-2 text-gray-600 hover:text-black transition-colors flex-shrink-0"
+                        aria-label="Edit title"
+                    >
+                        <Pencil size={16} />
+                    </button>
+                )}
+            </div>
         </div>
     );
 }
