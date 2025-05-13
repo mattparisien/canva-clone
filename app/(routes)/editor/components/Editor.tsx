@@ -1,18 +1,13 @@
 "use client"
 
+import { TextToolbar } from "@/(routes)/editor/components/TextToolbar";
+import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor";
+import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@lib/stores/useCanvasStore";
+import useEditorStore, { useCurrentPage } from "@lib/stores/useEditorStore";
+import { useCallback, useEffect, useRef, useState } from "react";
+import BottomBar from "./BottomBar";
 import Canvas from "./Canvas";
-import { TextToolbar } from "@/(routes)/editor/components/TextToolbar"
-import { Slider } from "@components/ui/slider"
-import { Button } from "@components/ui/button"
-import { Badge } from "@components/ui/badge"
-import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor"
-import { HelpCircle, LayoutGrid, Maximize, Minus, PenLine, Plus, ZoomIn } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
-import BottomBar from "./BottomBar"
-import PageNavigation from "./PageNavigation"
-import { Element as CanvasElement } from "@lib/types/canvas.types" // Add explicit import for Element type
-import useEditorStore, { useCurrentPage } from "@lib/stores/useEditorStore"
-import useCanvasStore, { useCurrentPageElements, useCurrentCanvasSize } from "@lib/stores/useCanvasStore"
+import PageNavigation from "./PageNavigation";
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.
@@ -38,7 +33,7 @@ export default function Editor() {
     const deletePage = useEditorStore(state => state.deletePage)
     const duplicateCurrentPage = useEditorStore(state => state.duplicateCurrentPage)
     const isEditMode = useEditorStore(state => state.isEditMode)
-    
+
     // Canvas store selectors
     const canvasSize = useCurrentCanvasSize()
     const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
