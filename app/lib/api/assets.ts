@@ -1,94 +1,113 @@
-import axios from 'axios';
+/**
+ * API client for asset operations
+ */
 
 export interface Asset {
   _id: string;
   name: string;
-  originalFilename: string;
-  userId: string;
-  folderId: string | null;
-  type: 'image' | 'video' | 'audio' | 'document' | 'other';
-  mimeType: string;
-  fileSize: number;
+  type: string;
   url: string;
-  gridFsId?: string;
-  thumbnail?: string;
-  isShared: boolean;
-  sharedWith: string[];
-  metadata?: Record<string, any>;
-  tags: string[];
+  cloudinaryUrl?: string;
+  cloudinaryId?: string;
+  mimeType: string;
+  size?: number;
+  tags?: string[];
+  userId: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface UploadAssetParams {
-  file: File;
-  userId: string;
-  folderId?: string | null;
-  name?: string;
-  tags?: string[];
+const API_URL = '/api/assets';
+
+/**
+ * Upload a file as an asset
+ */
+export async function uploadAsset(file: File, tags: string[] = []): Promise<Asset> {
+  const formData = new FormData();
+  formData.append('asset', file);
+  
+  // Add tags if provided
+  if (tags.length > 0) {
+    formData.append('tags', JSON.stringify(tags));
+  }
+
+  const response = await fetch(API_URL, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload asset: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data;
 }
 
-class AssetsAPI {
-  async getAll(userId: string, folderId?: string | null, type?: string) {
-    let url = `/api/assets?userId=${userId}`;
-    
-    if (folderId !== undefined) {
-      url += `&folderId=${folderId === null ? 'null' : folderId}`;
-    }
-    
-    if (type) {
-      url += `&type=${type}`;
-    }
-    
-    const response = await axios.get<Asset[]>(url);
-    return response.data;
+/**
+ * Get all assets
+ */
+export async function getAllAssets(): Promise<Asset[]> {
+  const response = await fetch(API_URL, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch assets: ${response.status}`);
   }
 
-  async getById(id: string) {
-    const response = await axios.get<Asset>(`/api/assets/${id}`);
-    return response.data;
-  }
-
-  async upload({ file, userId, folderId = null, name, tags = [] }: UploadAssetParams) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('userId', userId);
-    
-    if (folderId !== undefined) {
-      formData.append('folderId', folderId === null ? 'null' : folderId);
-    }
-    
-    if (name) {
-      formData.append('name', name);
-    }
-    
-    if (tags.length > 0) {
-      formData.append('tags', JSON.stringify(tags));
-    }
-    
-    const response = await axios.post<Asset>(`/api/assets`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    
-    return response.data;
-  }
-
-  async update(id: string, updateData: Partial<Asset>) {
-    const response = await axios.put<Asset>(`/api/assets/${id}`, updateData);
-    return response.data;
-  }
-
-  async delete(id: string) {
-    const response = await axios.delete(`/api/assets/${id}`);
-    return response.data;
-  }
-
-  async move(id: string, folderId: string | null) {
-    const response = await axios.patch<Asset>(`/api/assets/${id}/move`, { folderId });
-    return response.data;
-  }
+  const data = await response.json();
+  return data.data;
 }
 
-export const assetsAPI = new AssetsAPI();
+/**
+ * Get an asset by ID
+ */
+export async function getAssetById(assetId: string): Promise<Asset> {
+  const response = await fetch(`${API_URL}/${assetId}`, {
+    method: 'GET',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch asset: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data;
+}
+
+/**
+ * Update an asset
+ */
+export async function updateAsset(
+  assetId: string,
+  updateData: { name?: string; tags?: string[] }
+): Promise<Asset> {
+  const response = await fetch(`${API_URL}/${assetId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updateData),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update asset: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.data;
+}
+
+/**
+ * Delete an asset
+ */
+export async function deleteAsset(assetId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/${assetId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete asset: ${response.status}`);
+  }
+}
