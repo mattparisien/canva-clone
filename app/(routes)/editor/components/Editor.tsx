@@ -44,6 +44,7 @@ export default function Editor() {
     const redo = useCanvasStore(state => state.redo)
     const canUndo = useCanvasStore(state => state.canUndo)
     const canRedo = useCanvasStore(state => state.canRedo)
+    const deleteSelectedElements = useCanvasStore(state => state.deleteSelectedElements)
     const elements = useCurrentPageElements()
 
     // Handle clicks outside the canvas to deselect everything
@@ -149,6 +150,31 @@ export default function Editor() {
         }
     }, [selectedElement, updateElement]);
 
+    // Add a keyboard event handler for element deletion
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check if the target is an input or textarea or contentEditable
+            const target = e.target as HTMLElement;
+            if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+                return;
+            }
+
+            // If Delete or Backspace key is pressed and we have selected elements
+            if ((e.key === "Delete" || e.key === "Backspace") && selectedElementIds.length > 0) {
+                e.preventDefault();
+                // Delete all selected elements
+                deleteSelectedElements();
+            }
+        };
+
+        // Add event listener to document
+        document.addEventListener("keydown", handleKeyDown);
+        
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [selectedElementIds, deleteSelectedElements]);
+
     const handleFontFamilyChange = useCallback((family: string) => {
         if (selectedElement && selectedElement.type === "text") {
             updateElement(selectedElement.id, { fontFamily: family })
@@ -178,24 +204,85 @@ export default function Editor() {
         }
     }, [selectedElement, updateElement]);
 
+    useEffect(() => {
+        // Add non-passive wheel event listener to prevent the error
+        const handleWheel = (e: WheelEvent) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                const zoomDelta = e.deltaY * 0.25;
+                const next = Math.round(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom - zoomDelta)));
+                setZoom(next);
+            }
+        };
+
+        // Get the element where the wheel event should be captured
+        const editorElement = editorContainerRef.current;
+        if (editorElement) {
+            editorElement.addEventListener('wheel', handleWheel, { passive: false });
+        }
+
+        return () => {
+            if (editorElement) {
+                editorElement.removeEventListener('wheel', handleWheel);
+            }
+        };
+    }, [zoom]);
+
+    // Add keyboard shortcut for creating text elements with 'T' key
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check if the target is an input or textarea or contentEditable
+            const target = e.target as HTMLElement;
+            if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+                return;
+            }
+
+            // Create text element when 'T' key is pressed
+            if (e.key === 't' || e.key === 'T') {
+                e.preventDefault();
+                
+                // Get addElement from store
+                const addElement = useCanvasStore.getState().addElement;
+                
+                // Create a new text element at the center of the canvas
+                const newTextElement = {
+                    type: "text" as const,
+                    x: (canvasSize.width - 300) / 2, // Center horizontally with default width
+                    y: (canvasSize.height - 100) / 2, // Center vertically with default height
+                    width: 300, // Default width
+                    height: 100, // Default height
+                    content: "Add your text here",
+                    fontSize: 36, // Default font size
+                    fontFamily: "Inter", // Default font
+                    textAlign: "center" as const,
+                    isNew: true, // Flag as new for immediate editing
+                    isBold: false,
+                    isItalic: false,
+                    isUnderlined: false,
+                    isStrikethrough: false
+                };
+                
+                // Add the element to the canvas
+                addElement(newTextElement);
+            }
+        };
+
+        // Add event listener to document
+        document.addEventListener("keydown", handleKeyDown);
+        
+        return () => {
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [canvasSize.width, canvasSize.height]);
+
     return (
         <div
             className="flex flex-1 overflow-hidden flex-col relative bg-slate-50"
             ref={editorContainerRef}
             onClick={handleEditorClick}
         >
-            {/* Main canvas area with wheel handler */}
-            <div
-                className="flex-1 overflow-hidden relative"
-                onWheel={e => {
-                    if (e.ctrlKey || e.metaKey) {
-                        e.preventDefault();
-                        const zoomDelta = e.deltaY * 0.25;
-                        const next = Math.round(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom - zoomDelta)));
-                        setZoom(next);
-                    }
-                }}
-            >
+            {/* Main canvas area with wheel handler - removing inline wheel handler */}
+            <div className="flex-1 overflow-hidden relative">
                 {/* TextToolbar moved here */}
                 {selectedElement && selectedElement.type === "text" && (
                     <TextToolbar
