@@ -7,11 +7,11 @@ import { Input } from "@components/ui/input"
 import { Label } from "@components/ui/label"
 import { Progress } from "@components/ui/progress"
 import { useToast } from "@components/ui/use-toast"
-import * as brandsAPI from "@lib/api/brands"
 import { Brand } from "@lib/types/brands"
 import { AlertCircle, FileText, Loader2, UploadCloud } from "lucide-react"
 import { useCallback, useState } from "react"
 import { useDropzone } from "react-dropzone"
+import { useBrands } from "@features/brands/use-brands"
 
 interface BrandDocumentUploadProps {
     onSuccess?: (brand: Brand) => void
@@ -26,6 +26,9 @@ export function BrandDocumentUpload({ onSuccess, onCancel }: BrandDocumentUpload
     const [progress, setProgress] = useState(0)
     const [error, setError] = useState<string | null>(null)
     const { toast } = useToast()
+    
+    // Use the brands hook
+    const { uploadDocumentsAndGenerateBrand } = useBrands()
 
     // Handle file drop
     const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -89,8 +92,8 @@ export function BrandDocumentUpload({ onSuccess, onCancel }: BrandDocumentUpload
                 })
             }, 1000)
 
-            // Upload files and generate brand with AI analysis
-            const brand = await brandsAPI.uploadDocumentsAndGenerateBrand(files, brandName)
+            // Use the hook to upload and generate brand
+            const brand = await uploadDocumentsAndGenerateBrand(files, brandName)
 
             clearInterval(progressInterval)
             setProgress(100)

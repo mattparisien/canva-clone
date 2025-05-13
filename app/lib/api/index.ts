@@ -9,4 +9,3 @@ export { userAPI } from './user';
 export { presentationsAPI } from './presentations';
 export { designsAPI } from './designs';
 export { foldersAPI } from './folders';
-export { assetsAPI } from './assets';

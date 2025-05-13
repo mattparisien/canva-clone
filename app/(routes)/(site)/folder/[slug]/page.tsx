@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
-import { assetsAPI, type Asset } from "@/lib/api/assets"
+import { assetsAPI, type Asset } from "@/lib/api/api"
 import { foldersAPI, type Folder as FolderType } from "@/lib/api/folders"
 import { pathToBreadcrumbs } from "@/lib/utils/folder-utils"
 import { ArrowLeft, File, Folder as FolderIcon, FolderOpen, Plus, Trash, Upload } from "lucide-react"

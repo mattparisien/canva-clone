@@ -1,6 +1,6 @@
 // API service for communicating with the backend
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-
+import { Brand as BrandType, CreateBrandRequest, GenerateBrandFromAssetsRequest } from "@/lib/types/brands";
 
 // Helper to get the auth token from localStorage
 const getAuthToken = () => {
@@ -25,7 +25,7 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error: AxiosError) => {
+  (error: AxiosError) => { 
     return Promise.reject(error);
   }
 );
@@ -97,6 +97,22 @@ interface ProfilePictureUploadResponse {
   message: string;
   profilePictureUrl: string;
   fileInfo?: any;
+}
+
+// Define interface for Asset
+export interface Asset {
+  _id: string;
+  name: string;
+  type: string;
+  url: string;
+  cloudinaryUrl?: string;
+  cloudinaryId?: string;
+  mimeType: string;
+  size?: number;
+  tags?: string[];
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Auth API
@@ -437,6 +453,303 @@ export const projectsAPI = {
     }
   },
 };
+
+// Assets API (converted from class-based to object structure)
+export const assetsAPI = {
+  API_URL: '/assets',
+  
+  /**
+   * Upload a file as an asset
+   */
+  upload: async (file: File, tags: string[] = []): Promise<Asset> => {
+    try {
+      const formData = new FormData();
+      formData.append('asset', file);
+      
+      // Add tags if provided
+      if (tags.length > 0) {
+        formData.append('tags', JSON.stringify(tags));
+      }
+    
+      const response = await apiClient.post<{data: Asset}>('/assets', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+    
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error uploading asset:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to upload asset');
+    }
+  },
+  
+  /**
+   * Get all assets
+   */
+  getAll: async (): Promise<Asset[]> => {
+    try {
+      const response = await apiClient.get<{data: Asset[]}>('/assets');
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error fetching assets:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch assets');
+    }
+  },
+  
+  /**
+   * Get an asset by ID
+   */
+  getById: async (assetId: string): Promise<Asset> => {
+    try {
+      const response = await apiClient.get<{data: Asset}>(`/assets/${assetId}`);
+      return response.data.data;
+    } catch (error: any) {
+      console.error(`Error fetching asset ${assetId}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch asset');
+    }
+  },
+  
+  /**
+   * Update an asset
+   */
+  update: async (
+    assetId: string,
+    updateData: { name?: string; tags?: string[] }
+  ): Promise<Asset> => {
+    try {
+      const response = await apiClient.put<{data: Asset}>(`/assets/${assetId}`, updateData);
+      return response.data.data;
+    } catch (error: any) {
+      console.error(`Error updating asset ${assetId}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to update asset');
+    }
+  },
+  
+  /**
+   * Delete an asset
+   */
+  delete: async (assetId: string): Promise<void> => {
+    try {
+      await apiClient.delete(`/assets/${assetId}`);
+    } catch (error: any) {
+      console.error(`Error deleting asset ${assetId}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to delete asset');
+    }
+  },
+
+  /**
+   * Upload multiple assets at once
+   */
+  uploadMultiple: async (files: File[], tags: string[] = []): Promise<Asset[]> => {
+    try {
+      const uploadPromises = files.map(file => assetsAPI.upload(file, tags));
+      return await Promise.all(uploadPromises);
+    } catch (error: any) {
+      console.error('Error uploading multiple assets:', error);
+      throw new Error('Failed to upload multiple assets');
+    }
+  },
+
+  /**
+   * Get assets by tags
+   */
+  getByTags: async (tags: string[]): Promise<Asset[]> => {
+    try {
+      const queryString = tags.join(',');
+      const response = await apiClient.get<{data: Asset[]}>(`/assets/tags?tags=${queryString}`);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error fetching assets by tags:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch assets by tags');
+    }
+  }
+};
+
+// BrandsAPI object structure (converted from class)
+export const brandsAPI = {
+  API_URL: '/brands',
+  
+  /**
+   * Get all brands for the current user
+   */
+  getAll: async (): Promise<BrandType[]> => {
+    try {
+      const response = await apiClient.get('/brands');
+      // Fix: Handle both possible response formats
+      return Array.isArray(response.data) ? response.data : 
+             response.data.data ? response.data.data : [];
+    } catch (error: any) {
+      console.error('Error fetching brands:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch brands');
+    }
+  },
+  
+  /**
+   * Get a brand by ID
+   */
+  getById: async (brandId: string): Promise<BrandType> => {
+    try {
+      const response = await apiClient.get(`/brands/${brandId}`);
+      // Fix: Handle both possible response formats
+      return response.data.data ? response.data.data : response.data;
+    } catch (error: any) {
+      console.error(`Error fetching brand ${brandId}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch brand');
+    }
+  },
+  
+  /**
+   * Create a new brand
+   */
+  create: async (brandData: CreateBrandRequest): Promise<BrandType> => {
+    try {
+      const response = await apiClient.post('/brands', brandData);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error creating brand:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to create brand');
+    }
+  },
+  
+  /**
+   * Update an existing brand
+   */
+  update: async (brandId: string, brandData: Partial<CreateBrandRequest>): Promise<BrandType> => {
+    try {
+      const response = await apiClient.put(`/brands/${brandId}`, brandData);
+      return response.data.data;
+    } catch (error: any) {
+      console.error(`Error updating brand ${brandId}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to update brand');
+    }
+  },
+  
+  /**
+   * Delete a brand
+   */
+  delete: async (brandId: string): Promise<void> => {
+    try {
+      await apiClient.delete(`/brands/${brandId}`);
+    } catch (error: any) {
+      console.error(`Error deleting brand ${brandId}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to delete brand');
+    }
+  },
+  
+  /**
+   * Generate a brand from assets
+   */
+  generateFromAssets: async (request: GenerateBrandFromAssetsRequest): Promise<BrandType> => {
+    try {
+      const response = await apiClient.post(`/brands/generate`, request);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('Error generating brand from assets:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to generate brand');
+    }
+  },
+  
+  /**
+   * Update a brand with a new asset
+   */
+  updateWithAsset: async (brandId: string, assetId: string): Promise<BrandType> => {
+    try {
+      const response = await apiClient.post(`/brands/${brandId}/add-asset`, { assetId });
+      return response.data.data;
+    } catch (error: any) {
+      console.error(`Error updating brand ${brandId} with asset:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to update brand with asset');
+    }
+  },
+  
+  /**
+   * Share a brand with other users
+   */
+  share: async (brandId: string, userEmails: string[]): Promise<BrandType> => {
+    try {
+      const response = await apiClient.post(`/brands/${brandId}/share`, { userEmails });
+      return response.data.data;
+    } catch (error: any) {
+      console.error(`Error sharing brand ${brandId}:`, error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to share brand');
+    }
+  },
+
+  /**
+   * Upload documents and generate a brand automatically using OpenAI analysis
+   * 
+   * @param files - Array of files to upload
+   * @param brandName - Name for the new brand
+   * @returns The created brand with AI-generated brand identity elements
+   */
+  uploadDocumentsAndGenerate: async (
+    files: File[],
+    brandName: string
+  ): Promise<BrandType> => {
+    try {
+      // First, upload all the documents as assets
+      const assetIds = await uploadFilesAsAssets(files);
+      
+      if (!assetIds.length) {
+        throw new Error('No assets were created from the uploaded files');
+      }
+      
+      // Then generate a brand from these assets
+      return brandsAPI.generateFromAssets({
+        assetIds,
+        brandName
+      });
+    } catch (error: any) {
+      console.error('Error uploading documents and generating brand:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to upload documents and generate brand');
+    }
+  }
+};
+
+/**
+ * Helper function to upload multiple files as assets
+ * @param files - Array of files to upload
+ * @returns Array of created asset IDs
+ */
+async function uploadFilesAsAssets(files: File[]): Promise<string[]> {
+  try {
+    const uploadPromises = files.map(file => uploadFileAsAsset(file));
+    const results = await Promise.all(uploadPromises);
+    return results.filter(id => id !== null) as string[];
+  } catch (error) {
+    console.error('Error uploading files as assets:', error);
+    throw new Error('Failed to upload files as assets');
+  }
+}
+
+/**
+ * Helper function to upload a single file as an asset
+ * @param file - File to upload
+ * @returns Created asset ID or null if upload failed
+ */
+async function uploadFileAsAsset(file: File): Promise<string | null> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', file.name);
+    
+    // Include optional metadata
+    const tags = ['brand-generation', 'auto-upload'];
+    formData.append('tags', JSON.stringify(tags));
+    
+    const response = await apiClient.post('/assets/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    return response.data.data._id;
+  } catch (error) {
+    console.error('Error uploading file:', file.name, error);
+    return null;
+  }
+}
 
 // For backward compatibility with existing code
 export const designsAPI = projectsAPI;

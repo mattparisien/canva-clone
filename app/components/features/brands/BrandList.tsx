@@ -1,57 +1,29 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Plus, Palette, RefreshCw, AlertCircle } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import * as brandsAPI from "@/lib/api/brands"
 import { Brand } from "@/lib/types/brands"
 import { BrandDocumentUpload } from "./BrandDocumentUpload"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useBrands } from "@/features/brands/use-brands"
 
 export function BrandList() {
   // State management
-  const [brands, setBrands] = useState<Brand[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const { toast } = useToast()
-
-  // Fetch brands on component mount
-  useEffect(() => {
-    fetchBrands()
-  }, [])
-
-  // Fetch brands from the API
-  const fetchBrands = async () => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      const fetchedBrands = await brandsAPI.getAllBrands()
-      setBrands(fetchedBrands)
-    } catch (err) {
-      setError("Failed to load brands")
-      toast({
-        title: "Error loading brands",
-        description: err instanceof Error ? err.message : "An unexpected error occurred",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  
+  // Use the brands hook
+  const { brands, isLoading, error, refetchBrands } = useBrands()
 
   // Handle successful brand creation
   const handleBrandCreated = (newBrand: Brand) => {
-    setBrands(prev => [...prev, newBrand])
+    // No need to manually update the brands array
+    // The useBrands hook will handle invalidation and refetching
     setIsSheetOpen(false)
-    
-    // Navigate to the brand detail page or do something else
-    // For now, we'll just close the sheet and refresh the list
+    refetchBrands()
   }
 
   // Render color palette circles
@@ -97,7 +69,7 @@ export function BrandList() {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-      ) : brands.length === 0 ? (
+      ) : brands?.length === 0 ? (
         <div className="py-20 text-center">
           <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-medium text-gray-600 mb-1">No Brands Yet</h3>
@@ -111,7 +83,7 @@ export function BrandList() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {brands.map(brand => (
+          {brands?.map(brand => (
             <Card key={brand._id} className="overflow-hidden">
               <div className="h-2 bg-gradient-to-r from-violet-500 to-fuchsia-500" />
               <CardHeader className="pb-3">
