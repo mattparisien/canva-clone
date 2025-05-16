@@ -28,6 +28,7 @@ export default function Editor() {
     const currentPageIndex = useEditorStore(state => state.currentPageIndex)
     const addPage = useEditorStore(state => state.addPage)
     const goToPage = useEditorStore(state => state.goToPage)
+    const fitCanvasToView = useEditorStore(state => state.fitCanvasToView)
     const goToNextPage = useEditorStore(state => state.goToNextPage)
     const goToPreviousPage = useEditorStore(state => state.goToPreviousPage)
     const deletePage = useEditorStore(state => state.deletePage)
@@ -298,6 +299,7 @@ export default function Editor() {
                     />
                 )}
                 <Canvas
+                    editorContainerRef={editorContainerRef}
                     zoom={zoom}
                     setZoom={handleZoomChange}
                 />

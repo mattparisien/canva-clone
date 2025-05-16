@@ -25,37 +25,37 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   addElement: (elementData) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    
+
     if (!currentPageId) return;
-    
+
     const currentPage = editor.pages.find(page => page.id === currentPageId);
-    
+
     if (!currentPage) return;
-    
+
     // Generate a unique ID for the new element
     const newElement: Element = {
       ...elementData,
       id: nanoid()
     };
-    
+
     // Add element to current page
     const updatedElements = [...currentPage.elements, newElement];
-    
+
     // Update page elements in the editor store
     editor.updatePageElements(currentPageId, updatedElements);
-    
+
     // Add to history
     const historyAction: HistoryAction = {
       type: 'ADD_ELEMENT',
       element: newElement,
       pageId: currentPageId
     };
-    
+
     // Update history in canvas store
     set(state => {
       const newHistory = state.history.slice(0, state.historyIndex + 1);
       newHistory.push(historyAction);
-      
+
       return {
         selectedElement: newElement,
         selectedElementIds: [newElement.id],
@@ -67,34 +67,34 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       };
     });
   },
-  
+
   // Update an existing element
   updateElement: (id, updates) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    
+
     if (!currentPageId) return;
-    
+
     const currentPage = editor.pages.find(page => page.id === currentPageId);
-    
+
     if (!currentPage) return;
-    
+
     // Find the element to update
     const elementToUpdate = currentPage.elements.find(el => el.id === id);
-    
+
     if (!elementToUpdate) return;
-    
+
     // Store the previous state for history
     const before = { ...elementToUpdate };
-    
+
     // Create updated elements array
-    const updatedElements = currentPage.elements.map(element => 
+    const updatedElements = currentPage.elements.map(element =>
       element.id === id ? { ...element, ...updates } : element
     );
-    
+
     // Update the page elements
     editor.updatePageElements(currentPageId, updatedElements);
-    
+
     // Add to history
     const historyAction: HistoryAction = {
       type: 'UPDATE_ELEMENT',
@@ -103,17 +103,17 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       after: updates,
       pageId: currentPageId
     };
-    
+
     // Update history in canvas store
     set(state => {
       const newHistory = state.history.slice(0, state.historyIndex + 1);
       newHistory.push(historyAction);
-      
+
       // Update selected element if it's the one being updated
       const updatedSelectedElement = state.selectedElement?.id === id
         ? { ...state.selectedElement, ...updates }
         : state.selectedElement;
-      
+
       return {
         selectedElement: updatedSelectedElement,
         historyIndex: state.historyIndex + 1,
@@ -123,45 +123,45 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       };
     });
   },
-  
+
   // Update multiple elements at once
   updateMultipleElements: (updates) => {
     const editor = useEditorStore.getState();
     const state = get();
     const currentPageId = editor.currentPageId;
     const selectedIds = state.selectedElementIds;
-    
+
     if (!currentPageId || selectedIds.length === 0) return;
-    
+
     const currentPage = editor.pages.find(page => page.id === currentPageId);
-    
+
     if (!currentPage) return;
-    
+
     // Store previous states for history
     const updatedElements = currentPage.elements.map(element => {
       if (selectedIds.includes(element.id)) {
-        const updatedProps = typeof updates === 'function' 
+        const updatedProps = typeof updates === 'function'
           ? updates(element)
           : updates;
-        
+
         return { ...element, ...updatedProps };
       }
       return element;
     });
-    
+
     // Update the page elements
     editor.updatePageElements(currentPageId, updatedElements);
-    
+
     // We're not tracking individual history for bulk updates
     // But we could add a more complex history action if needed
-    
+
     // Update selected element if it's in the selection
     set(state => {
       if (state.selectedElement && selectedIds.includes(state.selectedElement.id)) {
         const updatedProps = typeof updates === 'function'
           ? updates(state.selectedElement)
           : updates;
-          
+
         return {
           selectedElement: { ...state.selectedElement, ...updatedProps }
         };
@@ -169,45 +169,45 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       return {};
     });
   },
-  
+
   // Delete an element
   deleteElement: (id) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    
+
     if (!currentPageId) return;
-    
+
     const currentPage = editor.pages.find(page => page.id === currentPageId);
-    
+
     if (!currentPage) return;
-    
+
     // Find the element to delete for history
     const elementToDelete = currentPage.elements.find(el => el.id === id);
-    
+
     if (!elementToDelete) return;
-    
+
     // Filter out the element to delete
     const updatedElements = currentPage.elements.filter(element => element.id !== id);
-    
+
     // Update the page elements
     editor.updatePageElements(currentPageId, updatedElements);
-    
+
     // Add to history
     const historyAction: HistoryAction = {
       type: 'DELETE_ELEMENT',
       element: elementToDelete,
       pageId: currentPageId
     };
-    
+
     // Update history and selection in canvas store
     set(state => {
       const newHistory = state.history.slice(0, state.historyIndex + 1);
       newHistory.push(historyAction);
-      
+
       // Clear selection if the deleted element was selected
       const newSelectedElement = state.selectedElement?.id === id ? null : state.selectedElement;
       const newSelectedElementIds = state.selectedElementIds.filter(elementId => elementId !== id);
-      
+
       return {
         selectedElement: newSelectedElement,
         selectedElementIds: newSelectedElementIds,
@@ -219,19 +219,19 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       };
     });
   },
-  
+
   // Delete all selected elements
   deleteSelectedElements: () => {
     const state = get();
     const selectedIds = state.selectedElementIds;
-    
+
     if (selectedIds.length === 0) return;
-    
+
     // Delete each selected element
     selectedIds.forEach(id => {
       get().deleteElement(id);
     });
-    
+
     // Clear selection
     set({
       selectedElement: null,
@@ -239,16 +239,16 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       isCanvasSelected: true
     });
   },
-  
+
   // Select a specific element
   selectElement: (id, addToSelection = false) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    
+
     if (!currentPageId) return;
-    
+
     const currentPage = editor.pages.find(page => page.id === currentPageId);
-    
+
     if (!currentPage || !id) {
       // If id is null, clear selection
       set({
@@ -258,15 +258,15 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       });
       return;
     }
-    
+
     const elementToSelect = currentPage.elements.find(el => el.id === id);
-    
+
     if (!elementToSelect) return;
-    
+
     set(state => {
       // Determine the new selected IDs based on addToSelection flag
       let newSelectedIds: string[];
-      
+
       if (addToSelection) {
         // Toggle selection: if already selected, remove it; otherwise add it
         if (state.selectedElementIds.includes(id)) {
@@ -278,12 +278,12 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
         // Replace selection with just this element
         newSelectedIds = [id];
       }
-      
+
       // If multiple elements are selected, don't set a single selectedElement
-      const newSelectedElement = newSelectedIds.length === 1 
-        ? elementToSelect 
+      const newSelectedElement = newSelectedIds.length === 1
+        ? elementToSelect
         : null;
-      
+
       return {
         selectedElement: newSelectedElement,
         selectedElementIds: newSelectedIds,
@@ -291,7 +291,7 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       };
     });
   },
-  
+
   // Select multiple elements at once
   selectMultipleElements: (ids) => {
     if (ids.length === 0) {
@@ -302,14 +302,14 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       });
       return;
     }
-    
+
     set({
       selectedElement: null, // No single element focus when multiple are selected
       selectedElementIds: ids,
       isCanvasSelected: false
     });
   },
-  
+
   // Select or deselect the canvas
   selectCanvas: (select) => {
     if (select) {
@@ -324,7 +324,7 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       });
     }
   },
-  
+
   // Clear all selections
   clearSelection: () => {
     set({
@@ -333,24 +333,24 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       isCanvasSelected: true
     });
   },
-  
+
   // Change the canvas size
   changeCanvasSize: (size) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    
+
     if (!currentPageId) return;
-    
+
     const currentPage = editor.pages.find(page => page.id === currentPageId);
-    
+
     if (!currentPage) return;
-    
+
     // Store the previous size for history
     const before = { ...currentPage.canvasSize };
-    
+
     // Update the page canvas size
     editor.updatePageCanvasSize(currentPageId, size);
-    
+
     // Add to history
     const historyAction: HistoryAction = {
       type: 'CHANGE_CANVAS_SIZE',
@@ -358,12 +358,12 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       after: size,
       pageId: currentPageId
     };
-    
+
     // Update history in canvas store
     set(state => {
       const newHistory = state.history.slice(0, state.historyIndex + 1);
       newHistory.push(historyAction);
-      
+
       return {
         historyIndex: state.historyIndex + 1,
         history: newHistory,
@@ -372,49 +372,27 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       };
     });
   },
-  
-  // Helper to calculate zoom to fit canvas in view
-  fitCanvasToView: (containerWidth, containerHeight) => {
-    const editor = useEditorStore.getState();
-    const currentPageId = editor.currentPageId;
-    
-    if (!currentPageId) return 1;
-    
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-    
-    if (!currentPage) return 1;
-    
-    const canvasSize = currentPage.canvasSize || DEFAULT_CANVAS_SIZE;
-    
-    // Add padding around the canvas
-    const paddingFactor = 0.9; // 90% of container size
-    const widthScale = (containerWidth * paddingFactor) / canvasSize.width;
-    const heightScale = (containerHeight * paddingFactor) / canvasSize.height;
-    
-    // Use the smaller scale to ensure the entire canvas fits
-    return Math.min(widthScale, heightScale);
-  },
-  
+
   // Clear the "isNew" flag after an element is placed
   clearNewElementFlag: (id) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    
+
     if (!currentPageId) return;
-    
+
     const currentPage = editor.pages.find(page => page.id === currentPageId);
-    
+
     if (!currentPage) return;
-    
+
     // Find the element
     const element = currentPage.elements.find(el => el.id === id);
-    
+
     if (!element || !element.isNew) return;
-    
+
     // Update the element to remove the isNew flag
     get().updateElement(id, { isNew: false });
   },
-  
+
   // Helper to scale an element's position and size
   scaleElement: (element, scaleFactor) => {
     return {
@@ -426,30 +404,30 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       fontSize: element.fontSize ? element.fontSize * scaleFactor : undefined
     };
   },
-  
+
   // Undo the last action
   undo: () => {
     const state = get();
-    
+
     if (!state.canUndo || state.historyIndex < 0) return;
-    
+
     const action = state.history[state.historyIndex];
     const editor = useEditorStore.getState();
-    
+
     // Apply the reverse of the action
     switch (action.type) {
       case 'ADD_ELEMENT': {
         // Get the current page
         const currentPage = editor.pages.find(page => page.id === action.pageId);
-        
+
         if (!currentPage) break;
-        
+
         // Remove the added element
         const updatedElements = currentPage.elements.filter(el => el.id !== action.element.id);
-        
+
         // Update the page
         editor.updatePageElements(action.pageId, updatedElements);
-        
+
         // Update selection if needed
         if (state.selectedElement?.id === action.element.id) {
           set({
@@ -460,26 +438,26 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
         }
         break;
       }
-      
+
       case 'UPDATE_ELEMENT': {
         // Get the current page
         const currentPage = editor.pages.find(page => page.id === action.pageId);
-        
+
         if (!currentPage) break;
-        
+
         // Find the element to revert
         const elementToUpdate = currentPage.elements.find(el => el.id === action.id);
-        
+
         if (!elementToUpdate) break;
-        
+
         // Create updated elements array with reverted element
-        const updatedElements = currentPage.elements.map(element => 
+        const updatedElements = currentPage.elements.map(element =>
           element.id === action.id ? { ...element, ...action.before } : element
         );
-        
+
         // Update the page
         editor.updatePageElements(action.pageId, updatedElements);
-        
+
         // Update selected element if it's the one being reverted
         if (state.selectedElement?.id === action.id) {
           set({
@@ -488,35 +466,35 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
         }
         break;
       }
-      
+
       case 'DELETE_ELEMENT': {
         // Get the current page
         const currentPage = editor.pages.find(page => page.id === action.pageId);
-        
+
         if (!currentPage) break;
-        
+
         // Add the deleted element back
         const updatedElements = [...currentPage.elements, action.element];
-        
+
         // Update the page
         editor.updatePageElements(action.pageId, updatedElements);
         break;
       }
-      
+
       case 'CHANGE_CANVAS_SIZE': {
         // Get the current page
         const currentPage = editor.pages.find(page => page.id === action.pageId);
-        
+
         if (!currentPage) break;
-        
+
         // Revert to previous canvas size
         editor.updatePageCanvasSize(action.pageId, action.before);
         break;
       }
-      
+
       // Handle other action types as needed
     }
-    
+
     // Update history state
     set({
       historyIndex: state.historyIndex - 1,
@@ -524,51 +502,51 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       canRedo: true
     });
   },
-  
+
   // Redo the previously undone action
   redo: () => {
     const state = get();
-    
+
     if (!state.canRedo || state.historyIndex >= state.history.length - 1) return;
-    
+
     const action = state.history[state.historyIndex + 1];
     const editor = useEditorStore.getState();
-    
+
     // Apply the action again
     switch (action.type) {
       case 'ADD_ELEMENT': {
         // Get the current page
         const currentPage = editor.pages.find(page => page.id === action.pageId);
-        
+
         if (!currentPage) break;
-        
+
         // Add the element back
         const updatedElements = [...currentPage.elements, action.element];
-        
+
         // Update the page
         editor.updatePageElements(action.pageId, updatedElements);
         break;
       }
-      
+
       case 'UPDATE_ELEMENT': {
         // Get the current page
         const currentPage = editor.pages.find(page => page.id === action.pageId);
-        
+
         if (!currentPage) break;
-        
+
         // Find the element to update
         const elementToUpdate = currentPage.elements.find(el => el.id === action.id);
-        
+
         if (!elementToUpdate) break;
-        
+
         // Create updated elements array
-        const updatedElements = currentPage.elements.map(element => 
+        const updatedElements = currentPage.elements.map(element =>
           element.id === action.id ? { ...element, ...action.after } : element
         );
-        
+
         // Update the page
         editor.updatePageElements(action.pageId, updatedElements);
-        
+
         // Update selected element if it's the one being updated
         if (state.selectedElement?.id === action.id) {
           set({
@@ -577,19 +555,19 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
         }
         break;
       }
-      
+
       case 'DELETE_ELEMENT': {
         // Get the current page
         const currentPage = editor.pages.find(page => page.id === action.pageId);
-        
+
         if (!currentPage) break;
-        
+
         // Remove the element
         const updatedElements = currentPage.elements.filter(el => el.id !== action.element.id);
-        
+
         // Update the page
         editor.updatePageElements(action.pageId, updatedElements);
-        
+
         // Update selection if needed
         if (state.selectedElement?.id === action.element.id) {
           set({
@@ -600,21 +578,21 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
         }
         break;
       }
-      
+
       case 'CHANGE_CANVAS_SIZE': {
         // Get the current page
         const currentPage = editor.pages.find(page => page.id === action.pageId);
-        
+
         if (!currentPage) break;
-        
+
         // Apply the canvas size change
         editor.updatePageCanvasSize(action.pageId, action.after);
         break;
       }
-      
+
       // Handle other action types as needed
     }
-    
+
     // Update history state
     set({
       historyIndex: state.historyIndex + 1,
@@ -622,11 +600,39 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       canRedo: state.historyIndex + 1 < state.history.length - 1
     });
   },
-  
+
   // Helper function to check if an element is selected
   isElementSelected: (id) => {
     return get().selectedElementIds.includes(id);
+  },
+  // Helper to calculate zoom to fit canvas in view
+  fitCanvasToView: (container: HTMLElement, canvas: HTMLElement): number => {
+    if (!container || !canvas) return 1;
+  
+    // Force layout update if needed
+    const containerRect = container.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+  
+    const containerWidth = containerRect.width;
+    const containerHeight = containerRect.height;
+  
+    const canvasWidth = canvas.offsetWidth || 1;
+    const canvasHeight = canvas.offsetHeight || 1;
+
+    console.log(containerWidth, containerHeight);
+  
+    const scaleX = containerWidth / canvasWidth;
+    const scaleY = containerHeight / canvasHeight;
+  
+    const scale = Math.min(scaleX, scaleY) * 0.9;
+  
+    // Apply scale using CSS transform
+    canvas.style.transformOrigin = "top left";
+    canvas.style.transform = `scale(${scale})`;
+  
+    return scale;
   }
+  
 }));
 
 // Create a selector to get the current page elements
@@ -634,7 +640,7 @@ export const useCurrentPageElements = () => {
   const currentPage = useEditorStore(state => {
     return state.pages.find(page => page.id === state.currentPageId);
   });
-  
+
   return currentPage?.elements || [];
 };
 
@@ -643,7 +649,7 @@ export const useCurrentCanvasSize = () => {
   const currentPage = useEditorStore(state => {
     return state.pages.find(page => page.id === state.currentPageId);
   });
-  
+
   return currentPage?.canvasSize || DEFAULT_CANVAS_SIZE;
 };
 

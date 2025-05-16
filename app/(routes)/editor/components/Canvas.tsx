@@ -8,10 +8,12 @@ import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react
 
 export default function Canvas({
   zoom,
-  setZoom
+  setZoom,
+  editorContainerRef
 }: {
   zoom: number;
   setZoom: (zoom: number) => void;
+  editorContainerRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   /* ------------------------------------------------------------------
    * Context / refs
@@ -54,49 +56,30 @@ export default function Canvas({
   /* ------------------------------------------------------------------
    * Fit canvas to container on mount / resize
    * ------------------------------------------------------------------ */
-  // const fitCanvasToView = useCallback(() => {
-  //   if (!scaleWrapperRef.current) return;
+  useEffect(() => {
+    if (isLoaded && canvasRef.current && editorContainerRef?.current) {
+      // Only set initial zoom if it's still the default value (100)
+      if (zoom === 100) {
+        console.log(canvasRef.current, editorContainerRef.current); 
+        const initialScale = fitCanvasToView(canvasRef.current, editorContainerRef.current);
+        const initialZoom = Math.round(initialScale * 100); // Convert scale to percentage
+        console.log(initialZoom);
+        setZoom(initialZoom);
+      }
+    }
+  }, [isLoaded, canvasSize, editorContainerRef, zoom, setZoom, fitCanvasToView]);
 
-  // //   // Get container dimensions
-  // //   const containerWidth = scaleWrapperRef.current.clientWidth
-  // //   const containerHeight = scaleWrapperRef.current.clientHeight
-
-  // //   // Account for padding and UI elements with more accurate values
-  // //   // Adjust these values based on your UI layout
-  // //   const horizontalPadding = 120 // Increased padding on sides
-  // //   const verticalPadding = 300   // Increased padding for top/bottom controls
-
-  // //   const availableWidth = containerWidth - horizontalPadding
-  // //   const availableHeight = containerHeight - verticalPadding
-
-  // //   // Calculate the scale needed to fit the canvas
-  // //   const widthRatio = availableWidth / canvasSize.width
-  // //   const heightRatio = availableHeight / canvasSize.height
-
-  // //   // Use the smaller ratio to ensure the canvas fits entirely
-  // //   // Add a small buffer (0.95) to ensure there's always some margin
-  // //   const fitScale = Math.min(widthRatio, heightRatio, 1) * 0.95
-
-  // //   // Use the setZoom prop passed from Editor
-  // //   setZoom(Math.round(fitScale * 100))
-  // // }, [canvasSize.width, canvasSize.height, setZoom]);
-
-  // // // Initial fit on mount and when canvas size changes
-  // // useEffect(() => {
-  // //   // Increased timeout to ensure all layout is complete
-  // //   const timer = setTimeout(() => {
-  // //     fitCanvasToView()
-  // //     setIsInitialRender(false)
-  // //   }, 300) // Increased from 100ms to 300ms
-
-  // //   return () => clearTimeout(timer)
-  // }, [canvasSize.width, canvasSize.height, fitCanvasToView])
-
-  // Refit on window resize
-  // useEffect(() => {
-  //   window.addEventListener("resize", fitCanvasToView)
-  //   return () => window.removeEventListener("resize", fitCanvasToView)
-  // }, [canvasSize.width, canvasSize.height])
+  // Update transform scale when zoom changes
+  useEffect(() => {
+    if (scaleWrapperRef.current) {
+      scaleWrapperRef.current.style.transform = `scale(${scale})`;
+    }
+    
+    // Reset the initial render flag after a short delay
+    if (isInitialRender && zoom !== 100) {
+      setTimeout(() => setIsInitialRender(false), 300);
+    }
+  }, [zoom, scale, isInitialRender]);
 
   // Clear selection when switching to view mode
   useEffect(() => {
@@ -206,10 +189,9 @@ export default function Canvas({
     setIsHoveringChild(false)
   }, [])
 
-  console.log("Canvas hover state:", { isCanvasHovering, isHoveringChild, showCanvasBorder })
 
   return (
-    <div className="flex h-full w-full items-center justify-center overflow-auto bg-gradient-to-b from-slate-50 to-slate-100 pattern-grid-slate-100">
+    <div className="flex h-full w-full items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 pattern-grid-slate-100">
       {/* Canvas scaling wrapper with subtle grid pattern */}
       <div
         ref={scaleWrapperRef}

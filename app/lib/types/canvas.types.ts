@@ -93,9 +93,9 @@ export interface CanvasContextType {
   selectCanvas: (select: boolean) => void
   clearSelection: () => void
   changeCanvasSize: (size: CanvasSize) => void
-  fitCanvasToView: (containerWidth: number, containerHeight: number) => number
   clearNewElementFlag: (id: string) => void
   scaleElement: (element: Element, scaleFactor: number) => Element
+  fitCanvasToView: (container: HTMLDivElement, canvas: HTMLDivElement) => number
   
   // History
   canUndo: boolean
@@ -104,5 +104,6 @@ export interface CanvasContextType {
   redo: () => void
   
   // Utility
-  isElementSelected: (id: string) => boolean
+  isElementSelected: (id: string) => boolean,
+  
 }
