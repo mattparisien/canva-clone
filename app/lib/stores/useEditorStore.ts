@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { Element, Page, CanvasSize, EditorContextType } from "../types/canvas.types";
 import { DEFAULT_CANVAS_SIZE } from "../constants/canvas";
-import { projectsAPI } from "@/lib/api/api";
+import { projectsAPI } from "@/lib/api";
 
 // Define the store state interface
 interface EditorState extends Omit<EditorContextType, "currentPage"> {

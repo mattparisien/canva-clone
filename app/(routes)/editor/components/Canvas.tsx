@@ -2,10 +2,9 @@
 
 import { AlignmentGuides } from "@/(routes)/editor/components/AlignmentGuides"
 import { ResizableElement } from "@/(routes)/editor/components/ResizableElement"
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"
-import { Element as CanvasElement } from "@lib/types/canvas.types" // Added explicit Element type import
+import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@lib/stores/useCanvasStore"
 import useEditorStore from "@lib/stores/useEditorStore"
-import useCanvasStore, { useCurrentPageElements, useCurrentCanvasSize } from "@lib/stores/useCanvasStore"
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"
 
 export default function Canvas({
   zoom,
@@ -19,7 +18,7 @@ export default function Canvas({
    * ------------------------------------------------------------------ */
   // Use Zustand stores directly
   const isEditMode = useEditorStore(state => state.isEditMode)
-  
+
   // Canvas store selectors
   const elements = useCurrentPageElements()
   const canvasSize = useCurrentCanvasSize()
@@ -114,7 +113,7 @@ export default function Canvas({
   const handleCanvasClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
     // If in view mode, do nothing
     if (!isEditMode) return;
-    
+
     if (e.target === canvasRef.current) {
       // Toggle canvas selection if it's already selected
       if (isCanvasSelected) {
@@ -123,7 +122,7 @@ export default function Canvas({
         // Select the canvas if target is the canvas itself
         selectCanvas(true);
       }
-      
+
       // Clear element selection
       if (!e.shiftKey) {
         selectElement(null);
@@ -137,7 +136,7 @@ export default function Canvas({
   const handleDragStart = useCallback((element: any) => {
     // If in view mode, do nothing
     if (!isEditMode) return;
-    
+
     setIsDragging(true)
     setActiveDragElement(element.id)
     setAlignments({ horizontal: [], vertical: [] })
@@ -147,7 +146,7 @@ export default function Canvas({
   const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments, isDragSelection: boolean = false) => {
     // If in view mode, do nothing
     if (!isEditMode) return;
-    
+
     setAlignments(newAlignments)
 
     // When dragging multiple elements, update their positions
@@ -174,7 +173,7 @@ export default function Canvas({
   const handleDragEnd = useCallback(() => {
     // If in view mode, do nothing
     if (!isEditMode) return;
-    
+
     setIsDragging(false)
     setActiveDragElement(null)
     setAlignments({ horizontal: [], vertical: [] })
@@ -201,6 +200,14 @@ export default function Canvas({
   // Only show border when hovering over canvas but not over its children, and only in edit mode
   const showCanvasBorder = isCanvasHovering && !isHoveringChild && isEditMode
 
+  // Clear isHoveringChild when leaving canvas
+  const handleCanvasMouseLeave = useCallback(() => {
+    setIsCanvasHovering(false)
+    setIsHoveringChild(false)
+  }, [])
+
+  console.log("Canvas hover state:", { isCanvasHovering, isHoveringChild, showCanvasBorder })
+
   return (
     <div className="flex h-full w-full items-center justify-center overflow-auto bg-gradient-to-b from-slate-50 to-slate-100 pattern-grid-slate-100">
       {/* Canvas scaling wrapper with subtle grid pattern */}
@@ -224,10 +231,10 @@ export default function Canvas({
         <div
           ref={canvasRef}
           className={`canvas-wrapper relative bg-white overflow-hidden rounded-lg z-10 transition-all duration-200 ${
-            (isCanvasHovering && !isHoveringChild && isEditMode) 
-              ? "ring-8 ring-brand-blue ring-opacity-60" 
-              : (isCanvasSelected && isEditMode) 
+            (isCanvasSelected && isEditMode)  
               ? "ring-8 ring-brand-blue ring-opacity-80"
+              : (showCanvasBorder) 
+              ? "ring-8 ring-brand-blue ring-opacity-60" 
               : ""
           }`}
           style={{
@@ -238,8 +245,11 @@ export default function Canvas({
             borderRadius: "2px",
           }}
           onClick={handleCanvasClick}
-          onMouseEnter={() => isEditMode && setIsCanvasHovering(true)}
-          onMouseLeave={() => isEditMode && setIsCanvasHovering(false)}
+          onMouseEnter={() => { 
+            console.log('Canvas mouse enter triggered');  
+            if (isEditMode) setIsCanvasHovering(true);
+          }}
+          onMouseLeave={handleCanvasMouseLeave}
         >
           {/* Guides with brand colors */}
           {isDragging && selectedElement && isEditMode && (
@@ -270,11 +280,11 @@ export default function Canvas({
               isEditMode={isEditMode}
             />
           ))}
-          
+
           {/* Canvas editing overlay indicator - clean white background when selected */}
           {isCanvasSelected && isEditMode && (
-            <div 
-              className="absolute inset-0 pointer-events-none" 
+            <div
+              className="absolute inset-0 pointer-events-none"
               style={{
                 border: '3px solid rgba(30, 136, 229, 0.8)',
                 borderRadius: '3px'
@@ -282,19 +292,18 @@ export default function Canvas({
             />
           )}
         </div>
-        
+
         {/* Zoom indicator when changing zoom level */}
-        <div 
-          className={`absolute bottom-4 right-4 bg-white py-1 px-3 rounded-full shadow-md text-sm font-medium text-gray-700 transform transition-all duration-300 flex items-center gap-2 ${
-            isInitialRender ? 'translate-y-10 opacity-0' : 'opacity-80 hover:opacity-100'
-          }`}
-          style={{ transformOrigin: 'bottom right', transform: `scale(${1/scale})` }}
+        <div
+          className={`absolute bottom-4 right-4 bg-white py-1 px-3 rounded-full shadow-md text-sm font-medium text-gray-700 transform transition-all duration-300 flex items-center gap-2 ${isInitialRender ? 'translate-y-10 opacity-0' : 'opacity-80 hover:opacity-100'
+            }`}
+          style={{ transformOrigin: 'bottom right', transform: `scale(${1 / scale})` }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-brand-blue">
-            <path d="M15 3H21V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M9 21H3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M21 3L14 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M3 21L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M15 3H21V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M9 21H3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M21 3L14 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M3 21L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span>{zoom}%</span>
         </div>
