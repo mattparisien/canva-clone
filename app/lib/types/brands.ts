@@ -106,17 +106,7 @@ export interface Brand {
 /**
  * Create Brand Request
  */
-export interface CreateBrandRequest {
-  name: string;
-  description?: string;
-  industry?: string;
-  colorPalettes?: ColorPalette[];
-  typography?: Typography[];
-  logos?: Logo[];
-  brandVoice?: Partial<BrandVoice>;
-  images?: BrandImage[];
-  guidelines?: string;
-}
+export type CreateBrandRequest = Partial<Brand>;
 
 /**
  * Generate Brand From Assets Request

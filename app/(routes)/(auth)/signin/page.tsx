@@ -1,20 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
-import { Button } from "@components/ui/button";
-import { Input } from "@components/ui/input";
-import { Checkbox } from "@components/ui/checkbox";
-import { Label } from "@components/ui/label";
+import { authAPI } from "@/lib/api/";
 import { Alert, AlertDescription } from "@components/ui/alert";
+import { Button } from "@components/ui/button";
+import { Checkbox } from "@components/ui/checkbox";
+import { Input } from "@components/ui/input";
+import { Label } from "@components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
-import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function SignIn() {
   const router = useRouter();
-  const { status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -88,6 +86,14 @@ export default function SignIn() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const loginTemp = async () => {
+      const resp = await authAPI.login("matthewparisien4@gmail.com", "Chewing389389");
+    }
+
+    loginTemp();
+  }, [])
 
   return (
     <div className="flex h-screen">

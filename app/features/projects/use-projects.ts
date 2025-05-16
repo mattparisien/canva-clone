@@ -1,6 +1,8 @@
 import { useToast } from '@/components/ui/use-toast';
-import { type Project, projectsAPI } from '@/lib/api/api';
+import { projectsAPI } from '@/lib/api';
+import { type Project } from '@/lib/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 export function useProjectQuery() {
   const queryClient = useQueryClient();
@@ -9,18 +11,28 @@ export function useProjectQuery() {
   // Query for fetching all projects
   const projectsQuery = useQuery({
     queryKey: ['projects'],
-    queryFn: () => projectsAPI.getAll(),
+    queryFn: async () => {
+      try {
+        const data = await projectsAPI.getAll();
+        return data || []; // Always return an array, never undefined
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+        return []; // Return empty array on error
+      }
+    },
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Handle error outside of the query options
-  if (projectsQuery.error) {
-    toast({
-      title: "Error",
-      description: "Failed to load projects. Please try again later.",
-      variant: "destructive"
-    });
-  }
+  // Handle error with useEffect to prevent render-time state updates
+  useEffect(() => {
+    if (projectsQuery.error) {
+      toast({
+        title: "Error",
+        description: "Failed to load projects. Please try again later.",
+        variant: "destructive"
+      });
+    }
+  }, [projectsQuery.error, toast]);
 
   // Mutation for creating a new project
   const createProjectMutation = useMutation({
@@ -221,18 +233,28 @@ export function useTemplatesQuery(category?: string, type?: string) {
   // Query for fetching all templates
   const templatesQuery = useQuery({
     queryKey: ['templates', { category, type }],
-    queryFn: () => projectsAPI.getTemplates(category, type),
+    queryFn: async () => {
+      try {
+        const data = await projectsAPI.getTemplates(category, type);
+        return data || []; // Always return an array, never undefined
+      } catch (error) {
+        console.error("Error fetching templates:", error);
+        return []; // Return empty array on error
+      }
+    },
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Handle error outside of the query options
-  if (templatesQuery.error) {
-    toast({
-      title: "Error",
-      description: "Failed to load templates. Please try again later.",
-      variant: "destructive"
-    });
-  }
+  // Handle error with useEffect to prevent render-time state updates
+  useEffect(() => {
+    if (templatesQuery.error) {
+      toast({
+        title: "Error",
+        description: "Failed to load templates. Please try again later.",
+        variant: "destructive"
+      });
+    }
+  }, [templatesQuery.error, toast]);
 
   // Use a template to create a new project
   const useTemplateMutation = useMutation({

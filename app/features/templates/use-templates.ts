@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { templatesAPI, Template } from '@/lib/api/templates';
+import { templatesAPI } from '@/lib/api';
+import { Template } from '@/lib/types/api';
 import { useToast } from '@/components/ui/use-toast';
 
 interface UseTemplatesQueryProps {

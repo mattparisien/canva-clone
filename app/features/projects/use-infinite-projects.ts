@@ -1,7 +1,8 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { projectsAPI, Project } from "@lib/api/api";
+import { projectsAPI } from "@lib/api";
+import { type Project } from "@/lib/types/api";
 import { useMemo } from "react";
 
 interface ProjectsPageData {
@@ -42,8 +43,7 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     queryKey: ['infiniteProjects', limit, filters],
     queryFn: async ({ pageParam = 1 }) => {
       // Call the API with the current page and filters
-      const result = await projectsAPI.getProjects(pageParam, limit, filters);
-      console.log(result);
+      const result = await projectsAPI.getPaginated(pageParam, limit, filters);
       return result;
     },
     getNextPageParam: (lastPage: ProjectsPageData) => {

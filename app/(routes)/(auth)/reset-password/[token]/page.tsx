@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@lib/context/auth-context";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/ui/card";
@@ -13,7 +12,6 @@ import { useParams } from "next/navigation";
 export default function ResetPasswordPage() {
   const params = useParams();
   const router = useRouter();
-  const { resetPassword } = useAuth();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +46,7 @@ export default function ResetPasswordPage() {
       setIsLoading(true);
       setError(null);
       
-      await resetPassword(token, password);
+      // await resetPassword(token, password);
       
       // Redirect to dashboard after successful password reset
       router.push('/');

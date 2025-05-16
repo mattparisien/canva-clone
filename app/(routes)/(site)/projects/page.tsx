@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { SelectionProvider } from "@lib/context/selection-context"
-import { SelectableCard } from "@/components/composite/InteractiveCard/InteractiveCard"
+import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveCard"
 import { SelectionActions } from "@/components/composite/SelectionActions"
 import { Button } from "@components/ui/button"
 import { useToast } from "@components/ui/use-toast"
-import { projectsAPI } from "@lib/api/api"
+import { projectsAPI } from "@lib/api"
+import { SelectionProvider } from "@lib/context/selection-context"
+import { useEffect, useState } from "react"
 
 // Mock project type for demonstration
 interface Project {
@@ -84,16 +84,16 @@ export default function ProjectsPage() {
     try {
       // Call API to update project title
       await projectsAPI.update(id, { title: newTitle });
-      
+
       // Update the project title in the local state
-      setProjects(prevProjects => 
-        prevProjects.map(project => 
-          project.id === id 
+      setProjects(prevProjects =>
+        prevProjects.map(project =>
+          project.id === id
             ? { ...project, title: newTitle }
             : project
         )
       );
-      
+
       // Show success toast
       toast({
         title: "Success",
@@ -131,7 +131,7 @@ export default function ProjectsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {projects.map((project) => (
-            <SelectableCard
+            <InteractiveCard
               key={project.id}
               id={project.id}
               image={{

@@ -7,6 +7,7 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 // POST: Login user
 export async function POST(req: NextRequest) {
   try {
+    console.log('Login request received');
     const body = await req.json();
 
     const response = await axios.post(`${BACKEND_URL}/api/auth/login`, body, {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useProjectQuery } from "@/features/projects/use-projects";
-import { useAuth } from "@/lib/context/auth-context";
 import { NavigationIconName, NavigationItem } from "@/lib/types/navigation.types";
 import { cn } from "@/lib/utils/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
@@ -75,7 +74,6 @@ const SidebarLink = ({ href, iconName, label, isActive }: SidebarLinkProps) => {
 export function NavigationSidebar({ items }: NavigationSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth()
   const { createProject } = useProjectQuery();
 
   // Fix the active state logic to prevent multiple selections
@@ -97,13 +95,14 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
     return false;
   };
 
+  // Move handleCreateProject to an event handler instead of render-time execution
   const handleCreateProject = async () => {
     try {
       const project = {
         title: 'Untitled Design',
         description: "",
         type: "presentation",
-        userId: user?.id, // Replace with actual user ID from auth
+        userId: 1234,
         canvasSize: {
           name: "Presentation 16:9",
           width: 1920,
@@ -127,13 +126,9 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
         starred: false,
         shared: false
       }
+      
       const newProject = await createProject(project);
-
       if (newProject) router.push(`/editor?id=${newProject._id}`);
-
-      // if (newProject) {
-      // Redirect to the new project page
-      // window.location.href = `/editor?id=${newProject._id}`;
     } catch (error) {
       console.error("Error creating project:", error);
     }

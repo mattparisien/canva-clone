@@ -1,72 +1,53 @@
-import axios from 'axios';
+import { Axios } from "axios";
+import { AuthAPIService, AuthResponse, User } from "../types/api";
+import { APIBase } from "./base";
 
-// Interface definitions
-export interface User {
-  _id: string;
-  name: string;
-  email: string;
-  company?: string;
-  location?: string;
-  bio?: string;
-  joinedAt: string;
-  profilePictureUrl?: string;
-}
+export class AuthAPI extends APIBase implements AuthAPIService {
+  API_URL: string = "/custom-auth";
+  apiClient: Axios;
 
-export interface AuthResponse {
-  user: User;
-  token: string;
-}
+  constructor(apiClient: Axios) {
+    super();
+    this.apiClient = apiClient;
+  }
 
-export interface UpdateProfilePayload {
-  name?: string;
-  company?: string;
-  location?: string;
-  bio?: string;
-  currentPassword?: string;
-  newPassword?: string;
-}
-
-// Auth API class
-class AuthAPI {
-  // Verify user token
-  async verifyToken(token?: string) {
+  async verifyToken(token?: string): Promise<User> {
     try {
-      const response = await axios.get<{user: User}>('/api/auth/me', {
+      const response = await this.apiClient.get<{ user: User }>('/auth/me', {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined
       });
-      return response.data;
+      return response.data.user;
     } catch (error: any) {
       console.error('Error verifying token:', error.response?.data || error.message);
       throw error.response?.data || new Error('Failed to verify token');
     }
   }
-  
-  // Login user
-  async login(email: string, password: string) {
+
+  async register(name: string, email: string, password: string): Promise<AuthResponse> {
     try {
-      const response = await axios.post<AuthResponse>('/api/auth/login', { email, password });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error logging in:', error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to login');
-    }
-  }
-  
-  // Register new user
-  async register(name: string, email: string, password: string) {
-    try {
-      const response = await axios.post<AuthResponse>('/api/auth/register', { name, email, password });
+      const response = await this.apiClient.post<AuthResponse>('/auth/register', { name, email, password });
       return response.data;
     } catch (error: any) {
       console.error('Error registering:', error.response?.data || error.message);
       throw error.response?.data || new Error('Failed to register');
     }
   }
-  
-  // Logout user
-  async logout(token?: string) {
+
+  async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      await axios.post<void>('/api/auth/logout', {}, {
+      console.log('Logging in with:', { email, password });
+      const response = await this.apiClient.post<AuthResponse>('/custom-auth/login', { email, password });
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Error logging in:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to login');
+    }
+  }
+
+  async logout(token?: string): Promise<void> {
+    try {
+      await this.apiClient.post<void>('/auth/logout', {}, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined
       });
     } catch (error: any) {
@@ -74,39 +55,4 @@ class AuthAPI {
       throw error.response?.data || new Error('Failed to logout');
     }
   }
-  
-  // Forgot password
-  async forgotPassword(email: string) {
-    try {
-      const response = await axios.post<{message: string}>('/api/auth/forgot-password', { email });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error with forgot password:', error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to process forgot password request');
-    }
-  }
-  
-  // Reset password
-  async resetPassword(token: string, password: string) {
-    try {
-      const response = await axios.post<AuthResponse>(`/api/auth/reset-password/${token}`, { password });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error resetting password:', error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to reset password');
-    }
-  }
-  
-  // Update user profile
-  async updateProfile(data: UpdateProfilePayload) {
-    try {
-      const response = await axios.put<{user: User}>('/api/auth/update-profile', data);
-      return response.data;
-    } catch (error: any) {
-      console.error('Error updating profile:', error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to update profile');
-    }
-  }
 }
-
-export const authAPI = new AuthAPI();

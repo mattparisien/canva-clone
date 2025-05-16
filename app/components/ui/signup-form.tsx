@@ -11,7 +11,7 @@ import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
 import { Alert, AlertDescription } from "@components/ui/alert";
 import { Eye, EyeOff } from "lucide-react";
-import { authAPI } from "@lib/api";
+import { authAPI } from "@/lib/api";
 
 // Schema for validation
 const SignupSchema = z.object({

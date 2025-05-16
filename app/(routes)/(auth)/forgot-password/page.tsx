@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@lib/context/auth-context";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/ui/card";
@@ -10,7 +9,6 @@ import { Alert, AlertDescription } from "@components/ui/alert";
 import Link from "next/link";
 
 export default function ForgotPasswordPage() {
-  const { forgotPassword } = useAuth();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -28,7 +26,7 @@ export default function ForgotPasswordPage() {
       setIsLoading(true);
       setError(null);
       
-      const message = await forgotPassword(email);
+      const message = "";
       setMessage(message);
     } catch (err: any) {
       setError(err.message || "Failed to send password reset email");
