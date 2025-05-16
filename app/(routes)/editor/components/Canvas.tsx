@@ -56,18 +56,18 @@ export default function Canvas({
   /* ------------------------------------------------------------------
    * Fit canvas to container on mount / resize
    * ------------------------------------------------------------------ */
-  useEffect(() => {
-    if (isLoaded && canvasRef.current && editorContainerRef?.current) {
-      // Only set initial zoom if it's still the default value (100)
-      if (zoom === 100) {
-        console.log(canvasRef.current, editorContainerRef.current); 
-        const initialScale = fitCanvasToView(canvasRef.current, editorContainerRef.current);
-        const initialZoom = Math.round(initialScale * 100); // Convert scale to percentage
-        console.log(initialZoom);
-        setZoom(initialZoom);
-      }
-    }
-  }, [isLoaded, canvasSize, editorContainerRef, zoom, setZoom, fitCanvasToView]);
+  // useEffect(() => {
+  //   if (isLoaded && canvasRef.current && editorContainerRef?.current) {
+  //     // Only set initial zoom if it's still the default value (100)
+  //     if (zoom === 100) {
+  //       console.log(canvasRef.current, editorContainerRef.current); 
+  //       const initialScale = fitCanvasToView(canvasRef.current, editorContainerRef.current);
+  //       const initialZoom = Math.round(initialScale * 100); // Convert scale to percentage
+  //       console.log(initialZoom);
+  //       setZoom(initialZoom);
+  //     }
+  //   }
+  // }, [isLoaded, canvasSize, editorContainerRef, zoom, setZoom, fitCanvasToView]);
 
   // Update transform scale when zoom changes
   useEffect(() => {

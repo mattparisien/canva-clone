@@ -16,7 +16,7 @@ import PageNavigation from "./PageNavigation";
 export default function Editor() {
     // Reference for the editor container
     const editorContainerRef = useRef<HTMLDivElement>(null)
-    const [zoom, setZoom] = useState(100) // 25 – 200 %
+    const [zoom, setZoom] = useState(30) // 25 – 200 %
     const [isFullscreen, setIsFullscreen] = useState(false)
     // Track which page thumbnail is selected (for delete functionality)
     const [selectedPageThumbnail, setSelectedPageThumbnail] = useState<string | null>(null)
