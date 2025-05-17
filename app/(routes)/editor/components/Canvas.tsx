@@ -188,12 +188,23 @@ export default function Canvas({
   }, [])
 
   useEffect(() => {
-    window?.addEventListener("click", e => {
-      if (canvasRef.current && !canvasRef.current.contains(e.target as Node)) {
+    const handleOutsideClick = (e: MouseEvent) => {
+      // Only deselect if canvas is currently selected AND click is outside canvas
+      if (canvasRef.current && 
+          !canvasRef.current.contains(e.target as Node) && 
+          isCanvasSelected) {
         togggleCanvasSelection();
       }
-    })
-  } ,[isHoveringChild])
+    };
+  
+    // Add the event listener
+    window.addEventListener("click", handleOutsideClick);
+    
+    // Clean up the event listener
+    return () => {
+      window.removeEventListener("click", handleOutsideClick);
+    };
+  }, [isCanvasSelected, togggleCanvasSelection]);
 
 
   const isBorderActive = (isCanvasSelected && isEditMode) || isCanvasHovering && isEditMode;
