@@ -188,7 +188,7 @@ export default function Canvas({
   }, [])
 
   useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
+    const handleOutsideClick = (e: globalThis.MouseEvent) => {
       // Only deselect if canvas is currently selected AND click is outside canvas
       if (canvasRef.current &&
         !canvasRef.current.contains(e.target as Node) &&
@@ -213,10 +213,19 @@ export default function Canvas({
 
     <div
       ref={canvasRef}
-      className={classNames("flex items-center justify-center p-1 relative bg-white shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)]", {
-        "border-4 border-brand-blue": isBorderActive,
-        "overflow-hidden": true
-      })}
+      className={classNames("flex items-center justify-center p-1 z-50 relative bg-white shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)] overflow-hidden",
+        // "border-4 border-brand-blue": isBorderActive,
+        isBorderActive && [
+          "before:content-['']",
+          "before:absolute",
+          "before:inset-0",                            // sit on all four edges
+          "before:border-4",                          // 4 px border thickness (1 rem)
+          "before:border-brand-blue",                 // your brand colour
+          "before:rounded-lg",                        // keep same radius as container
+          "before:pointer-events-none",
+          "before:z-[-1]"                             // behind the content
+        ]
+      )}
       style={{
         width: canvasSize.width,
         height: canvasSize.height,
@@ -235,63 +244,50 @@ export default function Canvas({
     >
 
       {/* Loading indicator - shown when canvas is not loaded */}
-      {!isLoaded && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-white bg-opacity-80 backdrop-blur-sm rounded-lg">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 border-t-4 border-b-4 border-brand-blue rounded-full animate-spin"></div>
-            <p className="text-sm text-gray-600 font-medium">Loading canvas...</p>
+      {
+        !isLoaded && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-white bg-opacity-80 backdrop-blur-sm rounded-lg">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-10 h-10 border-t-4 border-b-4 border-brand-blue rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-600 font-medium">Loading canvas...</p>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Actual canvas */}
+        )
+      }
 
       {/* Guides with brand colors */}
-      {isDragging && selectedElement && isEditMode && (
-        <AlignmentGuides
-          activeElement={selectedElement}
-          elements={elements}
-          canvasWidth={canvasSize.width}
-          canvasHeight={canvasSize.height}
-          alignments={alignments}
-        />
-      )}
+      {
+        isDragging && selectedElement && isEditMode && (
+          <AlignmentGuides
+            activeElement={selectedElement}
+            elements={elements}
+            canvasWidth={canvasSize.width}
+            canvasHeight={canvasSize.height}
+            alignments={alignments}
+          />
+        )
+      }
 
       {/* Canvas elements */}
-      {elements.map((el) => (
-        <ResizableElement
-          key={el.id}
-          element={el}
-          isSelected={isEditMode && (selectedElementIds.includes(el.id) || selectedElement?.id === el.id)}
-          scale={scale}
-          canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
-          allElements={elements}
-          canvasWidth={canvasSize.width}
-          canvasHeight={canvasSize.height}
-          onDragStart={handleDragStart}
-          onDrag={handleDrag}
-          onDragEnd={handleDragEnd}
-          onHover={handleElementHover}
-          isEditMode={isEditMode}
-        />
-      ))}
-
-
-
-      {/* Zoom indicator when changing zoom level */}
-      <div
-        className={`absolute bottom-4 right-4 bg-white py-1 px-3 rounded-full shadow-md text-sm font-medium text-gray-700 transform transition-all duration-300 flex items-center gap-2 ${isInitialRender ? 'translate-y-10 opacity-0' : 'opacity-80 hover:opacity-100'
-          }`}
-        style={{ transformOrigin: 'bottom right', transform: `scale(${1 / scale})` }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-brand-blue">
-          <path d="M15 3H21V9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M9 21H3V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M21 3L14 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M3 21L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span>{zoom}%</span>
-      </div>
+      {
+        elements.map((el) => (
+          <ResizableElement
+            key={el.id}
+            element={el}
+            isSelected={isEditMode && (selectedElementIds.includes(el.id) || selectedElement?.id === el.id)}
+            scale={scale}
+            canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
+            allElements={elements}
+            canvasWidth={canvasSize.width}
+            canvasHeight={canvasSize.height}
+            onDragStart={handleDragStart}
+            onDrag={handleDrag}
+            onDragEnd={handleDragEnd}
+            onHover={handleElementHover}
+            isEditMode={isEditMode}
+          />
+        ))
+      }
     </div>
   )
 }
