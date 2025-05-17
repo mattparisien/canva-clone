@@ -190,16 +190,16 @@ export default function Canvas({
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       // Only deselect if canvas is currently selected AND click is outside canvas
-      if (canvasRef.current && 
-          !canvasRef.current.contains(e.target as Node) && 
-          isCanvasSelected) {
+      if (canvasRef.current &&
+        !canvasRef.current.contains(e.target as Node) &&
+        isCanvasSelected) {
         togggleCanvasSelection();
       }
     };
-  
+
     // Add the event listener
     window.addEventListener("click", handleOutsideClick);
-    
+
     // Clean up the event listener
     return () => {
       window.removeEventListener("click", handleOutsideClick);
@@ -212,12 +212,26 @@ export default function Canvas({
   return (
 
     <div
-      ref={scaleWrapperRef}
-      style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
-      className={classNames("flex items-center justify-center p-1 relative shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)]", {
+      ref={canvasRef}
+      className={classNames("flex items-center justify-center p-1 relative bg-white shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)]", {
         "border-4 border-brand-blue": isBorderActive,
         "overflow-hidden": true
       })}
+      style={{
+        width: canvasSize.width,
+        height: canvasSize.height,
+        boxShadow: "0 6px 30px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.05)",
+        cursor: isEditMode ? "default" : "default",
+        borderRadius: "2px",
+        transform: `scale(${scale})`, transformOrigin: "center center"
+      }}
+      onClick={handleCanvasClick}
+      onMouseLeave={handleCanvasMouseLeave}
+      onMouseEnter={() => {
+        console.log('Canvas mouse enter triggered');
+        if (isEditMode) setIsCanvasHovering(true);
+      }}
+
     >
 
       {/* Loading indicator - shown when canvas is not loaded */}
@@ -231,55 +245,38 @@ export default function Canvas({
       )}
 
       {/* Actual canvas */}
-      <div
-        ref={canvasRef}
-        className={"canvas-wrapper relative bg-white overflow-hidden rounded-lg z-10 transition-all duration-200"}
-        style={{
-          width: canvasSize.width,
-          height: canvasSize.height,
-          boxShadow: "0 6px 30px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.05)",
-          cursor: isEditMode ? "default" : "default",
-          borderRadius: "2px",
-        }}
-        onClick={handleCanvasClick}
-        onMouseEnter={() => {
-          console.log('Canvas mouse enter triggered');
-          if (isEditMode) setIsCanvasHovering(true);
-        }}
-        onMouseLeave={handleCanvasMouseLeave}
-      >
-        {/* Guides with brand colors */}
-        {isDragging && selectedElement && isEditMode && (
-          <AlignmentGuides
-            activeElement={selectedElement}
-            elements={elements}
-            canvasWidth={canvasSize.width}
-            canvasHeight={canvasSize.height}
-            alignments={alignments}
-          />
-        )}
 
-        {/* Canvas elements */}
-        {elements.map((el) => (
-          <ResizableElement
-            key={el.id}
-            element={el}
-            isSelected={isEditMode && (selectedElementIds.includes(el.id) || selectedElement?.id === el.id)}
-            scale={scale}
-            canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
-            allElements={elements}
-            canvasWidth={canvasSize.width}
-            canvasHeight={canvasSize.height}
-            onDragStart={handleDragStart}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-            onHover={handleElementHover}
-            isEditMode={isEditMode}
-          />
-        ))}
+      {/* Guides with brand colors */}
+      {isDragging && selectedElement && isEditMode && (
+        <AlignmentGuides
+          activeElement={selectedElement}
+          elements={elements}
+          canvasWidth={canvasSize.width}
+          canvasHeight={canvasSize.height}
+          alignments={alignments}
+        />
+      )}
+
+      {/* Canvas elements */}
+      {elements.map((el) => (
+        <ResizableElement
+          key={el.id}
+          element={el}
+          isSelected={isEditMode && (selectedElementIds.includes(el.id) || selectedElement?.id === el.id)}
+          scale={scale}
+          canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
+          allElements={elements}
+          canvasWidth={canvasSize.width}
+          canvasHeight={canvasSize.height}
+          onDragStart={handleDragStart}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          onHover={handleElementHover}
+          isEditMode={isEditMode}
+        />
+      ))}
 
 
-      </div>
 
       {/* Zoom indicator when changing zoom level */}
       <div
