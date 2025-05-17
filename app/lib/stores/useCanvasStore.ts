@@ -608,31 +608,36 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   // Helper to calculate zoom to fit canvas in view
   fitCanvasToView: (container: HTMLElement, canvas: HTMLElement): number => {
     if (!container || !canvas) return 1;
-  
+
     // Force layout update if needed
     const containerRect = container.getBoundingClientRect();
     const canvasRect = canvas.getBoundingClientRect();
-  
+
     const containerWidth = containerRect.width;
     const containerHeight = containerRect.height;
-  
+
     const canvasWidth = canvas.offsetWidth || 1;
     const canvasHeight = canvas.offsetHeight || 1;
 
     console.log(containerWidth, containerHeight);
-  
+
     const scaleX = containerWidth / canvasWidth;
     const scaleY = containerHeight / canvasHeight;
-  
+
     const scale = Math.min(scaleX, scaleY) * 0.9;
-  
+
     // Apply scale using CSS transform
     canvas.style.transformOrigin = "top left";
     canvas.style.transform = `scale(${scale})`;
-  
+
     return scale;
+  },
+  toggleCanvasSelection: () => {
+    set(state => ({
+      isCanvasSelected: !state.isCanvasSelected
+    }));
   }
-  
+
 }));
 
 // Create a selector to get the current page elements

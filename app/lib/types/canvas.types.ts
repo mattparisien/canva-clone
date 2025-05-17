@@ -50,11 +50,11 @@ export interface EditorContextType {
   isSaving: boolean
   renameDesign: (name: string) => void
   saveDesign: () => void
-  
+
   // Editor mode
   isEditMode: boolean
   toggleEditMode: () => void
-  
+
   // Page management
   pages: Page[]
   currentPageId: string | null
@@ -66,7 +66,7 @@ export interface EditorContextType {
   goToNextPage: () => void
   goToPreviousPage: () => void
   duplicateCurrentPage: () => void
-  
+
   // Page content updates (called by CanvasContext)
   updatePageElements: (pageId: string, elements: Element[]) => void
   updatePageCanvasSize: (pageId: string, canvasSize: CanvasSize) => void
@@ -81,7 +81,7 @@ export interface CanvasContextType {
   isCanvasSelected: boolean
   canvasSize: CanvasSize
   isLoaded: boolean // Canvas loading state
-  
+
   // Element manipulation
   addElement: (element: Omit<Element, "id">) => void
   updateElement: (id: string, updates: Partial<Element>) => void
@@ -96,14 +96,15 @@ export interface CanvasContextType {
   clearNewElementFlag: (id: string) => void
   scaleElement: (element: Element, scaleFactor: number) => Element
   fitCanvasToView: (container: HTMLDivElement, canvas: HTMLDivElement) => number
-  
+  toggleCanvasSelection: () => void
+
   // History
   canUndo: boolean
   canRedo: boolean
   undo: () => void
   redo: () => void
-  
+
   // Utility
   isElementSelected: (id: string) => boolean,
-  
+
 }

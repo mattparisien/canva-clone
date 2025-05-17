@@ -61,8 +61,6 @@ body {
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
     --handle-border: #e5e7eb;
     --handle-hover: #8b5cf6;
     
@@ -97,6 +95,12 @@ body {
     --color-brand-primary-foreground: #ffffff;
     --color-brand-secondary: var(--color-secondary);
     --color-brand-secondary-foreground: #ffffff;
+
+
+
+    --z-sidebar: 1000;
+    --z-header: 999999;
+
   }
 
   .dark {

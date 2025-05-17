@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss"
+import plugin from 'tailwindcss/plugin'
 
 const config: Config = {
   darkMode: ["class"],
@@ -75,7 +76,7 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -112,10 +113,40 @@ const config: Config = {
       },
       spacing: {
         'sidebar': 'var(--sidebar-width)',
+        'header': 'var(--header-height)',
       },
+      zIndex: {
+        'sidebar': 'var(--z-sidebar)',
+        'toolbar': 'var(--z-toolbar)',
+        'popover': 'var(--z-popover)',
+        'header': 'var(--z-header)',
+        'modal': 'var(--z-modal)',
+      }
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    plugin(function ({ addUtilities, theme, addBase }) {
+      // Define CSS variables inside the plugin
+      addBase({
+        ':root': {
+          '--editor-bg': theme('colors.gray.200'),
+          '--header-height': theme('spacing.14'),
+        },
+        '.dark': {
+          '--editor-bg': theme('colors.gray.700')
+        }
+      });
+
+      // Define utility classes using those variables
+      const newUtilities = {
+        '.bg-editor': {
+          backgroundColor: theme('colors.gray.100'),
+        },
+      }
+      addUtilities(newUtilities)
+    })
+  ],
 }
 
 export default config

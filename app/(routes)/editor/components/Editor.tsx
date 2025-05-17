@@ -22,13 +22,11 @@ export default function Editor() {
     const [selectedPageThumbnail, setSelectedPageThumbnail] = useState<string | null>(null)
 
     // Use Zustand stores directly
-    const currentPage = useCurrentPage()
     const currentPageId = useEditorStore(state => state.currentPageId)
     const pages = useEditorStore(state => state.pages)
     const currentPageIndex = useEditorStore(state => state.currentPageIndex)
     const addPage = useEditorStore(state => state.addPage)
     const goToPage = useEditorStore(state => state.goToPage)
-    const fitCanvasToView = useEditorStore(state => state.fitCanvasToView)
     const goToNextPage = useEditorStore(state => state.goToNextPage)
     const goToPreviousPage = useEditorStore(state => state.goToPreviousPage)
     const deletePage = useEditorStore(state => state.deletePage)
@@ -170,7 +168,7 @@ export default function Editor() {
 
         // Add event listener to document
         document.addEventListener("keydown", handleKeyDown);
-        
+
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
@@ -241,10 +239,10 @@ export default function Editor() {
             // Create text element when 'T' key is pressed
             if (e.key === 't' || e.key === 'T') {
                 e.preventDefault();
-                
+
                 // Get addElement from store
                 const addElement = useCanvasStore.getState().addElement;
-                
+
                 // Create a new text element at the center of the canvas
                 const newTextElement = {
                     type: "text" as const,
@@ -262,7 +260,7 @@ export default function Editor() {
                     isUnderlined: false,
                     isStrikethrough: false
                 };
-                
+
                 // Add the element to the canvas
                 addElement(newTextElement);
             }
@@ -270,7 +268,7 @@ export default function Editor() {
 
         // Add event listener to document
         document.addEventListener("keydown", handleKeyDown);
-        
+
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
@@ -278,12 +276,12 @@ export default function Editor() {
 
     return (
         <div
-            className="flex flex-1 overflow-hidden flex-col relative bg-slate-50"
+            className="flex flex-1 overflow-hidden flex-col relative bg-editor pl-sidebar"
             ref={editorContainerRef}
             onClick={handleEditorClick}
         >
             {/* Main canvas area with wheel handler - removing inline wheel handler */}
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative flex items-center justify-center bg-editor">
                 {/* TextToolbar moved here */}
                 {selectedElement && selectedElement.type === "text" && (
                     <TextToolbar

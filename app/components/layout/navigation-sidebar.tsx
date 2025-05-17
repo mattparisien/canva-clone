@@ -2,15 +2,19 @@
 
 import { useProjectQuery } from "@/features/projects/use-projects";
 import { NavigationIconName, NavigationItem } from "@/lib/types/navigation.types";
-import { cn } from "@/lib/utils/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
+import classNames from "classnames";
 import {
+  Component,
   FolderKanban,
   Home,
   LayoutTemplate,
   PanelsTopLeft,
   Plus,
-  SquareKanban
+  Shapes,
+  SquareKanban,
+  Type,
+  Upload
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,11 +26,13 @@ interface SidebarLinkProps {
   href: string;
   iconName: NavigationIconName;
   label: string;
+  variant?: "global" | "editor";
   isActive?: boolean;
 }
 
 interface NavigationSidebarProps {
-  items: NavigationItem[]
+  items: NavigationItem[],
+  variant?: "global" | "editor";
 }
 
 // Icon mapping component that converts string names to actual icons
@@ -42,42 +48,54 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
       return <PanelsTopLeft {...props} />
     case 'layout-template':
       return <LayoutTemplate {...props} />
+    case 'component':
+      return <Component {...props} />
+    case 'type':
+      return <Type {...props} />
+    case 'upload':
+      return <Upload {...props} />
+    case 'shapes':
+      return <Shapes {...props} />
     default:
       return <Home {...props} /> // Default fallback
   }
 };
 
-const SidebarLink = ({ href, iconName, label, isActive }: SidebarLinkProps) => {
+const SidebarLink = ({ href, iconName, label, isActive, variant }: SidebarLinkProps) => {
   return (
     <Link
       href={href}
-      className={cn(
-        "flex flex-col items-center justify-center py-3 text-gray-600 hover:text-gray-900 transition-colors group"
-      )}
+      className={classNames("flex flex-col items-center justify-center py-3 transition-colors group")}
     >
       <div className="relative flex flex-col items-center">
-        <div className={cn(
-          "w-10 h-10 flex items-center justify-center rounded-md mb-1 transition-all duration-200",
-          isActive
-            ? "bg-neutral-200/80 text-black shadow-sm"
-            : "text-black/80 group-hover:bg-neutral-100"
-        )}>
+        <div className={classNames("w-9 h-9 flex items-center justify-center rounded-xl mb-1 transition-all duration-200", {
+          "bg-neutral-200 text-black shadow-sm": isActive,
+          " group-hover:bg-neutral-100": !isActive && variant !== "editor",
+          "text-gray-500 group-hover:bg-white group-hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] group-hover:text-primary": !isActive && variant === "editor",
+        })} >
           <IconMapping iconName={iconName} fill={isActive ? "black" : "none"} />
         </div>
-        <span className={cn("text-xs", isActive ? "font-medium text-black" : "text-gray-500")}>{label}</span>
+        <span className={classNames("text-xs", {
+          "text-black": isActive,
+          "text-gray-500": !isActive,
+        })
+        }>{label}</span>
       </div>
-    </Link>
+    </Link >
   );
 };
 
 
-export function NavigationSidebar({ items }: NavigationSidebarProps) {
+export function NavigationSidebar({ items, variant = "global" }: NavigationSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { createProject } = useProjectQuery();
 
   // Fix the active state logic to prevent multiple selections
   const getIsActive = (path: string): boolean => {
+
+    if (!path || path.trim() === "") return false;
+
     // Exact match for home page
     if (path === '/' && pathname === '/') {
       return true;
@@ -126,7 +144,7 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
         starred: false,
         shared: false
       }
-      
+
       const newProject = await createProject(project);
       if (newProject) router.push(`/editor?id=${newProject._id}`);
     } catch (error) {
@@ -135,9 +153,14 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
   }
 
   return (
-    <div className="h-screen w-sidebar bg-white flex flex-col fixed left-0 top-0 shadow-[1px_0_10px_rgba(0,0,0,0.01),_3px_0_15px_rgba(0,0,0,0.05)]">
+    <div className={classNames("h-screen w-sidebar z-sidebar flex flex-col fixed left-0 top-0", {
+      "bg-white": variant !== "editor",
+      "bg-editor": variant === "editor",
+      "shadow-[1px_0_10px_rgba(0,0,0,0.01),_3px_0_15px_rgba(0,0,0,0.05)]": variant !== "editor",
+      "pt-header": variant === "editor"
+    })}>
       {/* Create New Button */}
-      <div className="p-4 mt-2">
+      {variant === "global" && <div className="p-4 mt-2">
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -160,17 +183,18 @@ export function NavigationSidebar({ items }: NavigationSidebarProps) {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </div>
+      </div>}
 
       {/* Main Navigation */}
       <nav className="flex-1 flex flex-col mt-4">
-        {items.map((item) => (
+        {items.map((item, idx) => (
           <SidebarLink
-            key={item.path}
-            href={item.path}
+            key={idx}
+            href={item.path ?? "#"}
             iconName={item.iconName}
             label={item.label}
-            isActive={getIsActive(item.path)}
+            isActive={getIsActive(item.path || "")}
+            variant={variant}
           />
         ))}
       </nav>

@@ -84,7 +84,7 @@ export default function EditorNavbar() {
   }, [editingName, saveNameChanges])
   
   return (
-    <div className="flex h-14 items-center px-4 shadow bg-gradient-to-r from-brand-blue via-brand-blue/90 to-brand-teal border-b border-[rgba(255,255,255,0.1)]">
+    <div className="flex h-header z-header items-center px-4 shadow bg-gradient-to-r from-brand-blue via-brand-blue/90 to-brand-teal border-b border-[rgba(255,255,255,0.1)]">
       {/* Left Section */}
       <div className="flex items-center gap-1.5">
         <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 font-medium rounded-lg">

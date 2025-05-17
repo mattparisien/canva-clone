@@ -8,10 +8,11 @@ export type NavigationItemIcon =
   | ReactNode;
 
 // New icon type that uses string names instead of components
-export type NavigationIconName = 'home' | 'folder-kanban' | 'square-kanban' | 'panels-top-left' | 'layout-template';
+export type NavigationIconName = 'home' | 'folder-kanban' | 'square-kanban' | 'panels-top-left' | 'layout-template' | 'component' | 'type' | 'upload' | 'shapes';
 
 export interface NavigationItem {
-    path: string;
+    id: string;
+    path?: string;
     iconName: NavigationIconName; // Changed from icon to iconName
     label: string;
 }
