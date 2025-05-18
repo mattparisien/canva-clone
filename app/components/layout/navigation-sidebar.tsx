@@ -34,12 +34,14 @@ interface SidebarLinkProps extends HTMLAttributes<HTMLDivElement> {
   isActive?: boolean;
   // Renamed from onMouseEnter to onItemHover to avoid conflict with standard HTMLAttributes
   onItemHover?: (itemId: string) => void;
+  onItemMouseLeave?: (itemId: string) => void;
 }
 
 interface NavigationSidebarProps {
   items: NavigationItem[],
   variant?: "global" | "editor";
   onItemMouseEnter?: (itemId: string) => void;
+  onItemMouseLeave?: (itemId: string) => void;
 }
 
 // Icon mapping component that converts string names to actual icons
@@ -80,6 +82,7 @@ const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
     // Standard HTML attributes, including onMouseEnter, are taken from props
     className,
     onMouseEnter, // This is the standard React.MouseEventHandler<HTMLDivElement>
+    onMouseLeave,
     ...rest       // Other HTML attributes
   }: SidebarLinkProps, ref) => {
 
@@ -98,6 +101,7 @@ const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
     return (
       <div
         onMouseEnter={handleDivMouseEnter} // Assign the combined handler
+        onMouseLeave={onMouseLeave}
         className={classNames("relative", className)} // Merge passed className
         {...rest} // Spread other HTML attributes
       >
@@ -131,7 +135,7 @@ const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
 SidebarLink.displayName = "SidebarLink"; // Good practice for forwardRef components
 
 
-export function NavigationSidebar({ items, variant = "global", onItemMouseEnter }: NavigationSidebarProps) {
+export function NavigationSidebar({ items, variant = "global", onItemMouseEnter, onItemMouseLeave }: NavigationSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { createProject } = useProjectQuery();
@@ -247,6 +251,7 @@ export function NavigationSidebar({ items, variant = "global", onItemMouseEnter 
             variant={variant}
             // Pass the callback to the renamed prop 'onItemHover'
             onItemHover={onItemMouseEnter}
+            onItemMouseLeave={onItemMouseLeave}
           />
         ))}
       </nav>
