@@ -27,11 +27,7 @@ export default function Editor() {
     const currentPageIndex = useEditorStore(state => state.currentPageIndex)
     const addPage = useEditorStore(state => state.addPage)
     const goToPage = useEditorStore(state => state.goToPage)
-    const goToNextPage = useEditorStore(state => state.goToNextPage)
-    const goToPreviousPage = useEditorStore(state => state.goToPreviousPage)
     const deletePage = useEditorStore(state => state.deletePage)
-    const duplicateCurrentPage = useEditorStore(state => state.duplicateCurrentPage)
-    const isEditMode = useEditorStore(state => state.isEditMode)
 
     // Canvas store selectors
     const canvasSize = useCurrentCanvasSize()
@@ -297,7 +293,6 @@ export default function Editor() {
                     />
                 )}
                 <Canvas
-                    editorContainerRef={editorContainerRef}
                     zoom={zoom}
                     setZoom={handleZoomChange}
                 />

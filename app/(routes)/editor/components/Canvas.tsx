@@ -223,8 +223,10 @@ export default function Canvas({
         boxShadow: "0 6px 30px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.05)",
         cursor: isEditMode ? "default" : "default",
         borderRadius: "2px",
-        transform: `scale(${scale})`, transformOrigin: "center center",
-        '--canvas-scale': `${scale}`,
+        transform: `scale(${scale})`, 
+        transformOrigin: "center center",
+        // Fix: TypeScript custom property using type assertion
+        ['--canvas-scale' as string]: `${scale}`,
       }}
       onClick={handleCanvasClick}
       onMouseLeave={handleCanvasMouseLeave}

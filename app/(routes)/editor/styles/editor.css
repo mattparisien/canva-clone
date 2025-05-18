@@ -4,7 +4,9 @@
 }
 
 .is-highlighted::before {
-    border: calc(2px / var(--canvas-scale, 1)) solid;
+    /* Use clamp to set min and max border thickness */
+    border-width: clamp(2px, calc(2px / var(--canvas-scale, 1)), 4px);
+    border-style: solid;
     @apply border-brand-blue;
     transform-origin: center;
     box-sizing: border-box;

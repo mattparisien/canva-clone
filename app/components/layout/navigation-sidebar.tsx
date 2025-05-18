@@ -26,13 +26,16 @@ interface SidebarLinkProps {
   href: string;
   iconName: NavigationIconName;
   label: string;
+  itemId: string;
   variant?: "global" | "editor";
   isActive?: boolean;
+  onMouseEnter?: (itemId: string) => void;
 }
 
 interface NavigationSidebarProps {
   items: NavigationItem[],
   variant?: "global" | "editor";
+  onItemMouseEnter?: (itemId: string) => void;
 }
 
 // Icon mapping component that converts string names to actual icons
@@ -61,32 +64,38 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
   }
 };
 
-const SidebarLink = ({ href, iconName, label, isActive, variant }: SidebarLinkProps) => {
+const SidebarLink = ({ href, iconName, label, itemId, isActive, variant, onMouseEnter }: SidebarLinkProps) => {
+
   return (
-    <Link
-      href={href}
-      className={classNames("flex flex-col items-center justify-center py-3 transition-colors group")}
+    <div
+      onMouseEnter={() => onMouseEnter?.(itemId)}
+      className="relative"
     >
-      <div className="relative flex flex-col items-center">
-        <div className={classNames("w-9 h-9 flex items-center justify-center rounded-xl mb-1 transition-all duration-200", {
-          "bg-neutral-200 text-black shadow-sm": isActive,
-          " group-hover:bg-neutral-100": !isActive && variant !== "editor",
-          "text-gray-500 group-hover:bg-white group-hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] group-hover:text-primary": !isActive && variant === "editor",
-        })} >
-          <IconMapping iconName={iconName} fill={isActive ? "black" : "none"} />
+      <Link
+        href={href}
+        className={classNames("flex flex-col items-center justify-center py-3 transition-colors group")}
+      >
+        <div className="relative flex flex-col items-center">
+          <div className={classNames("w-9 h-9 flex items-center justify-center rounded-xl mb-1 transition-all duration-200", {
+            "bg-neutral-200 text-black shadow-sm": isActive,
+            " group-hover:bg-neutral-100": !isActive && variant !== "editor",
+            "text-gray-500 group-hover:bg-white group-hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] group-hover:text-primary": !isActive && variant === "editor",
+          })} >
+            <IconMapping iconName={iconName} fill={isActive ? "black" : "none"} />
+          </div>
+          <span className={classNames("text-xs", {
+            "text-black": isActive,
+            "text-gray-500": !isActive,
+          })
+          }>{label}</span>
         </div>
-        <span className={classNames("text-xs", {
-          "text-black": isActive,
-          "text-gray-500": !isActive,
-        })
-        }>{label}</span>
-      </div>
-    </Link >
+      </Link >
+    </div>
   );
 };
 
 
-export function NavigationSidebar({ items, variant = "global" }: NavigationSidebarProps) {
+export function NavigationSidebar({ items, variant = "global", onItemMouseEnter }: NavigationSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { createProject } = useProjectQuery();
@@ -193,8 +202,11 @@ export function NavigationSidebar({ items, variant = "global" }: NavigationSideb
             href={item.path ?? "#"}
             iconName={item.iconName}
             label={item.label}
+            itemId={item.id} // Pass item.id to SidebarLink
             isActive={getIsActive(item.path || "")}
             variant={variant}
+            onMouseEnter={onItemMouseEnter}
+          // Removed onMouseEnter and onMouseLeave props
           />
         ))}
       </nav>
