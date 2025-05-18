@@ -35,12 +35,7 @@ export default function Editor() {
     const selectedElement = useCanvasStore(state => state.selectedElement)
     const updateElement = useCanvasStore(state => state.updateElement)
     const clearSelection = useCanvasStore(state => state.clearSelection)
-    const undo = useCanvasStore(state => state.undo)
-    const redo = useCanvasStore(state => state.redo)
-    const canUndo = useCanvasStore(state => state.canUndo)
-    const canRedo = useCanvasStore(state => state.canRedo)
     const deleteSelectedElements = useCanvasStore(state => state.deleteSelectedElements)
-    const elements = useCurrentPageElements()
 
     // Handle clicks outside the canvas to deselect everything
     const handleEditorClick = useCallback((e: React.MouseEvent) => {

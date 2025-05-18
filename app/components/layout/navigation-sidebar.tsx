@@ -1,8 +1,10 @@
 "use client";
 
 import { useProjectQuery } from "@/features/projects/use-projects";
+import { Project } from "@/lib/types/api";
 import { NavigationIconName, NavigationItem } from "@/lib/types/navigation.types";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
+import * as Popover from "@radix-ui/react-popover";
 import classNames from "classnames";
 import {
   Component,
@@ -18,30 +20,39 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { forwardRef, MouseEventHandler, ReactNode } from "react";
 import { v4 as uuid } from "uuid";
 import { Button } from "../ui/button";
-import * as Popover from "@radix-ui/react-popover";
-import { forwardRef, HTMLAttributes, MouseEventHandler, ReactNode } from "react";
-import { Project } from "@/lib/types/api";
 
 
-interface SidebarLinkProps extends HTMLAttributes<HTMLDivElement> {
+export type NavigationItemMouseHandler = (itemId: string) => void;
+
+interface SidebarLinkProps {
   href: string;
   iconName: NavigationIconName;
   label: string;
   itemId: string;
   variant?: "global" | "editor";
   isActive?: boolean;
-  // Renamed from onMouseEnter to onItemHover to avoid conflict with standard HTMLAttributes
-  onItemHover?: (itemId: string) => void;
-  onItemMouseLeave?: (itemId: string) => void;
+  className?: string; // Optional className prop
+  onMouseEnter: NavigationItemMouseHandler
+  onMouseLeave: NavigationItemMouseHandler
 }
 
 interface NavigationSidebarProps {
   items: NavigationItem[],
   variant?: "global" | "editor";
-  onItemMouseEnter?: (itemId: string) => void;
-  onItemMouseLeave?: (itemId: string) => void;
+  onItemMouseEnter: NavigationItemMouseHandler
+  onItemMouseLeave: NavigationItemMouseHandler
+
+}
+
+interface ConditionalPopoverTriggerWrapperProps {
+  children: ReactNode;
+  condition: boolean;
+  itemId: string;
+  onMouseEnter?: NavigationItemMouseHandler
+  onMouseLeave?: NavigationItemMouseHandler
 }
 
 // Icon mapping component that converts string names to actual icons
@@ -69,70 +80,6 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
       return <Home {...props} /> // Default fallback
   }
 };
-
-const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
-  ({
-    href,
-    iconName,
-    label,
-    itemId,
-    isActive,
-    variant,
-    onItemHover,     // Our custom prop for item hover logic
-    // Standard HTML attributes, including onMouseEnter, are taken from props
-    className,
-    onMouseEnter, // This is the standard React.MouseEventHandler<HTMLDivElement>
-    onMouseLeave,
-    ...rest       // Other HTML attributes
-  }: SidebarLinkProps, ref) => {
-
-    // Combined event handler for the div's onMouseEnter
-    const handleDivMouseEnter: MouseEventHandler<HTMLDivElement> = (event) => {
-      // Call the custom item hover logic
-      if (onItemHover) {
-        onItemHover(itemId);
-      }
-      // Call the standard onMouseEnter if provided by a consumer of SidebarLink
-      if (onMouseEnter) {
-        onMouseEnter(event);
-      }
-    };
-
-    return (
-      <div
-        onMouseEnter={handleDivMouseEnter} // Assign the combined handler
-        onMouseLeave={onMouseLeave}
-        className={classNames("relative", className)} // Merge passed className
-        {...rest} // Spread other HTML attributes
-      >
-        <ConditionalPopoverTriggerWrapper condition={variant === "editor"}>
-
-          <Link
-            href={href}
-            ref={ref}
-            className={classNames("flex flex-col items-center justify-center py-3 transition-colors group")}
-          >
-            <div className="relative flex flex-col items-center">
-              <div className={classNames("w-9 h-9 flex items-center justify-center rounded-xl mb-1 transition-all duration-200", {
-                "bg-neutral-200 text-black shadow-sm": isActive,
-                " group-hover:bg-neutral-100": !isActive && variant !== "editor",
-                "text-gray-500 group-hover:bg-white group-hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] group-hover:text-primary": !isActive && variant === "editor",
-              })} >
-                <IconMapping iconName={iconName} fill={isActive ? "black" : "none"} />
-              </div>
-              <span className={classNames("text-xs", {
-                "text-black": isActive,
-                "text-gray-500": !isActive,
-              })
-              }>{label}</span>
-            </div>
-          </Link >
-        </ConditionalPopoverTriggerWrapper>
-
-      </div>
-    );
-  });
-SidebarLink.displayName = "SidebarLink"; // Good practice for forwardRef components
 
 
 export function NavigationSidebar({ items, variant = "global", onItemMouseEnter, onItemMouseLeave }: NavigationSidebarProps) {
@@ -250,8 +197,8 @@ export function NavigationSidebar({ items, variant = "global", onItemMouseEnter,
             isActive={getIsActive(item.path || "")}
             variant={variant}
             // Pass the callback to the renamed prop 'onItemHover'
-            onItemHover={onItemMouseEnter}
-            onItemMouseLeave={onItemMouseLeave}
+            onMouseEnter={onItemMouseEnter}
+            onMouseLeave={onItemMouseLeave}
           />
         ))}
       </nav>
@@ -259,9 +206,79 @@ export function NavigationSidebar({ items, variant = "global", onItemMouseEnter,
   );
 }
 
-function ConditionalPopoverTriggerWrapper({ children, condition }: { children: ReactNode; condition: boolean }) {
+const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
+  ({
+    href,
+    iconName,
+    label,
+    itemId,
+    isActive,
+    variant,
+    className,
+    onMouseEnter,
+    onMouseLeave,
+    ...rest       // Other HTML attributes
+  }: SidebarLinkProps, ref) => {
+
+    // Combined event handler for the div's onMouseEnter
+    const handleDivMouseEnter: MouseEventHandler<HTMLDivElement> = (event) => {
+      // Call the custom item hover logic
+      if (onMouseEnter) {
+        onMouseEnter(itemId);
+      }
+
+    };
+
+    return (
+      <div
+        className={classNames("relative", className)} // Merge passed className
+        {...rest} // Spread other HTML attributes
+      >
+        <ConditionalPopoverTriggerWrapper itemId={itemId} condition={variant === "editor"} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+
+          <Link
+            href={href}
+            ref={ref}
+            className={classNames("flex flex-col items-center justify-center py-3 transition-colors group")}
+          >
+            <div className="relative flex flex-col items-center">
+              <div className={classNames("w-9 h-9 flex items-center justify-center rounded-xl mb-1 transition-all duration-200", {
+                "bg-neutral-200 text-black shadow-sm": isActive,
+                " group-hover:bg-neutral-100": !isActive && variant !== "editor",
+                "text-gray-500 group-hover:bg-white group-hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] group-hover:text-primary": !isActive && variant === "editor",
+              })} >
+                <IconMapping iconName={iconName} fill={isActive ? "black" : "none"} />
+              </div>
+              <span className={classNames("text-xs", {
+                "text-black": isActive,
+                "text-gray-500": !isActive,
+              })
+              }>{label}</span>
+            </div>
+          </Link >
+        </ConditionalPopoverTriggerWrapper>
+
+      </div>
+    );
+  });
+SidebarLink.displayName = "SidebarLink"; // Good practice for forwardRef components
+
+
+
+function ConditionalPopoverTriggerWrapper({ children, condition, itemId, onMouseEnter, onMouseLeave }: ConditionalPopoverTriggerWrapperProps) {
   if (!condition) {
     return <>{children}</>; // Return children directly if condition is false
   }
-  return <Popover.Trigger asChild>{children}</Popover.Trigger>;
+  return (
+    <Popover.Trigger
+      asChild
+      onPointerEnter={() => onMouseEnter?.(itemId)}
+      onPointerLeave={() => onMouseLeave?.(itemId)}
+      onFocus={() => onMouseEnter?.(itemId)}           /* keyboard accessible */
+      onBlur={() => onMouseLeave?.(itemId)}
+    >
+
+      {children}
+    </Popover.Trigger>
+  )
 }

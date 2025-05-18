@@ -30,7 +30,7 @@ export default function EditorLayout({
     };
 
     const handleMouseEnter = (itemId: string) => {
-        console.log(itemId);
+        console.log('here!')
         handleOpen();
     }
 
@@ -39,7 +39,7 @@ export default function EditorLayout({
     return (
         <EditorProvider>
             <CanvasProvider>
-                <Popover.Root onOpenChange={(open) => { console.log(open) }}>
+                <Popover.Root open={open} onOpenChange={setOpen}>
                     <div className="flex h-screen flex-col bg-white">
                         <Popover.Anchor>
                             <EditorNavbar />
@@ -59,8 +59,10 @@ export default function EditorLayout({
                                 side="bottom"       /* above | below | left | right */
                                 align="end"      /* start | center | end  ↔  vertical */
                                 alignOffset={4}     /* fine-tune distance from anchor edge */
+                                onPointerEnter={handleOpen}  /* keep open while hovering panel */
+                                onPointerLeave={handleClose}
                             >
-                                …popover contents…
+                                
                                 <Popover.Arrow />
                             </Popover.Content>
                         </Popover.Portal>
