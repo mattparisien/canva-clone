@@ -296,18 +296,19 @@ export default function Editor() {
                     zoom={zoom}
                     setZoom={handleZoomChange}
                 />
+                {/* Page Navigation Controls with refined styling */}
+                <PageNavigation
+                    pages={pages}
+                    currentPageId={currentPageId}
+                    goToPage={goToPage}
+                    addPage={addPage}
+                    deletePage={deletePage}
+                    selectedPageThumbnail={selectedPageThumbnail}
+                    setSelectedPageThumbnail={setSelectedPageThumbnail}
+                />
+
             </div>
 
-            {/* Page Navigation Controls with refined styling */}
-            <PageNavigation
-                pages={pages}
-                currentPageId={currentPageId}
-                goToPage={goToPage}
-                addPage={addPage}
-                deletePage={deletePage}
-                selectedPageThumbnail={selectedPageThumbnail}
-                setSelectedPageThumbnail={setSelectedPageThumbnail}
-            />
 
             {/* Bottom Bar with gradient styling */}
             <BottomBar
