@@ -22,7 +22,7 @@ export default function EditorLayout({
     return (
         <EditorProvider>
             <CanvasProvider>
-                <Popover.Root>
+                <Popover.Root onOpenChange={(open) => {console.log(open)}}>
                     <div className="flex h-screen flex-col bg-white">
                         <Popover.Anchor>
                             <EditorNavbar />
@@ -38,7 +38,7 @@ export default function EditorLayout({
                         {/* 3️⃣  the floating panel */}
                         <Popover.Portal>
                             <Popover.Content
-                                side="top"       /* above | below | left | right */
+                                side="bottom"       /* above | below | left | right */
                                 align="end"      /* start | center | end  ↔  vertical */
                                 alignOffset={4}     /* fine-tune distance from anchor edge */
                             >

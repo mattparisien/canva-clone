@@ -20,6 +20,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { Button } from "../ui/button";
+import * as Popover from "@radix-ui/react-popover";
 
 
 interface SidebarLinkProps {
@@ -197,24 +198,25 @@ export function NavigationSidebar({ items, variant = "global", onItemMouseEnter 
       {/* Main Navigation */}
       <nav className="flex-1 flex flex-col mt-4">
         {items.map((item, idx) => (
-          <SidebarLink
-            key={idx}
-            href={item.path ?? "#"}
-            iconName={item.iconName}
-            label={item.label}
-            itemId={item.id} // Pass item.id to SidebarLink
-            isActive={getIsActive(item.path || "")}
-            variant={variant}
-            onMouseEnter={onItemMouseEnter}
-          // Removed onMouseEnter and onMouseLeave props
-          />
+          <ConditionalPopoverTriggerWrapper key={idx} condition={variant === "editor"}>
+            <SidebarLink
+              key={idx}
+              href={item.path ?? "#"}
+              iconName={item.iconName}
+              label={item.label}
+              itemId={item.id} // Pass item.id to SidebarLink
+              isActive={getIsActive(item.path || "")}
+              variant={variant}
+              onMouseEnter={onItemMouseEnter}
+            // Removed onMouseEnter and onMouseLeave props
+            />
+          </ConditionalPopoverTriggerWrapper>
         ))}
       </nav>
-
-      {/* Bottom Fixed Area - Can add more items here if needed */}
-      <div className="p-4 mt-auto">
-        {/* Placeholder for any bottom items */}
-      </div>
     </div>
   );
+}
+
+function ConditionalPopoverTriggerWrapper({ children, condition }: { children: React.ReactNode; condition: boolean }) {
+  return condition ? <Popover.Trigger asChild>{children}</Popover.Trigger> : <>{children}</>;
 }

@@ -6,6 +6,7 @@ import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@l
 import useEditorStore from "@lib/stores/useEditorStore"
 import classNames from "classnames"
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"
+import { calculateFitScale } from "@/lib/utils/canvas-utils"
 
 export default function Canvas({
   zoom,
@@ -34,7 +35,6 @@ export default function Canvas({
   const isLoaded = useCanvasStore(state => state.isLoaded)
   const updateMultipleElements = useCanvasStore(state => state.updateMultipleElements)
 
-  const scaleWrapperRef = useRef<HTMLDivElement>(null) // wrapper that gets the CSS scale()
   const canvasRef = useRef<HTMLDivElement>(null) // un‑scaled logical canvas
 
   /* ------------------------------------------------------------------
@@ -44,8 +44,6 @@ export default function Canvas({
   const [activeDragElement, setActiveDragElement] = useState<string | null>(null)
   const [alignments, setAlignments] = useState({ horizontal: [] as number[], vertical: [] as number[] })
   const [lastDragPos, setLastDragPos] = useState<{ x: number, y: number } | null>(null) // Track last drag position
-  const [debugInfo, setDebugInfo] = useState("")
-  const [isInitialRender, setIsInitialRender] = useState(true)
 
 
   /* ------------------------------------------------------------------
@@ -53,33 +51,42 @@ export default function Canvas({
    * ------------------------------------------------------------------ */
   const scale = zoom / 100
 
-  /* ------------------------------------------------------------------
-   * Fit canvas to container on mount / resize
-   * ------------------------------------------------------------------ */
-  // useEffect(() => {
-  //   if (isLoaded && canvasRef.current && editorContainerRef?.current) {
-  //     // Only set initial zoom if it's still the default value (100)
-  //     if (zoom === 100) {
-  //       console.log(canvasRef.current, editorContainerRef.current); 
-  //       const initialScale = fitCanvasToView(canvasRef.current, editorContainerRef.current);
-  //       const initialZoom = Math.round(initialScale * 100); // Convert scale to percentage
-  //       console.log(initialZoom);
-  //       setZoom(initialZoom);
-  //     }
-  //   }
-  // }, [isLoaded, canvasSize, editorContainerRef, zoom, setZoom, fitCanvasToView]);
 
-  // Update transform scale when zoom changes
+  // Fit canvas to container logic
+  const fitCanvasToContainer = useCallback(() => {
+    if (isLoaded && canvasRef.current && editorRef?.current && canvasSize.width > 0 && canvasSize.height > 0) {
+      const container = editorRef.current;
+      const newScale = calculateFitScale(
+        canvasSize.width,
+        canvasSize.height,
+        container.clientWidth,
+        container.clientHeight
+      );
+      // Set a minimum zoom level, e.g., 5%
+      const newZoom = Math.max(5, Math.round(newScale * 100));
+
+      if (zoom !== newZoom) { // Only update if zoom needs to change
+        setZoom(newZoom);
+      }
+    }
+  }, [isLoaded, editorRef, canvasSize, setZoom, zoom]); // Added zoom to dependencies
+
   useEffect(() => {
-    if (scaleWrapperRef.current) {
-      scaleWrapperRef.current.style.transform = `scale(${scale})`;
-    }
+    // Initial fit (with a slight delay for layout stabilization)
+    const timeoutId = setTimeout(fitCanvasToContainer, 50);
 
-    // Reset the initial render flag after a short delay
-    if (isInitialRender && zoom !== 100) {
-      setTimeout(() => setIsInitialRender(false), 300);
-    }
-  }, [zoom, scale, isInitialRender]);
+    // Fit on window resize
+    window.addEventListener('resize', fitCanvasToContainer);
+
+    // Optional: For more precise fitting if editorRef resizes independently of the window,
+    // you could use a ResizeObserver on editorRef.current here.
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', fitCanvasToContainer);
+      // If using ResizeObserver, disconnect it here.
+    };
+  }, [fitCanvasToContainer, canvasSize]); // Re-run if fitCanvasToContainer or canvasSize changes
 
   // Clear selection when switching to view mode
   useEffect(() => {
@@ -160,7 +167,6 @@ export default function Canvas({
     setIsDragging(false)
     setActiveDragElement(null)
     setAlignments({ horizontal: [], vertical: [] })
-    setDebugInfo("")
     setLastDragPos(null) // Reset last drag position
   }, [isEditMode])
 
@@ -220,10 +226,11 @@ export default function Canvas({
       style={{
         width: canvasSize.width,
         height: canvasSize.height,
+        flexShrink: 0, // Add flex-shrink to prevent squeezing by flex parents
         boxShadow: "0 6px 30px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.05)",
         cursor: isEditMode ? "default" : "default",
         borderRadius: "2px",
-        transform: `scale(${scale})`, 
+        transform: `scale(${scale})`,
         transformOrigin: "center center",
         // Fix: TypeScript custom property using type assertion
         ['--canvas-scale' as string]: `${scale}`,

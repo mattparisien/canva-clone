@@ -77,3 +77,27 @@ export const fitCanvasToView = (
   const fitScale = Math.min(widthRatio, heightRatio, 1) // Cap at 100%
   return Math.round(fitScale * 100) // Round to integer
 }
+
+// Helper function to calculate the scale to fit content within a container
+/**
+ * Calculates the scale factor needed to fit content into a container while maintaining aspect ratio.
+ * 
+ * @param contentWidth - Width of the content to be scaled
+ * @param contentHeight - Height of the content to be scaled
+ * @param containerClientWidth - Width of the container that will hold the content
+ * @param containerClientHeight - Height of the container that will hold the content
+ * @returns The scale factor to apply to the content to fit it within the container
+ */
+export const calculateFitScale = (
+  contentWidth: number,
+  contentHeight: number,
+  containerClientWidth: number,
+  containerClientHeight: number
+): number => {
+  if (contentWidth <= 0 || contentHeight <= 0 || containerClientWidth <= 0 || containerClientHeight <= 0) {
+      return 1; // Default scale if dimensions are invalid
+  }
+  const scaleX = containerClientWidth / contentWidth;
+  const scaleY = containerClientHeight / contentHeight;
+  return Math.min(scaleX, scaleY); // Use the smaller scale to fit and maintain aspect ratio
+}

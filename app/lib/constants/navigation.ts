@@ -43,14 +43,9 @@ export const EDITOR_NAVIGATION_ITEMS: NavigationItem[] = [
         iconName: "type",
         label: "Text",
     },
-    // {
-    //     path: "/templates",
-    //     iconName: "layout-template",
-    //     label: "Templates",
-    // },
     {
-        id: "upload",
+        id: "uploads",
         iconName: "upload",
-        label: 'Upload'
+        label: 'Uploads'
     }
 ]

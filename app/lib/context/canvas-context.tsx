@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, ReactNode } from "react"
-import { CanvasContextType } from "../types/canvas.types"
+import { CanvasContextType, Element } from "../types/canvas.types"
 import useCanvasStore, {
   useCurrentPageElements,
   useCurrentCanvasSize
@@ -42,6 +42,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     fitCanvasToView: store.fitCanvasToView,
     clearNewElementFlag: store.clearNewElementFlag,
     scaleElement: store.scaleElement,
+    toggleCanvasSelection: store.toggleCanvasSelection,
     
     // History
     canUndo: store.canUndo,
