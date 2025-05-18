@@ -6,7 +6,7 @@ import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation"
 import { CanvasProvider } from "@lib/context/canvas-context"
 import { EditorProvider } from "@lib/context/editor-context"
 import * as Popover from "@radix-ui/react-popover"
-import './styles/editor.css' // Import editor-specific styles
+import './styles/editor.css'; // Import editor-specific styles
 
 export default function EditorLayout({
     children,
@@ -22,7 +22,7 @@ export default function EditorLayout({
     return (
         <EditorProvider>
             <CanvasProvider>
-                <Popover.Root onOpenChange={(open) => {console.log(open)}}>
+                <Popover.Root onOpenChange={(open) => { console.log(open) }}>
                     <div className="flex h-screen flex-col bg-white">
                         <Popover.Anchor>
                             <EditorNavbar />
