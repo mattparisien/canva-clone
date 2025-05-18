@@ -1,0 +1,11 @@
+.is-highlighted {
+    @apply before:content-[''] before:absolute before:inset-0 
+    before:rounded-lg before:pointer-events-none before:z-[-1];
+}
+
+.is-highlighted::before {
+    border: calc(2px / var(--canvas-scale, 1)) solid;
+    @apply border-brand-blue;
+    transform-origin: center;
+    box-sizing: border-box;
+}

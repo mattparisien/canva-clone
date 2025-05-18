@@ -215,16 +215,7 @@ export default function Canvas({
       ref={canvasRef}
       className={classNames("flex items-center justify-center p-1 z-50 relative bg-white shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)] overflow-hidden",
         // "border-4 border-brand-blue": isBorderActive,
-        isBorderActive && [
-          "before:content-['']",
-          "before:absolute",
-          "before:inset-0",                            // sit on all four edges
-          "before:border-4",                          // 4 px border thickness (1 rem)
-          "before:border-brand-blue",                 // your brand colour
-          "before:rounded-lg",                        // keep same radius as container
-          "before:pointer-events-none",
-          "before:z-[-1]"                             // behind the content
-        ]
+        isBorderActive && "is-highlighted"
       )}
       style={{
         width: canvasSize.width,
@@ -232,7 +223,8 @@ export default function Canvas({
         boxShadow: "0 6px 30px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.05)",
         cursor: isEditMode ? "default" : "default",
         borderRadius: "2px",
-        transform: `scale(${scale})`, transformOrigin: "center center"
+        transform: `scale(${scale})`, transformOrigin: "center center",
+        '--canvas-scale': `${scale}`,
       }}
       onClick={handleCanvasClick}
       onMouseLeave={handleCanvasMouseLeave}

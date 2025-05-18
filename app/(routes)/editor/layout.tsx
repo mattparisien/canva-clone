@@ -5,6 +5,7 @@ import { NavigationSidebar } from "@/components/layout/navigation-sidebar"
 import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation"
 import { CanvasProvider } from "@lib/context/canvas-context"
 import { EditorProvider } from "@lib/context/editor-context"
+import './styles/editor.css' // Import editor-specific styles
 
 export default function EditorLayout({
     children,

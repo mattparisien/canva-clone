@@ -7,6 +7,7 @@ import { Element as CanvasElement } from "@lib/types/canvas.types" // Change Ele
 import { HANDLE_BASE_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react"
 import useCanvasStore from "@lib/stores/useCanvasStore"
+import classNames from "classnames"
 
 interface ResizableElementProps {
   element: CanvasElement // Change Element to CanvasElement
@@ -76,7 +77,7 @@ export function ResizableElement({
   // Helper to measure text height given current width and styles
   const measureTextHeight = (content: string, width: number) => {
     if (!measurerRef.current) return 0;
-    
+
     // Configure the measurer with all the styles from the element
     measurerRef.current.style.width = width + 'px';
     measurerRef.current.style.fontSize = `${element.fontSize || 36}px`;
@@ -87,10 +88,10 @@ export function ResizableElement({
     measurerRef.current.style.textAlign = element.textAlign || 'center';
     measurerRef.current.style.lineHeight = '1.5'; // Increased line height for better readability
     measurerRef.current.style.padding = '4px'; // Add padding to ensure text has room to breathe
-    
+
     // Set content and measure
     measurerRef.current.innerText = content;
-    
+
     // Add extra padding to ensure text isn't cut off
     return measurerRef.current.scrollHeight + 12; // Add extra padding for safety
   };
@@ -114,7 +115,7 @@ export function ResizableElement({
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     // If in view mode, do nothing
     if (!isEditMode) return;
-    
+
     e.stopPropagation()
 
     // Clear isNew flag on any interaction
@@ -176,7 +177,7 @@ export function ResizableElement({
   const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
     // If in view mode, do nothing
     if (!isEditMode) return;
-    
+
     e.stopPropagation()
     // Clear isNew flag on any interaction
     if (element.isNew) {
@@ -437,11 +438,11 @@ export function ResizableElement({
 
           if (isCornerResize) {
             // Calculate potential dimensions based on the resize direction
-            switch(resizeDirection) {
+            switch (resizeDirection) {
               case "se": // Southeast
                 const potentialWidthSE = Math.max(50, origWidth + totalDeltaX);
                 const potentialHeightSE = Math.max(20, origHeight + totalDeltaY);
-                
+
                 // Maintain aspect ratio by choosing the dimension that would result in the larger area
                 if (potentialWidthSE / origWidth > potentialHeightSE / origHeight) {
                   newWidth = potentialWidthSE;
@@ -450,20 +451,20 @@ export function ResizableElement({
                   newHeight = potentialHeightSE;
                   newWidth = newHeight * aspectRatio;
                 }
-                
+
                 widthChanged = true;
-                
+
                 // If Alt/Option key is pressed, resize from center
                 if (isAltKeyPressed) {
                   newX = origX - (newWidth - origWidth) / 2;
                   newY = origY - (newHeight - origHeight) / 2;
                 }
                 break;
-                
+
               case "sw": // Southwest
                 const potentialWidthSW = Math.max(50, origWidth - totalDeltaX);
                 const potentialHeightSW = Math.max(20, origHeight + totalDeltaY);
-                
+
                 if (potentialWidthSW / origWidth > potentialHeightSW / origHeight) {
                   newWidth = potentialWidthSW;
                   newHeight = newWidth / aspectRatio;
@@ -471,9 +472,9 @@ export function ResizableElement({
                   newHeight = potentialHeightSW;
                   newWidth = newHeight * aspectRatio;
                 }
-                
+
                 widthChanged = true;
-                
+
                 if (isAltKeyPressed) {
                   const widthDelta = origWidth - newWidth;
                   const heightDelta = origHeight - newHeight;
@@ -483,11 +484,11 @@ export function ResizableElement({
                   newX = origX + (origWidth - newWidth);
                 }
                 break;
-                
+
               case "ne": // Northeast
                 const potentialWidthNE = Math.max(50, origWidth + totalDeltaX);
                 const potentialHeightNE = Math.max(20, origHeight - totalDeltaY);
-                
+
                 if (potentialWidthNE / origWidth > potentialHeightNE / origHeight) {
                   newWidth = potentialWidthNE;
                   newHeight = newWidth / aspectRatio;
@@ -495,9 +496,9 @@ export function ResizableElement({
                   newHeight = potentialHeightNE;
                   newWidth = newHeight * aspectRatio;
                 }
-                
+
                 widthChanged = true;
-                
+
                 if (isAltKeyPressed) {
                   newX = origX - (newWidth - origWidth) / 2;
                   const heightDelta = origHeight - newHeight;
@@ -506,11 +507,11 @@ export function ResizableElement({
                   newY = origY + (origHeight - newHeight);
                 }
                 break;
-                
+
               case "nw": // Northwest
                 const potentialWidthNW = Math.max(50, origWidth - totalDeltaX);
                 const potentialHeightNW = Math.max(20, origHeight - totalDeltaY);
-                
+
                 if (potentialWidthNW / origWidth > potentialHeightNW / origHeight) {
                   newWidth = potentialWidthNW;
                   newHeight = newWidth / aspectRatio;
@@ -518,9 +519,9 @@ export function ResizableElement({
                   newHeight = potentialHeightNW;
                   newWidth = newHeight * aspectRatio;
                 }
-                
+
                 widthChanged = true;
-                
+
                 if (isAltKeyPressed) {
                   const widthDelta = origWidth - newWidth;
                   const heightDelta = origHeight - newHeight;
@@ -532,7 +533,7 @@ export function ResizableElement({
                 }
                 break;
             }
-            
+
             // Scale the font size proportionally for text elements when using corner handles
             if (element.type === "text" && element.fontSize) {
               const scaleFactor = newWidth / origWidth;
@@ -543,18 +544,18 @@ export function ResizableElement({
             if (resizeDirection.includes("e")) {
               newWidth = Math.max(50, origWidth + totalDeltaX);
               widthChanged = true;
-              
+
               // If Alt/Option key is pressed, make the opposite side resize equally
               if (isAltKeyPressed) {
                 newX = origX - totalDeltaX / 2;
                 newWidth = Math.max(50, origWidth + totalDeltaX);
               }
             }
-            
+
             if (resizeDirection.includes("w")) {
               newWidth = Math.max(50, origWidth - totalDeltaX);
               widthChanged = true;
-              
+
               // If Alt/Option key is pressed, make the opposite side resize equally
               if (isAltKeyPressed) {
                 const widthDelta = origWidth - newWidth;
@@ -564,20 +565,20 @@ export function ResizableElement({
                 newX = origX + (origWidth - newWidth);
               }
             }
-            
+
             if (resizeDirection.includes("s")) {
               newHeight = Math.max(20, origHeight + totalDeltaY);
-              
+
               // If Alt/Option key is pressed, make the opposite side resize equally
               if (isAltKeyPressed) {
                 newY = origY - totalDeltaY / 2;
                 newHeight = Math.max(20, origHeight + totalDeltaY);
               }
             }
-            
+
             if (resizeDirection.includes("n")) {
               newHeight = Math.max(20, origHeight - totalDeltaY);
-              
+
               // If Alt/Option key is pressed, make the opposite side resize equally
               if (isAltKeyPressed) {
                 const heightDelta = origHeight - newHeight;
@@ -659,7 +660,7 @@ export function ResizableElement({
       document.removeEventListener("mouseup", handleMouseUp);
       document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('keyup', handleKeyUp);
-      
+
       // Clean up any pending animation frame
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
@@ -691,7 +692,7 @@ export function ResizableElement({
     // Only run when width or fontSize changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [element.width, element.fontSize])
-  
+
   // Update height when fontSize changes
   useEffect(() => {
     if (element.type === "text" && element.content && element.fontSize) {
@@ -782,7 +783,10 @@ export function ResizableElement({
       )}
       <div
         ref={elementRef}
-        className={`absolute${isSelected && isEditMode ? " ring-4 ring-brand-blue ring-opacity-80" : isHovering && isEditMode ? " ring-4 ring-brand-blue ring-opacity-60" : ""}`}
+        className={classNames("absolute", {
+          "is-highlighted": (isSelected || isHovering) && isEditMode
+        })
+        }
         style={{
           left: element.x,
           top: element.y,
@@ -934,20 +938,20 @@ export function ResizableElement({
             )}
 
             {/* Selection indicator that shows which element is selected with a subtle gradient border */}
-            <div 
-              className="absolute inset-0 pointer-events-none" 
-              style={{ 
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
                 border: '2px solid rgba(30, 136, 229, 0.8)',
                 borderRadius: '2px',
                 background: 'transparent'
               }}
             />
-            
+
             {/* Wide invisible resize zones */}
             <div
               className="absolute top-0 left-0 -translate-x-1/2 h-full"
               style={{
-                width: 40, 
+                width: 40,
                 cursor: "ew-resize",
                 zIndex: 5,
                 background: "transparent"
