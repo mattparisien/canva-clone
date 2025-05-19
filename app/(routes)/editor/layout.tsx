@@ -5,11 +5,9 @@ import { NavigationSidebar } from "@/components/layout/navigation-sidebar"
 import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation"
 import { CanvasProvider } from "@lib/context/canvas-context"
 import { EditorProvider } from "@lib/context/editor-context"
-import { useCallback, useRef, useState } from "react"
 import * as Popover from "@radix-ui/react-popover"
-import classNames from "classnames"
+import { useCallback, useRef, useState } from "react"
 import './styles/Editor.css'; // Import editor-specific styles
-import { set } from "lodash"
 
 interface PopoverState {
     isOpen: boolean
@@ -31,37 +29,17 @@ export default function EditorLayout({
     const sidebarRef = useRef<HTMLDivElement>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
 
-    const closeTimeout = useRef<NodeJS.Timeout>(null);
-
-
-    const handleMouseEnter = useCallback((itemId: string) => {
-        console.log('mouse entered!')
-        clearTimeout(closeTimeout.current ? closeTimeout.current : undefined);
-        setPopoverState((prev) => ({
-            ...prev,
-            isOpen: true,
-            itemId: itemId,
-        }));
-    }, [popoverState.itemId]);
-
-    const handleMouseLeave = useCallback((e: React.MouseEvent) => {
-        
-        if (e.target.contains(e.currentTarget)) return;
-
-        // If the mouse is not on the sidebar or the popover, close the popover
-        // if (!sidebarRef.current || !popoverRef.current || e.relatedTarget?.getAttribute("id") === "radix-«r0»") return;
-
-        setPopoverState((prev) => ({
-            ...prev,
-            isOpen: false,
-            itemId: null,
-        }));
-
-    }, [])
-
     const renderPopoverContent = useCallback(() => {
         return <div>{popoverState.itemId}</div>
     }, [popoverState.itemId]);
+
+    const handleSidebarItemClick = useCallback((itemId: string) => {
+        console.log(itemId)
+        setPopoverState((prevState) => ({
+            ...prevState,
+            itemId
+        }));
+    }, []);
 
 
 
@@ -69,7 +47,7 @@ export default function EditorLayout({
     return (
         <EditorProvider>
             <CanvasProvider>
-                <Popover.Root open={popoverState.isOpen}>
+                <Popover.Root>
                     <div className={"flex h-screen flex-col"}>
                         <Popover.Anchor>
                             <EditorNavbar />
@@ -77,9 +55,8 @@ export default function EditorLayout({
                         <NavigationSidebar
                             items={EDITOR_NAVIGATION_ITEMS}
                             variant="editor"
-                            onItemMouseEnter={handleMouseEnter}
-                            onItemMouseLeave={handleMouseLeave}
                             ref={sidebarRef}
+                            onItemClick={handleSidebarItemClick}
                         />
                         {children}
                         {/* 3️⃣  the floating panel */}

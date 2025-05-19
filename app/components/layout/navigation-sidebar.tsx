@@ -34,18 +34,16 @@ interface SidebarLinkProps {
   iconName: NavigationIconName;
   label: string;
   itemId: string;
+  onClick: (itemId: string) => void;
   variant?: "global" | "editor";
   isActive?: boolean;
   className?: string; // Optional className prop
-  onMouseEnter: NavigationItemMouseEnterHandler
-  onMouseLeave: NavigationItemMouseLeaveHandler
 }
 
 interface NavigationSidebarProps {
   items: NavigationItem[],
   variant?: "global" | "editor";
-  onItemMouseEnter: NavigationItemMouseEnterHandler
-  onItemMouseLeave: NavigationItemMouseLeaveHandler
+  onItemClick: (itemId: string) => void; // Callback for item click
 
 }
 
@@ -53,8 +51,7 @@ interface ConditionalPopoverTriggerWrapperProps {
   children: ReactNode;
   condition: boolean;
   itemId: string;
-  onMouseEnter?: NavigationItemMouseEnterHandler
-  onMouseLeave?: NavigationItemMouseLeaveHandler
+  onClick: (itemId: string) => void; // Callback for item click
 }
 
 // Icon mapping component that converts string names to actual icons
@@ -84,7 +81,7 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
 };
 
 
-export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarProps>(({ items, variant = "global", onItemMouseEnter, onItemMouseLeave }: NavigationSidebarProps, ref) => {
+export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarProps>(({ items, variant = "global", onItemClick }: NavigationSidebarProps, ref) => {
   const pathname = usePathname();
   const router = useRouter();
   const { createProject } = useProjectQuery();
@@ -199,10 +196,9 @@ export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarPro
             label={item.label}
             itemId={item.id} // Pass item.id to SidebarLink
             isActive={getIsActive(item.path || "")}
+            onClick={onItemClick}
             variant={variant}
-            // Pass the callback to the renamed prop 'onItemHover'
-            onMouseEnter={onItemMouseEnter}
-            onMouseLeave={onItemMouseLeave}
+          // Pass the callback to the renamed prop 'onItemHover'
           />
         ))}
       </nav>
@@ -219,26 +215,16 @@ const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
     isActive,
     variant,
     className,
-    onMouseEnter,
-    onMouseLeave,
+    onClick,
     ...rest       // Other HTML attributes
   }: SidebarLinkProps, ref) => {
-
-    // Combined event handler for the div's onMouseEnter
-    const handleDivMouseEnter: MouseEventHandler<HTMLDivElement> = (event) => {
-      // Call the custom item hover logic
-      if (onMouseEnter) {
-        onMouseEnter(itemId);
-      }
-
-    };
 
     return (
       <div
         className={classNames("relative", className)} // Merge passed className
         {...rest} // Spread other HTML attributes
       >
-        <ConditionalPopoverTriggerWrapper itemId={itemId} condition={variant === "editor"} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+        <ConditionalPopoverTriggerWrapper itemId={itemId} condition={variant === "editor"} onClick={onClick}>
 
           <Link
             href={href}
@@ -269,18 +255,15 @@ SidebarLink.displayName = "SidebarLink"; // Good practice for forwardRef compone
 
 
 
-function ConditionalPopoverTriggerWrapper({ children, condition, itemId, onMouseEnter, onMouseLeave }: ConditionalPopoverTriggerWrapperProps) {
+function ConditionalPopoverTriggerWrapper({ children, condition, onClick, itemId }: ConditionalPopoverTriggerWrapperProps) {
   if (!condition) {
     return <>{children}</>; // Return children directly if condition is false
   }
   return (
     <Popover.Trigger
       asChild
-      onPointerEnter={() => onMouseEnter?.(itemId)}
-      onPointerLeave={onMouseLeave}
-      onFocus={() => onMouseEnter?.(itemId)}           /* keyboard accessible */
-      // onBlur={onMouseLeave}            
-    >
+      onClick={() => onClick(itemId)}
+      >
 
       {children}
     </Popover.Trigger>
