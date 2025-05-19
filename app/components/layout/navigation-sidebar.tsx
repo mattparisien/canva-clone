@@ -25,7 +25,9 @@ import { v4 as uuid } from "uuid";
 import { Button } from "../ui/button";
 
 
-export type NavigationItemMouseHandler = (itemId: string) => void;
+export type NavigationItemMouseEnterHandler = (itemId: string) => void;
+export type NavigationItemMouseLeaveHandler = (event: React.PointerEvent) => void;
+
 
 interface SidebarLinkProps {
   href: string;
@@ -35,15 +37,15 @@ interface SidebarLinkProps {
   variant?: "global" | "editor";
   isActive?: boolean;
   className?: string; // Optional className prop
-  onMouseEnter: NavigationItemMouseHandler
-  onMouseLeave: NavigationItemMouseHandler
+  onMouseEnter: NavigationItemMouseEnterHandler
+  onMouseLeave: NavigationItemMouseLeaveHandler
 }
 
 interface NavigationSidebarProps {
   items: NavigationItem[],
   variant?: "global" | "editor";
-  onItemMouseEnter: NavigationItemMouseHandler
-  onItemMouseLeave: NavigationItemMouseHandler
+  onItemMouseEnter: NavigationItemMouseEnterHandler
+  onItemMouseLeave: NavigationItemMouseLeaveHandler
 
 }
 
@@ -51,8 +53,8 @@ interface ConditionalPopoverTriggerWrapperProps {
   children: ReactNode;
   condition: boolean;
   itemId: string;
-  onMouseEnter?: NavigationItemMouseHandler
-  onMouseLeave?: NavigationItemMouseHandler
+  onMouseEnter?: NavigationItemMouseEnterHandler
+  onMouseLeave?: NavigationItemMouseLeaveHandler
 }
 
 // Icon mapping component that converts string names to actual icons
@@ -82,7 +84,7 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
 };
 
 
-export function NavigationSidebar({ items, variant = "global", onItemMouseEnter, onItemMouseLeave }: NavigationSidebarProps) {
+export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarProps>(({ items, variant = "global", onItemMouseEnter, onItemMouseLeave }: NavigationSidebarProps, ref) => {
   const pathname = usePathname();
   const router = useRouter();
   const { createProject } = useProjectQuery();
@@ -158,7 +160,9 @@ export function NavigationSidebar({ items, variant = "global", onItemMouseEnter,
       "bg-editor": variant === "editor",
       "shadow-[1px_0_10px_rgba(0,0,0,0.01),_3px_0_15px_rgba(0,0,0,0.05)]": variant !== "editor",
       "pt-header": variant === "editor"
-    })}>
+    })}
+      ref={ref}
+    >
       {/* Create New Button */}
       {variant === "global" && <div className="p-4 mt-2">
         <TooltipProvider delayDuration={300}>
@@ -204,7 +208,7 @@ export function NavigationSidebar({ items, variant = "global", onItemMouseEnter,
       </nav>
     </div>
   );
-}
+});
 
 const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
   ({
@@ -273,9 +277,9 @@ function ConditionalPopoverTriggerWrapper({ children, condition, itemId, onMouse
     <Popover.Trigger
       asChild
       onPointerEnter={() => onMouseEnter?.(itemId)}
-      onPointerLeave={() => onMouseLeave?.(itemId)}
+      onPointerLeave={onMouseLeave}
       onFocus={() => onMouseEnter?.(itemId)}           /* keyboard accessible */
-      onBlur={() => onMouseLeave?.(itemId)}
+      // onBlur={onMouseLeave}            
     >
 
       {children}

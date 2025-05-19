@@ -5,9 +5,16 @@ import { NavigationSidebar } from "@/components/layout/navigation-sidebar"
 import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation"
 import { CanvasProvider } from "@lib/context/canvas-context"
 import { EditorProvider } from "@lib/context/editor-context"
-import { useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import * as Popover from "@radix-ui/react-popover"
-import './styles/editor.css'; // Import editor-specific styles
+import classNames from "classnames"
+import './styles/Editor.css'; // Import editor-specific styles
+import { set } from "lodash"
+
+interface PopoverState {
+    isOpen: boolean
+    itemId: string | null
+}
 
 export default function EditorLayout({
     children,
@@ -16,59 +23,84 @@ export default function EditorLayout({
 }>) {
 
 
-    const [open, setOpen] = useState(false);
+    const [popoverState, setPopoverState] = useState<PopoverState>({
+        isOpen: false,
+        itemId: null,
+    });
+
+    const sidebarRef = useRef<HTMLDivElement>(null);
+    const popoverRef = useRef<HTMLDivElement>(null);
+
     const closeTimeout = useRef<NodeJS.Timeout>(null);
 
-    const handleOpen = () => {
+
+    const handleMouseEnter = useCallback((itemId: string) => {
+        console.log('mouse entered!')
         clearTimeout(closeTimeout.current ? closeTimeout.current : undefined);
-        setOpen(true);
-    };
+        setPopoverState((prev) => ({
+            ...prev,
+            isOpen: true,
+            itemId: itemId,
+        }));
+    }, [popoverState.itemId]);
 
-    const handleClose = () => {
-        // small delay feels better when moving from trigger → content
-        closeTimeout.current = setTimeout(() => setOpen(false), 100);
-    };
+    const handleMouseLeave = useCallback((e: React.MouseEvent) => {
+        
+        if (e.target.contains(e.currentTarget)) return;
 
-    const handleMouseEnter = (itemId: string) => {
-        console.log('here!')
-        handleOpen();
-    }
+        // If the mouse is not on the sidebar or the popover, close the popover
+        // if (!sidebarRef.current || !popoverRef.current || e.relatedTarget?.getAttribute("id") === "radix-«r0»") return;
+
+        setPopoverState((prev) => ({
+            ...prev,
+            isOpen: false,
+            itemId: null,
+        }));
+
+    }, [])
+
+    const renderPopoverContent = useCallback(() => {
+        return <div>{popoverState.itemId}</div>
+    }, [popoverState.itemId]);
+
 
 
 
     return (
         <EditorProvider>
             <CanvasProvider>
-                <Popover.Root open={open} onOpenChange={setOpen}>
-                    <div className="flex h-screen flex-col bg-white">
+                <Popover.Root open={popoverState.isOpen}>
+                    <div className={"flex h-screen flex-col"}>
                         <Popover.Anchor>
                             <EditorNavbar />
                         </Popover.Anchor>
-                        <div className="flex flex-1 overflow-hidden">
-                            <NavigationSidebar
-                                items={EDITOR_NAVIGATION_ITEMS}
-                                variant="editor"
-                                onItemMouseEnter={handleMouseEnter}
-                                onItemMouseLeave={handleClose}
-                            />
-                            {children}
-                        </div>
+                        <NavigationSidebar
+                            items={EDITOR_NAVIGATION_ITEMS}
+                            variant="editor"
+                            onItemMouseEnter={handleMouseEnter}
+                            onItemMouseLeave={handleMouseLeave}
+                            ref={sidebarRef}
+                        />
+                        {children}
                         {/* 3️⃣  the floating panel */}
                         <Popover.Portal>
                             <Popover.Content
                                 side="bottom"       /* above | below | left | right */
-                                align="end"      /* start | center | end  ↔  vertical */
+                                align="start"      /* start | center | end  ↔  vertical */
                                 alignOffset={4}     /* fine-tune distance from anchor edge */
-                                onPointerEnter={handleOpen}  /* keep open while hovering panel */
-                                onPointerLeave={handleClose}
+                                className="pl-[calc(var(--sidebar-width)+1rem)] pt-2"
+                                ref={popoverRef}
+                                id="popover-content"
                             >
-                                
-                                <Popover.Arrow />
+                                <div className="border border-neutral-200 shadow-xl rounded-xl h-[var(--editor-sidebar-popover-height)] bg-white min-w-[450px]">
+                                    {renderPopoverContent()}
+                                </div>
+
                             </Popover.Content>
                         </Popover.Portal>
                     </div>
                 </Popover.Root>
             </CanvasProvider>
-        </EditorProvider>
+        </EditorProvider >
     )
 }

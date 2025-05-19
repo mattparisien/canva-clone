@@ -234,7 +234,7 @@ export default function Canvas({
         transformOrigin: "center center",
         // Fix: TypeScript custom property using type assertion
         ['--canvas-scale' as string]: `${scale}`,
-        zIndex: 'var(--z-canvas)'
+        zIndex: 'var(--editor-canvas-z)'
       }}
       onClick={handleCanvasClick}
       onMouseLeave={handleCanvasMouseLeave}
