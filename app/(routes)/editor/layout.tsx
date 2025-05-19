@@ -41,9 +41,6 @@ export default function EditorLayout({
         }));
     }, []);
 
-
-
-
     return (
         <EditorProvider>
             <CanvasProvider>
