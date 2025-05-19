@@ -743,6 +743,67 @@ export function ResizableElement({
             />
           </div>
         )
+      case "rectangle":
+        return (
+          <div 
+            className="w-full h-full" 
+            style={{
+              backgroundColor: element.backgroundColor || "#000000",
+              border: element.borderWidth ? `${element.borderWidth}px ${element.borderStyle || 'solid'} ${element.borderColor || '#000000'}` : 'none',
+              transform: element.rotation ? `rotate(${element.rotation}deg)` : 'none'
+            }}
+          />
+        )
+      case "circle":
+        return (
+          <div 
+            className="w-full h-full rounded-full" 
+            style={{
+              backgroundColor: element.backgroundColor || "#000000",
+              border: element.borderWidth ? `${element.borderWidth}px ${element.borderStyle || 'solid'} ${element.borderColor || '#000000'}` : 'none',
+              transform: element.rotation ? `rotate(${element.rotation}deg)` : 'none'
+            }}
+          />
+        )
+      case "line":
+        return (
+          <div className="w-full h-full flex items-center justify-center">
+            <div 
+              className="w-full" 
+              style={{
+                height: `${element.borderWidth || 2}px`,
+                backgroundColor: element.borderColor || "#000000",
+                borderStyle: element.borderStyle || 'solid',
+                transform: element.rotation ? `rotate(${element.rotation}deg)` : 'none'
+              }}
+            />
+          </div>
+        )
+      case "arrow":
+        return (
+          <div className="w-full h-full flex items-center justify-center relative">
+            <div 
+              className="w-full" 
+              style={{
+                height: `${element.borderWidth || 2}px`,
+                backgroundColor: element.borderColor || "#000000",
+                borderStyle: element.borderStyle || 'solid',
+                transform: element.rotation ? `rotate(${element.rotation}deg)` : 'none'
+              }}
+            />
+            <div 
+              style={{
+                width: '10px',
+                height: '10px',
+                position: 'absolute',
+                right: '0',
+                borderTop: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
+                borderRight: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
+                transform: 'rotate(45deg) translate(-50%, -50%)'
+              }}
+            />
+          </div>
+        )
       default:
         return null
     }

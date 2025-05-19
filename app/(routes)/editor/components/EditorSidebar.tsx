@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation";
 import useEditorStore from "@/lib/stores/useEditorStore";
+import useCanvasStore, { useCurrentCanvasSize } from "@/lib/stores/useCanvasStore";
+import { createRectangleElement, createCircleElement, createLineElement, createArrowElement } from "@/lib/factories/element-factories";
 import * as Popover from "@radix-ui/react-popover";
-import { ChevronRight, Search } from "lucide-react";
+import { ChevronRight, Search, Square, Circle, ArrowRight } from "lucide-react";
 import { useCallback, useRef } from "react";
 
 
@@ -13,11 +15,46 @@ const EditorSidebar = (props: any) => {
     const popoverRef = useRef<HTMLDivElement>(null);
     const openPopover = useEditorStore((state) => state.openPopover);
     const activeItemId = useEditorStore((state) => state.popover.activeItemId);
+    const canvasSize = useCurrentCanvasSize();
+    const addElement = useCanvasStore(state => state.addElement);
 
     const handleItemClick = useCallback((itemId: string) => {
         // Close any open popover
         openPopover(itemId);
-    }, [])
+    }, [openPopover]);
+
+    // Function to create different shapes
+    const handleAddShape = useCallback((shapeType: "rectangle" | "circle" | "line" | "arrow") => {
+        switch (shapeType) {
+            case "rectangle":
+                addElement(createRectangleElement({
+                    backgroundColor: "#333333", // Dark gray
+                }, canvasSize.width, canvasSize.height));
+                break;
+            case "circle":
+                addElement(createCircleElement({
+                    backgroundColor: "#333333", // Dark gray
+                }, canvasSize.width, canvasSize.height));
+                break;
+            case "line":
+                addElement(createLineElement({
+                    borderWidth: 2,
+                    borderColor: "#333333", // Dark gray
+                }, canvasSize.width, canvasSize.height));
+                break;
+            case "arrow":
+                addElement(createArrowElement({
+                    borderWidth: 2,
+                    borderColor: "#333333", // Dark gray
+                }, canvasSize.width, canvasSize.height));
+                break;
+            default:
+                break;
+        }
+
+        // Optional: Close the popover after adding a shape
+        // openPopover("");
+    }, [addElement, canvasSize.width, canvasSize.height]);
 
     // Render appropriate content based on active item
     const renderPopoverContent = useCallback(() => {
@@ -38,19 +75,34 @@ const EditorSidebar = (props: any) => {
 
                     {/* Element type buttons */}
                     <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-                        <Button variant="outline" className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap">
+                        <Button 
+                            variant="outline" 
+                            className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap flex items-center gap-2"
+                            onClick={() => handleAddShape("arrow")}
+                        >
+                            <ArrowRight className="h-4 w-4" />
                             Arrow
                         </Button>
                         <Button variant="outline" className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap">
                             Frame
                         </Button>
-                        <Button variant="outline" className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap">
+                        <Button 
+                            variant="outline" 
+                            className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap flex items-center gap-2"
+                            onClick={() => handleAddShape("line")}
+                        >
+                            <div className="w-4 h-[2px] bg-current"></div>
                             Line
                         </Button>
                         <Button variant="outline" className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap">
                             Table
                         </Button>
-                        <Button variant="outline" className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap">
+                        <Button 
+                            variant="outline" 
+                            className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap flex items-center gap-2"
+                            onClick={() => handleAddShape("circle")}
+                        >
+                            <Circle className="h-4 w-4" />
                             Circle
                         </Button>
                         <div className="flex items-center justify-center pl-2">
@@ -69,25 +121,45 @@ const EditorSidebar = (props: any) => {
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2">
                             {/* Square */}
-                            <div className="w-[80px] h-[80px] bg-black flex-shrink-0 cursor-pointer"></div>
+                            <div 
+                                className="w-[80px] h-[80px] bg-black flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => handleAddShape("rectangle")}
+                                title="Add Rectangle"
+                            ></div>
 
                             {/* Rounded square */}
-                            <div className="w-[80px] h-[80px] bg-black rounded-xl flex-shrink-0 cursor-pointer"></div>
+                            <div 
+                                className="w-[80px] h-[80px] bg-black rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => handleAddShape("rectangle")}
+                                title="Add Rounded Rectangle"
+                            ></div>
 
                             {/* Horizontal line */}
-                            <div className="w-[80px] h-[80px] flex items-center justify-center flex-shrink-0 cursor-pointer">
+                            <div 
+                                className="w-[80px] h-[80px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => handleAddShape("line")}
+                                title="Add Line"
+                            >
                                 <div className="w-full h-[2px] bg-black"></div>
                             </div>
 
                             {/* Arrow */}
-                            <div className="w-[80px] h-[80px] flex items-center justify-center flex-shrink-0 cursor-pointer">
+                            <div 
+                                className="w-[80px] h-[80px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => handleAddShape("arrow")}
+                                title="Add Arrow"
+                            >
                                 <div className="w-full h-[2px] bg-black relative">
                                     <div className="absolute right-0 w-3 h-3 border-t-2 border-r-2 border-black transform rotate-45 -translate-y-1/2"></div>
                                 </div>
                             </div>
 
                             {/* Circle */}
-                            <div className="w-[80px] h-[80px] bg-black rounded-full flex-shrink-0 cursor-pointer"></div>
+                            <div 
+                                className="w-[80px] h-[80px] bg-black rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                onClick={() => handleAddShape("circle")}
+                                title="Add Circle"
+                            ></div>
 
                             <div className="flex items-center justify-center">
                                 <ChevronRight className="h-5 w-5 text-gray-500" />
@@ -221,7 +293,7 @@ const EditorSidebar = (props: any) => {
                 <p className="mt-2 text-gray-600">This panel is still under development.</p>
             </div>
         );
-    }, [activeItemId]);
+    }, [activeItemId, handleAddShape]);
 
     return (
         <>

@@ -1,4 +1,4 @@
-export type ElementType = "text"
+export type ElementType = "text" | "rectangle" | "circle" | "line" | "arrow"
 
 export type CanvasSize = {
   name: string
@@ -23,6 +23,11 @@ export interface Element {
   isItalic?: boolean // Italic formatting
   isUnderlined?: boolean // Underline formatting
   isStrikethrough?: boolean // Strikethrough formatting
+  backgroundColor?: string // For shapes with background
+  borderWidth?: number // For shapes with borders
+  borderColor?: string // For shape borders
+  borderStyle?: "solid" | "dashed" | "dotted" // For shape borders
+  rotation?: number // For element rotation
 }
 
 export interface Page {
