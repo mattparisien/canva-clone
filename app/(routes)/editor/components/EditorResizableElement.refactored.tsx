@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { HANDLE_BASE_SIZE } from "@/lib/constants/editor"
 import useCanvasStore from "@lib/stores/useCanvasStore"
 import { Element as CanvasElement } from "@lib/types/canvas.types"
-import { TextEditor } from "./TextEditor"
+import { TextEditor } from "./EditorTextEditor"
 
 // First, let's properly define our imports with specific path resolution
 import { useElementInteraction } from "../hooks/useElementInteraction"

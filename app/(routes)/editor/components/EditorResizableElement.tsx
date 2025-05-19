@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { TextEditor } from "./TextEditor"
+import { TextEditor } from "./EditorTextEditor"
 import { Element as CanvasElement } from "@lib/types/canvas.types" // Change Element import to CanvasElement
 import { HANDLE_BASE_SIZE, SNAP_THRESHOLD } from "@/lib/constants/editor"
 import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react"

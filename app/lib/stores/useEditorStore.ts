@@ -1,12 +1,22 @@
-import { create } from "zustand";
-import { Element, Page, CanvasSize, EditorContextType } from "../types/canvas.types";
-import { DEFAULT_CANVAS_SIZE } from "../constants/canvas";
 import { projectsAPI } from "@/lib/api";
+import { create } from "zustand";
+import { DEFAULT_CANVAS_SIZE } from "../constants/canvas";
+import { CanvasSize, EditorContextType, Element, Page } from "../types/canvas.types";
 
 // Define the store state interface
 interface EditorState extends Omit<EditorContextType, "currentPage"> {
   designId: string | null;
   captureCanvasScreenshot: () => Promise<string | undefined>;
+
+  // Sidebar popover state
+  popover: {
+    isOpen: boolean;
+    activeItemId: string | null;
+  };
+
+  // Sidebar popover actions
+  openPopover: (itemId: string) => void;
+  closePopover: () => void;
 }
 
 // Create the editor store
@@ -30,6 +40,13 @@ const useEditorStore = create<EditorState>((set, get) => ({
   ],
   currentPageId: `page-${Date.now()}`,
   currentPageIndex: 0,
+
+  // Sidebar popover state
+  popover: {
+    isOpen: false,
+    activeItemId: null,
+    content: null
+  },
 
   // Toggle between edit and view mode
   toggleEditMode: () => set(state => ({ isEditMode: !state.isEditMode })),
@@ -290,6 +307,19 @@ const useEditorStore = create<EditorState>((set, get) => ({
     });
   },
 
+  // Sidebar popover actions
+  openPopover: (itemId: string) => set({
+    popover: {
+      isOpen: true,
+      activeItemId: itemId
+    }
+  }),
+  closePopover: () => set({
+    popover: {
+      isOpen: false,
+      activeItemId: null
+    }
+  })
 }));
 
 // Add a currentPage selector

@@ -1,8 +1,8 @@
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
-import { Badge } from "@/components/ui/badge"
-import { PenLine, Plus, Minus, LayoutGrid, HelpCircle, Maximize } from "lucide-react"
-import { MIN_ZOOM, MAX_ZOOM } from "@/lib/constants/editor"
+import { MAX_ZOOM, MIN_ZOOM } from "@/lib/constants/editor"
+import { Maximize, Minus, Plus } from "lucide-react"
 
 interface BottomBarProps {
     zoom: number
@@ -49,7 +49,7 @@ export default function BottomBar({
                             max={MAX_ZOOM}
                             step={1}
                             onValueChange={([v]) => setZoom(v)}
-                            // className is managed in slider.tsx for neutral colors
+                        // className is managed in slider.tsx for neutral colors
                         />
                     </div>
 

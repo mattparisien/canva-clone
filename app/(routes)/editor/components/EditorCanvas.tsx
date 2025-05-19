@@ -1,12 +1,12 @@
 "use client"
 
 import { AlignmentGuides } from "@/(routes)/editor/components/AlignmentGuides"
-import { ResizableElement } from "@/(routes)/editor/components/ResizableElement"
+import { ResizableElement } from "@/(routes)/editor/components/EditorResizableElement"
+import { calculateFitScale } from "@/lib/utils/canvas-utils"
 import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@lib/stores/useCanvasStore"
 import useEditorStore from "@lib/stores/useEditorStore"
 import classNames from "classnames"
 import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"
-import { calculateFitScale } from "@/lib/utils/canvas-utils"
 
 export default function Canvas({
   zoom,
