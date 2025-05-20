@@ -1,7 +1,6 @@
 "use client"
 
 import { Element as CanvasElement } from "@lib/types/canvas.types"
-import { useEffect, useState } from "react"
 
 interface AlignmentGuidesProps {
   activeElement: CanvasElement
@@ -23,7 +22,7 @@ export function AlignmentGuides({
 }: AlignmentGuidesProps) {
   // Brand blue but with opacity
   const guideColor = 'rgba(59, 130, 246, 0.7)'; // Faded brand-blue color
-  
+
   return (
     <>
       {/* Horizontal guides with faded brand blue */}
@@ -55,7 +54,7 @@ export function AlignmentGuides({
       ))}
 
       {/* Intersection points */}
-      {alignments.horizontal.flatMap(y => 
+      {alignments.horizontal.flatMap(y =>
         alignments.vertical.map(x => (
           <div
             key={`intersect-${x}-${y}`}

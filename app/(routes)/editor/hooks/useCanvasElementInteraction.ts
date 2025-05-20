@@ -4,7 +4,7 @@ import { Element as CanvasElement } from "@lib/types/canvas.types";
 /**
  * Hook to handle element interactions including dragging and keyboard modifiers
  */
-export function useElementInteraction() {
+export function useCanvasElementInteraction() {
   // Track state
   const [isDragging, setIsDragging] = useState(false);
   const [isAltKeyPressed, setIsAltKeyPressed] = useState(false);

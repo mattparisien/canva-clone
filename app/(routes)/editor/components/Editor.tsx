@@ -1,13 +1,13 @@
 "use client"
 
-import { TextToolbar } from "@/(routes)/editor/components/EditorTextToolbar";
+import { TextToolbar } from "@/(routes)/editor/components/TextToolbar";
 import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor";
 import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore";
 import useEditorStore from "@lib/stores/useEditorStore";
 import { useCallback, useEffect, useRef, useState } from "react";
-import BottomBar from "./EditorBottomBar";
-import Canvas from "./EditorCanvas";
-import PageNavigation from "./EditorPageNavigation";
+import BottomBar from "./BottomBar";
+import Canvas from "./canvas/Canvas";
+import PageNavigation from "./PageNavigation";
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.

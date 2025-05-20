@@ -1,7 +1,7 @@
 "use client"
 
-import { AlignmentGuides } from "@/(routes)/editor/components/AlignmentGuides"
-import { EditorCanvasElement } from "@/(routes)/editor/components/EditorCanvasElement"
+import { AlignmentGuides } from "@/(routes)/editor/components/canvas/AlignmentGuides"
+import { EditorCanvasElement } from "@/(routes)/editor/components/canvas/CanvasElement"
 import { calculateFitScale } from "@/lib/utils/canvas-utils"
 import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@lib/stores/useCanvasStore"
 import useEditorStore from "@lib/stores/useEditorStore"

@@ -27,7 +27,7 @@ type ResizeResult = {
 /**
  * Hook to handle element resizing functionality
  */
-export function useElementResize() {
+export function useCanvasElementResize() {
   // Resize state
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);

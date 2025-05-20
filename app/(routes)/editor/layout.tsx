@@ -4,7 +4,7 @@ import EditorNavbar from "@/components/layout/navbar"
 import { CanvasProvider } from "@lib/context/canvas-context"
 import { EditorProvider } from "@lib/context/editor-context"
 import * as Popover from "@radix-ui/react-popover"
-import EditorSidebar from "./components/EditorSidebar"
+import EditorSidebar from "./components/Sidebar"
 import './styles/Editor.css'; // Import editor-specific styles
 
 
