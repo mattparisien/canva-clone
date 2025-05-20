@@ -4,142 +4,31 @@ import React from "react";
 
 import { HANDLE_BASE_SIZE } from "@/lib/constants/editor";
 import useCanvasStore from "@lib/stores/useCanvasStore";
-import { Element as CanvasElement } from "@lib/types/canvas.types"; // Change Element import to CanvasElement
+import { Element as EditorCanvasElement } from "@lib/types/canvas.types"; // Change Element import to CanvasElement
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { TextEditor } from "../TextEditor";
 import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
 import classNames from "classnames";
 import { ElementControls } from "./controls/ElementControls";
+import ElementRenderer from "./renderers/ElementRenderer";
 
-// Create a separate ElementRenderer component to prevent unnecessary rerenders
-const ElementRenderer = React.memo(({ 
-  element, 
-  isSelected, 
-  textEditorKey,
-  updateElement,
-  clearNewElementFlag,
-  handleHeightChange,
-  handleTextAlignChange,
-  isEditMode
-}) => {
-  switch (element.type) {
-    case "text":
-      return (
-        <div className="w-full h-full text-element">
-          <TextEditor
-            key={textEditorKey}
-            content={element.content || ""}
-            fontSize={element.fontSize}
-            fontFamily={element.fontFamily}
-            isSelected={isSelected}
-            isNew={element.isNew}
-            onChange={(content) => updateElement(element.id, { content })}
-            onFontSizeChange={(fontSize) => updateElement(element.id, { fontSize })}
-            onFontFamilyChange={(fontFamily) => updateElement(element.id, { fontFamily })}
-            onEditingStart={() => {
-              if (element.isNew) {
-                clearNewElementFlag(element.id)
-              }
-            }}
-            onHeightChange={handleHeightChange}
-            textAlign={element.textAlign || "center"}
-            onTextAlignChange={handleTextAlignChange}
-            isBold={element.isBold}
-            isItalic={element.isItalic}
-            isUnderlined={element.isUnderlined}
-            isStrikethrough={element.isStrikethrough}
-            isEditMode={isEditMode}
-          />
-        </div>
-      )
-    case "rectangle":
-      return (
-        <div
-          className="w-full h-full"
-          style={{
-            backgroundColor: element.backgroundColor || "transparent",
-            borderColor: element.borderColor || "transparent",
-            borderWidth: element.borderWidth || 0,
-            borderStyle: element.borderStyle || "solid",
-            transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-          }}
-        />
-      )
-    case "circle":
-      return (
-        <div
-          className="w-full h-full rounded-full"
-          style={{
-            backgroundColor: element.backgroundColor || "transparent",
-            borderColor: element.borderColor || "transparent", 
-            borderWidth: element.borderWidth || 0,
-            borderStyle: element.borderStyle || "solid",
-            transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-          }}
-        />
-      )
-    case "line":
-      return (
-        <div className="w-full h-full flex items-center">
-          <div
-            className="w-full"
-            style={{
-              height: "0px",
-              borderTopColor: element.borderColor || "#000000",
-              borderTopWidth: element.borderWidth || 2,
-              borderTopStyle: element.borderStyle || "solid",
-              transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-            }}
-          />
-        </div>
-      )
-    case "arrow":
-      return (
-        <div className="w-full h-full flex items-center relative">
-          <div
-            className="w-full"
-            style={{
-              height: "0px",
-              borderTopColor: element.borderColor || "#000000",
-              borderTopWidth: element.borderWidth || 2,
-              borderTopStyle: element.borderStyle || "solid",
-            }}
-          />
-          <div 
-            style={{
-              position: "absolute",
-              right: "0",
-              width: "10px",
-              height: "10px",
-              borderRight: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
-              borderTop: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
-              transform: "rotate(45deg) translateY(-50%)",
-            }}
-          />
-        </div>
-      )
-    default:
-      return null
-  }
-});
-ElementRenderer.displayName = 'ElementRenderer';
 
-interface EditorCanvasElementProps {
-  element: CanvasElement // Change Element to CanvasElement
+interface CanvasElementProps {
+  element: EditorCanvasElement // Change Element to CanvasElement
   isSelected: boolean
   scale: number
   canvasRef: React.RefObject<HTMLDivElement>
-  allElements: CanvasElement[] // Change Element[] to CanvasElement[]
+  allElements: EditorCanvasElement[] // Change Element[] to CanvasElement[]
   canvasWidth: number
   canvasHeight: number
-  onDragStart: (element: CanvasElement) => void // Change Element to CanvasElement
-  onDrag: (element: CanvasElement, x: number, y: number, alignments: { horizontal: number[]; vertical: number[] }, isMultiSelectionDrag: boolean) => void // Change Element to CanvasElement
+  onDragStart: (element: EditorCanvasElement) => void // Change Element to CanvasElement
+  onDrag: (element: EditorCanvasElement, x: number, y: number, alignments: { horizontal: number[]; vertical: number[] }, isMultiSelectionDrag: boolean) => void // Change Element to CanvasElement
   onDragEnd: () => void
   onHover: (id: string | null) => void
   isEditMode: boolean // Add isEditMode prop
 }
 
-export function EditorCanvasElement({
+export function CanvasElement({
   element,
   isSelected,
   scale,
@@ -152,7 +41,7 @@ export function EditorCanvasElement({
   onDragEnd,
   onHover,
   isEditMode, // Accept the new prop
-}: EditorCanvasElementProps) {
+}: CanvasElementProps) {
   // Get Zustand store methods
   const updateElement = useCanvasStore(state => state.updateElement)
   const selectElement = useCanvasStore(state => state.selectElement)
@@ -247,16 +136,16 @@ export function EditorCanvasElement({
   // Handle mouse move for dragging and resizing
   useEffect(() => {
     if (!isDragging && !isResizing) return;
-    
+
     // Performance optimization: Use requestAnimationFrame for smoother rendering
     let animationFrameId: number | null = null;
     let lastEvent: MouseEvent | null = null;
-    
+
     const processDragOrResize = () => {
       if (!lastEvent || !canvasRef.current) return;
-      
+
       const e = lastEvent;
-      
+
       if (isDragging) {
         // Calculate the delta movement adjusted for scale
         const deltaX = (e.clientX - dragStart.x) / scale;
@@ -338,14 +227,14 @@ export function EditorCanvasElement({
           y: e.clientY,
         });
       }
-      
+
       lastEvent = null;
     };
-    
+
     const handleMouseMove = (e: MouseEvent) => {
       // Store only the most recent event and process in the next animation frame
       lastEvent = e;
-      
+
       if (animationFrameId === null) {
         animationFrameId = requestAnimationFrame(() => {
           processDragOrResize();
@@ -366,7 +255,7 @@ export function EditorCanvasElement({
         // Set the flag to prevent immediate deselect
         setJustFinishedResizing(true);
       }
-      
+
       // Cancel any pending animation frame
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
@@ -380,7 +269,7 @@ export function EditorCanvasElement({
     return () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
-      
+
       // Ensure we clean up any pending animation frame
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
@@ -395,7 +284,7 @@ export function EditorCanvasElement({
     scale,
     canvasRef,
     allElements,
-    canvasWidth, 
+    canvasWidth,
     canvasHeight,
     onDrag,
     onDragEnd,
@@ -519,7 +408,7 @@ export function EditorCanvasElement({
                 borderTopStyle: element.borderStyle || "solid",
               }}
             />
-            <div 
+            <div
               style={{
                 position: "absolute",
                 right: "0",
@@ -570,7 +459,7 @@ export function EditorCanvasElement({
         onMouseEnter={handleElementMouseEnter}
         onMouseLeave={handleElementMouseLeave}
       >
-        <ElementRenderer 
+        <ElementRenderer
           element={element}
           isSelected={isSelected}
           textEditorKey={textEditorKey}
