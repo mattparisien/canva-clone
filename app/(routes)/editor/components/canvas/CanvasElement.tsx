@@ -1,16 +1,17 @@
 "use client"
 
-import React from "react";
+import React, { useState } from "react";
 
 import { HANDLE_BASE_SIZE } from "@/lib/constants/editor";
 import useCanvasStore from "@lib/stores/useCanvasStore";
 import { Element as EditorCanvasElement } from "@lib/types/canvas.types"; // Change Element import to CanvasElement
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState as useStateHook, useMemo } from "react";
 import { TextEditor } from "../TextEditor";
 import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
 import classNames from "classnames";
 import { ElementControls } from "./controls/ElementControls";
 import ElementRenderer from "./renderers/ElementRenderer";
+import { ElementPopover } from "./controls/ElementPopover";
 
 
 interface CanvasElementProps {
@@ -47,11 +48,13 @@ export function CanvasElement({
   const selectElement = useCanvasStore(state => state.selectElement)
   const clearNewElementFlag = useCanvasStore(state => state.clearNewElementFlag)
   const deleteElement = useCanvasStore(state => state.deleteElement)
+  const duplicateElement = useCanvasStore(state => state.duplicateElement)
   const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
 
   // Element ref and text editor key for rerendering
   const elementRef = useRef<HTMLDivElement>(null)
   const [textEditorKey, setTextEditorKey] = useState(0)
+  const [showPopover, setShowPopover] = useState(false)
 
   // Initialize our custom hooks
   const { getSnappedPosition } = useSnapping()
@@ -91,19 +94,48 @@ export function CanvasElement({
   }, [element, onDragStart, selectElement, clearNewElementFlag, isEditMode, startDrag])
 
   // Handle element deletion
-  const handleDelete = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    deleteElement(element.id)
-  }, [deleteElement, element.id])
+  const handleDelete = useCallback((id: string) => {
+    deleteElement(id)
+  }, [deleteElement])
 
-  // Enhanced mouse enter/leave handlers
-  const handleElementMouseEnter = useCallback(() => {
-    handleMouseEnter(element.id, onHover, isEditMode)
-  }, [element.id, onHover, isEditMode, handleMouseEnter])
+  // Handle element duplication
+  const handleDuplicate = useCallback((id: string) => {
+    duplicateElement(id)
+  }, [duplicateElement])
 
-  const handleElementMouseLeave = useCallback(() => {
-    handleMouseLeave(onHover)
-  }, [onHover, handleMouseLeave])
+  // Handle element locking
+  const handleLock = useCallback((id: string) => {
+    // Toggle locked state
+    updateElement(id, { locked: !element.locked })
+  }, [updateElement, element.locked])
+
+  // Modified mouse down handler
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!isEditMode) return
+    
+    // Show popover on mouse down
+    setShowPopover(true)
+
+    startDrag(
+      e,
+      element,
+      onDragStart,
+      selectElement,
+      clearNewElementFlag
+    )
+  }, [element, onDragStart, selectElement, clearNewElementFlag, isEditMode, startDrag])
+
+  // Add a mouse up handler to hide popover if clicking elsewhere
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowPopover(false)
+    }
+
+    document.addEventListener('mouseup', handleClickOutside)
+    return () => {
+      document.removeEventListener('mouseup', handleClickOutside)
+    }
+  }, [])
 
   // Handle text height change
   const handleHeightChange = useCallback((newHeight: number) => {
@@ -479,7 +511,7 @@ export function CanvasElement({
           // Fixed stacking order based only on element type
           zIndex: element.type === "text" ? 1 : 0,
         }}
-        onMouseDown={handleDragStart}
+        onMouseDown={handleMouseDown}
         onMouseEnter={handleElementMouseEnter}
         onMouseLeave={handleElementMouseLeave}
       >
@@ -508,6 +540,16 @@ export function CanvasElement({
             setLeftBorderHover={setLeftBorderHover}
             setRightBorderHover={setRightBorderHover}
             isDragging={isDragging}
+          />
+        )}
+        
+        {/* Show popover on mousedown */}
+        {showPopover && isEditMode && (
+          <ElementPopover
+            element={element}
+            onLock={handleLock}
+            onDuplicate={handleDuplicate}
+            onDelete={handleDelete}
           />
         )}
       </div>

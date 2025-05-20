@@ -28,6 +28,7 @@ export interface Element {
   borderColor?: string // For shape borders
   borderStyle?: "solid" | "dashed" | "dotted" // For shape borders
   rotation?: number // For element rotation
+  locked?: boolean // Whether the element is locked for editing
 }
 
 export interface Page {

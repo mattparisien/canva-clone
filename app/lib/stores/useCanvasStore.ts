@@ -636,7 +636,61 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
     set(state => ({
       isCanvasSelected: !state.isCanvasSelected
     }));
-  }
+  },
+
+  // Duplicate an element
+  duplicateElement: (id: string) => {
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+
+    if (!currentPageId) return;
+
+    const currentPage = editor.pages.find(page => page.id === currentPageId);
+
+    if (!currentPage) return;
+
+    // Find the element to duplicate
+    const elementToDuplicate = currentPage.elements.find(el => el.id === id);
+
+    if (!elementToDuplicate) return;
+
+    // Create a copy with a new ID, slightly offset position
+    const newElement: Element = {
+      ...elementToDuplicate,
+      id: nanoid(),
+      x: elementToDuplicate.x + 20, // Offset the copied element by 20px
+      y: elementToDuplicate.y + 20
+    };
+
+    // Add the duplicate to the canvas
+    const updatedElements = [...currentPage.elements, newElement];
+
+    // Update the page elements
+    editor.updatePageElements(currentPageId, updatedElements);
+
+    // Add to history
+    const historyAction: HistoryAction = {
+      type: 'ADD_ELEMENT',
+      element: newElement,
+      pageId: currentPageId
+    };
+
+    // Update history and selection in canvas store
+    set(state => {
+      const newHistory = state.history.slice(0, state.historyIndex + 1);
+      newHistory.push(historyAction);
+
+      return {
+        selectedElement: newElement,
+        selectedElementIds: [newElement.id],
+        isCanvasSelected: false,
+        historyIndex: state.historyIndex + 1,
+        history: newHistory,
+        canUndo: true,
+        canRedo: false
+      };
+    });
+  },
 
 }));
 
