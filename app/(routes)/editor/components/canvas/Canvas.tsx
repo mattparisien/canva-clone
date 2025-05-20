@@ -193,25 +193,34 @@ export default function Canvas({
     setIsHoveringChild(false)
   }, [])
 
+  // Handle clicks outside the canvas to clear element selection
   useEffect(() => {
     const handleOutsideClick = (e: globalThis.MouseEvent) => {
-      // Only deselect if canvas is currently selected AND click is outside canvas
-      if (canvasRef.current &&
-        !canvasRef.current.contains(e.target as Node) &&
-        isCanvasSelected) {
-        togggleCanvasSelection();
+      // Only process if we're in edit mode
+      if (!isEditMode) return;
+      
+      // Check if click is outside canvas
+      if (canvasRef.current && !canvasRef.current.contains(e.target as Node)) {
+        // Clear element selection
+        if (selectedElementIds.length > 0 || selectedElement !== null) {
+          selectElement(null);
+        }
+        
+        // Also clear canvas selection if needed
+        if (isCanvasSelected) {
+          selectCanvas(false);
+        }
       }
     };
 
     // Add the event listener
-    window.addEventListener("click", handleOutsideClick);
+    document.addEventListener("click", handleOutsideClick);
 
     // Clean up the event listener
     return () => {
-      window.removeEventListener("click", handleOutsideClick);
+      document.removeEventListener("click", handleOutsideClick);
     };
-  }, [isCanvasSelected, togggleCanvasSelection]);
-
+  }, [selectElement, selectCanvas, selectedElementIds, selectedElement, isCanvasSelected, isEditMode]);
 
   const isBorderActive = (isCanvasSelected && isEditMode) || isCanvasHovering && isEditMode;
 

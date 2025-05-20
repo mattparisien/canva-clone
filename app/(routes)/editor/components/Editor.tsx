@@ -37,16 +37,6 @@ export default function Editor() {
     const clearSelection = useCanvasStore(state => state.clearSelection)
     const deleteSelectedElements = useCanvasStore(state => state.deleteSelectedElements)
 
-    // Handle clicks outside the canvas to deselect everything
-    const handleEditorClick = useCallback((e: React.MouseEvent) => {
-        // Check if the click target is not the canvas or any of its children
-        const canvasElement = document.querySelector('.canvas-wrapper')
-        if (canvasElement && !canvasElement.contains(e.target as Node)) {
-            // Clear all selections - elements and canvas
-            clearSelection();
-        }
-    }, [clearSelection]);
-
     // Zoom handler that will be passed to Canvas
     const handleZoomChange = useCallback((newZoom: number) => {
         setZoom(newZoom);
@@ -269,7 +259,6 @@ export default function Editor() {
         <div
             className="flex flex-1 overflow-hidden flex-col relative bg-editor pl-sidebar"
             ref={editorContainerRef}
-            onClick={handleEditorClick}
         >
             {/* Main canvas area with wheel handler - removing inline wheel handler */}
             <div className="flex-1 overflow-hidden relative flex items-center justify-center bg-editor">

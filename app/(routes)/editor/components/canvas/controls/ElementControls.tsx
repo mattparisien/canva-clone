@@ -18,6 +18,14 @@ interface ElementControlsProps {
   isDragging: boolean
 }
 
+/**
+ * Determine if an element should show top/bottom handles 
+ * (shapes should, text elements shouldn't)
+ */
+const shouldShowTopBottomHandles = (element: CanvasElement): boolean => {
+  return element.type !== "text"; // Only show for non-text elements
+};
+
 // Use React.memo to prevent unnecessary rerenders
 export const ElementControls = React.memo(({
   element,
@@ -39,6 +47,9 @@ export const ElementControls = React.memo(({
   // Calculate handle sizes
   const handleSize = 18 / scale; // Using constant HANDLE_BASE_SIZE = 18
   const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5;
+  
+  // Check if this element type should have top/bottom handles
+  const showTopBottomHandles = shouldShowTopBottomHandles(element);
 
   return (
     <>
@@ -61,6 +72,28 @@ export const ElementControls = React.memo(({
           onMouseDown={(e) => handleResizeStart(e, "nw")}
           onMouseEnter={() => setHandleHoverState("nw", true)}
           onMouseLeave={() => setHandleHoverState("nw", false)}
+        />
+      )}
+
+      {/* Top handle - only for shape elements */}
+      {showTopBottomHandles && !isTooSmallForAllHandles && (!isResizing || resizeDirection === "n") && (
+        <div
+          className="absolute cursor-ns-resize"
+          style={{
+            width: `${handleSize * 2.2}px`,
+            height: `${handleSize * 0.7}px`,
+            borderRadius: `${handleSize * 0.35}px`,
+            boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+            border: "1px solid var(--handle-border)",
+            zIndex: 10,
+            top: 0,
+            left: "50%",
+            transform: `translate(-50%, -50%) scale(${1})`,
+            background: getHandleBg("n", resizeDirection, isResizing) === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
+          }}
+          onMouseDown={(e) => handleResizeStart(e, "n")}
+          onMouseEnter={() => setHandleHoverState("n", true)}
+          onMouseLeave={() => setHandleHoverState("n", false)}
         />
       )}
 
@@ -132,6 +165,28 @@ export const ElementControls = React.memo(({
           onMouseDown={(e) => handleResizeStart(e, "se")}
           onMouseEnter={() => setHandleHoverState("se", true)}
           onMouseLeave={() => setHandleHoverState("se", false)}
+        />
+      )}
+
+      {/* Bottom handle - only for shape elements */}
+      {showTopBottomHandles && !isTooSmallForAllHandles && (!isResizing || resizeDirection === "s") && (
+        <div
+          className="absolute cursor-ns-resize"
+          style={{
+            width: `${handleSize * 2.2}px`,
+            height: `${handleSize * 0.7}px`,
+            borderRadius: `${handleSize * 0.35}px`,
+            boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+            border: "1px solid var(--handle-border)",
+            zIndex: 10,
+            bottom: 0,
+            left: "50%",
+            transform: `translate(-50%, 50%) scale(${1})`,
+            background: getHandleBg("s", resizeDirection, isResizing) === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
+          }}
+          onMouseDown={(e) => handleResizeStart(e, "s")}
+          onMouseEnter={() => setHandleHoverState("s", true)}
+          onMouseLeave={() => setHandleHoverState("s", false)}
         />
       )}
 
