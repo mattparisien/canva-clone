@@ -476,6 +476,8 @@ export function CanvasElement({
           cursor: isEditMode ? (isDragging ? "grabbing" : "grab") : "default",
           transform: "none",
           borderRadius: "2px",
+          // Fixed stacking order based only on element type
+          zIndex: element.type === "text" ? 1 : 0,
         }}
         onMouseDown={handleDragStart}
         onMouseEnter={handleElementMouseEnter}
