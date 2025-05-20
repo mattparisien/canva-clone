@@ -9,7 +9,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useCallback } from "react
 import useCanvasStore from "@lib/stores/useCanvasStore"
 import classNames from "classnames"
 
-interface ResizableElementProps {
+interface EditorCanvasElementProps {
   element: CanvasElement // Change Element to CanvasElement
   isSelected: boolean
   scale: number
@@ -24,7 +24,7 @@ interface ResizableElementProps {
   isEditMode: boolean // Add isEditMode prop
 }
 
-export function ResizableElement({
+export function EditorCanvasElement({
   element,
   isSelected,
   scale,
@@ -37,7 +37,7 @@ export function ResizableElement({
   onDragEnd,
   onHover,
   isEditMode, // Accept the new prop
-}: ResizableElementProps) {
+}: EditorCanvasElementProps) {
   const updateElement = useCanvasStore(state => state.updateElement)
   const selectElement = useCanvasStore(state => state.selectElement)
   const clearNewElementFlag = useCanvasStore(state => state.clearNewElementFlag)

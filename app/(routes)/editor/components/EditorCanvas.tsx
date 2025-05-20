@@ -1,7 +1,7 @@
 "use client"
 
 import { AlignmentGuides } from "@/(routes)/editor/components/AlignmentGuides"
-import { ResizableElement } from "@/(routes)/editor/components/EditorResizableElement"
+import { EditorCanvasElement } from "@/(routes)/editor/components/EditorCanvasElement"
 import { calculateFitScale } from "@/lib/utils/canvas-utils"
 import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@lib/stores/useCanvasStore"
 import useEditorStore from "@lib/stores/useEditorStore"
@@ -273,7 +273,7 @@ export default function Canvas({
       {/* Canvas elements */}
       {
         elements.map((el) => (
-          <ResizableElement
+          <EditorCanvasElement
             key={el.id}
             element={el}
             isSelected={isEditMode && (selectedElementIds.includes(el.id) || selectedElement?.id === el.id)}
