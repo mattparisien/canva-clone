@@ -6,7 +6,7 @@ import { calculateFitScale } from "@/lib/utils/canvas-utils"
 import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@lib/stores/useCanvasStore"
 import useEditorStore from "@lib/stores/useEditorStore"
 import classNames from "classnames"
-import { useCallback, useEffect, useRef, useState, type MouseEvent } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
 
 export default function Canvas({
   zoom,
@@ -186,6 +186,15 @@ export default function Canvas({
   // Track when we're hovering over a child element to prevent canvas border
   const [isHoveringChild, setIsHoveringChild] = useState(false)
 
+  // Sort elements by type to ensure proper stacking order (shapes behind text)
+  const sortedElements = useMemo(() => {
+    return [...elements].sort((a, b) => {
+      // Text elements should always be on top
+      if (a.type === "text" && b.type !== "text") return 1;
+      if (a.type !== "text" && b.type === "text") return -1;
+      return 0;
+    });
+  }, [elements]);
 
   // Clear isHoveringChild when leaving canvas
   const handleCanvasMouseLeave = useCallback(() => {
@@ -281,7 +290,7 @@ export default function Canvas({
 
       {/* Canvas elements */}
       {
-        elements.map((el) => (
+        sortedElements.map((el) => (
           <CanvasElement
             key={el.id}
             element={el}
