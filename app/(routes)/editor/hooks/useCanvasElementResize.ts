@@ -124,6 +124,11 @@ export function useCanvasElementResize() {
         fontSize: origFontSize = element.fontSize || 36,
       } = originalState.current;
 
+      // Determine resize behavior based on element type
+      // Text elements should always maintain aspect ratio (constrained)
+      // Shape elements (rectangle, circle, line, arrow) can resize freely
+      const shouldMaintainAspectRatio = element.type === "text";
+
       // Calculate the total delta from the initial mouse position
       // This approach provides smoother resizing by avoiding accumulated errors
       const totalDeltaX = (mouseX - initialMousePos.current.x) / scale;
@@ -136,24 +141,29 @@ export function useCanvasElementResize() {
       let newFontSize = origFontSize;
       let widthChanged = false;
 
-      // Check if we're resizing from a corner (which requires maintaining aspect ratio)
+      // Check if we're resizing from a corner
       const isCornerResize = resizeDirection && resizeDirection.length > 1;
 
       if (isCornerResize && resizeDirection) {
-        // Handle corner resizing
         switch (resizeDirection) {
           case "se": // Southeast
-            // Calculate both potential dimensions
-            const potentialWidthSE = Math.max(50, origWidth + totalDeltaX);
-            const potentialHeightSE = Math.max(20, origHeight + totalDeltaY);
+            if (shouldMaintainAspectRatio) {
+              // Constrained mode: maintain aspect ratio
+              const potentialWidthSE = Math.max(50, origWidth + totalDeltaX);
+              const potentialHeightSE = Math.max(20, origHeight + totalDeltaY);
 
-            // Choose the dimension that would result in the larger area
-            if (potentialWidthSE / origWidth > potentialHeightSE / origHeight) {
-              newWidth = potentialWidthSE;
-              newHeight = newWidth / aspectRatio;
+              // Choose the dimension that would result in the larger area
+              if (potentialWidthSE / origWidth > potentialHeightSE / origHeight) {
+                newWidth = potentialWidthSE;
+                newHeight = newWidth / aspectRatio;
+              } else {
+                newHeight = potentialHeightSE;
+                newWidth = newHeight * aspectRatio;
+              }
             } else {
-              newHeight = potentialHeightSE;
-              newWidth = newHeight * aspectRatio;
+              // Free mode: resize width and height independently
+              newWidth = Math.max(50, origWidth + totalDeltaX);
+              newHeight = Math.max(20, origHeight + totalDeltaY);
             }
             
             widthChanged = true;
@@ -166,15 +176,22 @@ export function useCanvasElementResize() {
             break;
 
           case "sw": // Southwest
-            const potentialWidthSW = Math.max(50, origWidth - totalDeltaX);
-            const potentialHeightSW = Math.max(20, origHeight + totalDeltaY);
+            if (shouldMaintainAspectRatio) {
+              // Constrained mode: maintain aspect ratio
+              const potentialWidthSW = Math.max(50, origWidth - totalDeltaX);
+              const potentialHeightSW = Math.max(20, origHeight + totalDeltaY);
 
-            if (potentialWidthSW / origWidth > potentialHeightSW / origHeight) {
-              newWidth = potentialWidthSW;
-              newHeight = newWidth / aspectRatio;
+              if (potentialWidthSW / origWidth > potentialHeightSW / origHeight) {
+                newWidth = potentialWidthSW;
+                newHeight = newWidth / aspectRatio;
+              } else {
+                newHeight = potentialHeightSW;
+                newWidth = newHeight * aspectRatio;
+              }
             } else {
-              newHeight = potentialHeightSW;
-              newWidth = newHeight * aspectRatio;
+              // Free mode: resize width and height independently
+              newWidth = Math.max(50, origWidth - totalDeltaX);
+              newHeight = Math.max(20, origHeight + totalDeltaY);
             }
             
             widthChanged = true;
@@ -190,15 +207,22 @@ export function useCanvasElementResize() {
             break;
 
           case "ne": // Northeast
-            const potentialWidthNE = Math.max(50, origWidth + totalDeltaX);
-            const potentialHeightNE = Math.max(20, origHeight - totalDeltaY);
+            if (shouldMaintainAspectRatio) {
+              // Constrained mode: maintain aspect ratio
+              const potentialWidthNE = Math.max(50, origWidth + totalDeltaX);
+              const potentialHeightNE = Math.max(20, origHeight - totalDeltaY);
 
-            if (potentialWidthNE / origWidth > potentialHeightNE / origHeight) {
-              newWidth = potentialWidthNE;
-              newHeight = newWidth / aspectRatio;
+              if (potentialWidthNE / origWidth > potentialHeightNE / origHeight) {
+                newWidth = potentialWidthNE;
+                newHeight = newWidth / aspectRatio;
+              } else {
+                newHeight = potentialHeightNE;
+                newWidth = newHeight * aspectRatio;
+              }
             } else {
-              newHeight = potentialHeightNE;
-              newWidth = newHeight * aspectRatio;
+              // Free mode: resize width and height independently
+              newWidth = Math.max(50, origWidth + totalDeltaX);
+              newHeight = Math.max(20, origHeight - totalDeltaY);
             }
             
             widthChanged = true;
@@ -213,15 +237,22 @@ export function useCanvasElementResize() {
             break;
 
           case "nw": // Northwest
-            const potentialWidthNW = Math.max(50, origWidth - totalDeltaX);
-            const potentialHeightNW = Math.max(20, origHeight - totalDeltaY);
+            if (shouldMaintainAspectRatio) {
+              // Constrained mode: maintain aspect ratio
+              const potentialWidthNW = Math.max(50, origWidth - totalDeltaX);
+              const potentialHeightNW = Math.max(20, origHeight - totalDeltaY);
 
-            if (potentialWidthNW / origWidth > potentialHeightNW / origHeight) {
-              newWidth = potentialWidthNW;
-              newHeight = newWidth / aspectRatio;
+              if (potentialWidthNW / origWidth > potentialHeightNW / origHeight) {
+                newWidth = potentialWidthNW;
+                newHeight = newWidth / aspectRatio;
+              } else {
+                newHeight = potentialHeightNW;
+                newWidth = newHeight * aspectRatio;
+              }
             } else {
-              newHeight = potentialHeightNW;
-              newWidth = newHeight * aspectRatio;
+              // Free mode: resize width and height independently
+              newWidth = Math.max(50, origWidth - totalDeltaX);
+              newHeight = Math.max(20, origHeight - totalDeltaY);
             }
             
             widthChanged = true;
@@ -240,6 +271,7 @@ export function useCanvasElementResize() {
 
         // Scale the font size proportionally for text elements when using corner handles
         if (element.type === "text" && element.fontSize) {
+          // Always use width scaling for text elements to keep font size consistent with width changes
           const scaleFactor = newWidth / origWidth;
           newFontSize = Math.max(8, Math.round(origFontSize * scaleFactor));
         }
