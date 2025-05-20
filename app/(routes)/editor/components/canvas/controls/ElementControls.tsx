@@ -2,7 +2,6 @@
 
 import React from "react"
 import { Element as CanvasElement } from "@lib/types/canvas.types"
-import { HANDLE_BASE_SIZE } from "@/lib/constants/editor"
 
 interface ElementControlsProps {
   element: CanvasElement
@@ -19,7 +18,8 @@ interface ElementControlsProps {
   isDragging: boolean
 }
 
-export function ElementControls({
+// Use React.memo to prevent unnecessary rerenders
+export const ElementControls = React.memo(({
   element,
   scale,
   isResizing,
@@ -32,20 +32,20 @@ export function ElementControls({
   setLeftBorderHover,
   setRightBorderHover,
   isDragging,
-}: ElementControlsProps) {
-  // Don't render controls when dragging
-  if (isDragging) return null
+}: ElementControlsProps) => {
+  // Don't render controls when dragging for performance
+  if (isDragging) return null;
   
   // Calculate handle sizes
-  const handleSize = HANDLE_BASE_SIZE / scale
-  const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5
+  const handleSize = 18 / scale; // Using constant HANDLE_BASE_SIZE = 18
+  const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5;
 
   return (
     <>
       {/* Top-left corner handle */}
       {(!isResizing || resizeDirection === "nw") && (
         <div
-          className="absolute cursor-nwse-resize group/handle"
+          className="absolute cursor-nwse-resize"
           style={{
             width: `${handleSize}px`,
             height: `${handleSize}px`,
@@ -70,7 +70,7 @@ export function ElementControls({
           {/* Northeast corner handle */}
           {(!isResizing || resizeDirection === "ne") && (
             <div
-              className="absolute cursor-nesw-resize group/handle"
+              className="absolute cursor-nesw-resize"
               style={{
                 width: `${handleSize}px`,
                 height: `${handleSize}px`,
@@ -92,7 +92,7 @@ export function ElementControls({
           {/* Southwest corner handle */}
           {(!isResizing || resizeDirection === "sw") && (
             <div
-              className="absolute cursor-nesw-resize group/handle"
+              className="absolute cursor-nesw-resize"
               style={{
                 width: `${handleSize}px`,
                 height: `${handleSize}px`,
@@ -116,7 +116,7 @@ export function ElementControls({
       {/* Southeast corner handle */}
       {(!isResizing || resizeDirection === "se") && (
         <div
-          className="absolute cursor-nwse-resize group/handle"
+          className="absolute cursor-nwse-resize"
           style={{
             width: `${handleSize}px`,
             height: `${handleSize}px`,
@@ -138,7 +138,7 @@ export function ElementControls({
       {/* Right handle with enhanced styling */}
       {(!isResizing || resizeDirection === "e") && (
         <div
-          className="absolute cursor-ew-resize group/handle"
+          className="absolute cursor-ew-resize"
           style={{
             width: `${handleSize * 0.7}px`,
             height: `${Math.min(handleSize * 2.2, element.height * 0.6)}px`,
@@ -160,7 +160,7 @@ export function ElementControls({
       {/* Left handle with enhanced styling */}
       {!isTooSmallForAllHandles && (!isResizing || resizeDirection === "w") && (
         <div
-          className="absolute cursor-ew-resize group/handle"
+          className="absolute cursor-ew-resize"
           style={{
             width: `${handleSize * 0.7}px`,
             height: `${Math.min(handleSize * 2.2, element.height * 0.6)}px`,
@@ -232,4 +232,6 @@ export function ElementControls({
       />
     </>
   )
-}
+});
+
+ElementControls.displayName = 'ElementControls';

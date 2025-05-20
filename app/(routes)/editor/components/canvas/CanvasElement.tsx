@@ -1,15 +1,128 @@
 "use client"
 
-import type React from "react";
+import React from "react";
 
 import { HANDLE_BASE_SIZE } from "@/lib/constants/editor";
 import useCanvasStore from "@lib/stores/useCanvasStore";
 import { Element as CanvasElement } from "@lib/types/canvas.types"; // Change Element import to CanvasElement
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { TextEditor } from "../TextEditor";
 import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
 import classNames from "classnames";
 import { ElementControls } from "./controls/ElementControls";
+
+// Create a separate ElementRenderer component to prevent unnecessary rerenders
+const ElementRenderer = React.memo(({ 
+  element, 
+  isSelected, 
+  textEditorKey,
+  updateElement,
+  clearNewElementFlag,
+  handleHeightChange,
+  handleTextAlignChange,
+  isEditMode
+}) => {
+  switch (element.type) {
+    case "text":
+      return (
+        <div className="w-full h-full text-element">
+          <TextEditor
+            key={textEditorKey}
+            content={element.content || ""}
+            fontSize={element.fontSize}
+            fontFamily={element.fontFamily}
+            isSelected={isSelected}
+            isNew={element.isNew}
+            onChange={(content) => updateElement(element.id, { content })}
+            onFontSizeChange={(fontSize) => updateElement(element.id, { fontSize })}
+            onFontFamilyChange={(fontFamily) => updateElement(element.id, { fontFamily })}
+            onEditingStart={() => {
+              if (element.isNew) {
+                clearNewElementFlag(element.id)
+              }
+            }}
+            onHeightChange={handleHeightChange}
+            textAlign={element.textAlign || "center"}
+            onTextAlignChange={handleTextAlignChange}
+            isBold={element.isBold}
+            isItalic={element.isItalic}
+            isUnderlined={element.isUnderlined}
+            isStrikethrough={element.isStrikethrough}
+            isEditMode={isEditMode}
+          />
+        </div>
+      )
+    case "rectangle":
+      return (
+        <div
+          className="w-full h-full"
+          style={{
+            backgroundColor: element.backgroundColor || "transparent",
+            borderColor: element.borderColor || "transparent",
+            borderWidth: element.borderWidth || 0,
+            borderStyle: element.borderStyle || "solid",
+            transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
+          }}
+        />
+      )
+    case "circle":
+      return (
+        <div
+          className="w-full h-full rounded-full"
+          style={{
+            backgroundColor: element.backgroundColor || "transparent",
+            borderColor: element.borderColor || "transparent", 
+            borderWidth: element.borderWidth || 0,
+            borderStyle: element.borderStyle || "solid",
+            transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
+          }}
+        />
+      )
+    case "line":
+      return (
+        <div className="w-full h-full flex items-center">
+          <div
+            className="w-full"
+            style={{
+              height: "0px",
+              borderTopColor: element.borderColor || "#000000",
+              borderTopWidth: element.borderWidth || 2,
+              borderTopStyle: element.borderStyle || "solid",
+              transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
+            }}
+          />
+        </div>
+      )
+    case "arrow":
+      return (
+        <div className="w-full h-full flex items-center relative">
+          <div
+            className="w-full"
+            style={{
+              height: "0px",
+              borderTopColor: element.borderColor || "#000000",
+              borderTopWidth: element.borderWidth || 2,
+              borderTopStyle: element.borderStyle || "solid",
+            }}
+          />
+          <div 
+            style={{
+              position: "absolute",
+              right: "0",
+              width: "10px",
+              height: "10px",
+              borderRight: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
+              borderTop: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
+              transform: "rotate(45deg) translateY(-50%)",
+            }}
+          />
+        </div>
+      )
+    default:
+      return null
+  }
+});
+ElementRenderer.displayName = 'ElementRenderer';
 
 interface EditorCanvasElementProps {
   element: CanvasElement // Change Element to CanvasElement
@@ -133,17 +246,25 @@ export function EditorCanvasElement({
 
   // Handle mouse move for dragging and resizing
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!canvasRef.current) return
-
+    if (!isDragging && !isResizing) return;
+    
+    // Performance optimization: Use requestAnimationFrame for smoother rendering
+    let animationFrameId: number | null = null;
+    let lastEvent: MouseEvent | null = null;
+    
+    const processDragOrResize = () => {
+      if (!lastEvent || !canvasRef.current) return;
+      
+      const e = lastEvent;
+      
       if (isDragging) {
         // Calculate the delta movement adjusted for scale
-        const deltaX = (e.clientX - dragStart.x) / scale
-        const deltaY = (e.clientY - dragStart.y) / scale
+        const deltaX = (e.clientX - dragStart.x) / scale;
+        const deltaY = (e.clientY - dragStart.y) / scale;
 
         // Calculate new position
-        const newX = element.x + deltaX
-        const newY = element.y + deltaY
+        const newX = element.x + deltaX;
+        const newY = element.y + deltaY;
 
         // Get snapped position and alignment guides
         const {
@@ -159,25 +280,25 @@ export function EditorCanvasElement({
           canvasHeight,
           isDragging,
           isSelected
-        )
+        );
 
         // Update element position
         updateElement(element.id, {
           x: snappedX,
           y: snappedY,
-        })
+        });
 
         // Check if this is a multi-selection drag
-        const isMultiSelectionDrag = selectedElementIds.length > 1 && selectedElementIds.includes(element.id)
+        const isMultiSelectionDrag = selectedElementIds.length > 1 && selectedElementIds.includes(element.id);
 
         // Notify parent component
-        onDrag(element, snappedX, snappedY, newAlignments, isMultiSelectionDrag)
+        onDrag(element, snappedX, snappedY, newAlignments, isMultiSelectionDrag);
 
         // Update drag start position for next move
         setDragStart({
           x: e.clientX,
           y: e.clientY,
-        })
+        });
       } else if (isResizing) {
         // Calculate new dimensions and position
         const resizeResult = calculateResize(
@@ -186,9 +307,9 @@ export function EditorCanvasElement({
           e.clientY,
           scale,
           isAltKeyPressed
-        )
+        );
 
-        const { width: newWidth, height: newHeight, x: newX, y: newY, fontSize: newFontSize, widthChanged } = resizeResult
+        const { width: newWidth, height: newHeight, x: newX, y: newY, fontSize: newFontSize, widthChanged } = resizeResult;
 
         // Update element with new dimensions, position and font size
         updateElement(element.id, {
@@ -197,52 +318,74 @@ export function EditorCanvasElement({
           x: newX,
           y: newY,
           ...(element.type === "text" ? { fontSize: newFontSize } : {}),
-        })
+        });
 
         // If resizing a text element horizontally, measure and update height immediately
         if (element.type === "text" && widthChanged) {
-          const measuredHeight = measureElementHeight(element)
+          const measuredHeight = measureElementHeight(element);
 
           if (measuredHeight && measuredHeight !== newHeight) {
-            updateElement(element.id, { height: measuredHeight })
+            updateElement(element.id, { height: measuredHeight });
           }
 
           // Force TextEditor re-render to recalculate height
-          setTextEditorKey((k) => k + 1)
+          setTextEditorKey((k) => k + 1);
         }
 
         // Update drag start position for next move
         setDragStart({
           x: e.clientX,
           y: e.clientY,
-        })
+        });
       }
-    }
+      
+      lastEvent = null;
+    };
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      // Store only the most recent event and process in the next animation frame
+      lastEvent = e;
+      
+      if (animationFrameId === null) {
+        animationFrameId = requestAnimationFrame(() => {
+          processDragOrResize();
+          animationFrameId = null;
+        });
+      }
+    };
 
     const handleMouseUp = () => {
       if (isDragging) {
-        endDrag(onDragEnd)
+        endDrag(onDragEnd);
       }
 
-      // We're ending the drag/resize operation but need to keep the element selected
       if (isResizing) {
-        endResize()
+        endResize();
         // Only call when ending a resize operation, with false to not toggle selection
-        selectElement(element.id, false)
+        selectElement(element.id, false);
         // Set the flag to prevent immediate deselect
-        setJustFinishedResizing(true)
+        setJustFinishedResizing(true);
       }
-    }
+      
+      // Cancel any pending animation frame
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    };
 
-    if (isDragging || isResizing) {
-      document.addEventListener("mousemove", handleMouseMove)
-      document.addEventListener("mouseup", handleMouseUp)
-    }
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove)
-      document.removeEventListener("mouseup", handleMouseUp)
-    }
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      
+      // Ensure we clean up any pending animation frame
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [
     isDragging,
     isResizing,
@@ -252,7 +395,7 @@ export function EditorCanvasElement({
     scale,
     canvasRef,
     allElements,
-    canvasWidth,
+    canvasWidth, 
     canvasHeight,
     onDrag,
     onDragEnd,
@@ -376,7 +519,7 @@ export function EditorCanvasElement({
                 borderTopStyle: element.borderStyle || "solid",
               }}
             />
-            <div
+            <div 
               style={{
                 position: "absolute",
                 right: "0",
@@ -427,7 +570,16 @@ export function EditorCanvasElement({
         onMouseEnter={handleElementMouseEnter}
         onMouseLeave={handleElementMouseLeave}
       >
-        {renderElement()}
+        <ElementRenderer 
+          element={element}
+          isSelected={isSelected}
+          textEditorKey={textEditorKey}
+          updateElement={updateElement}
+          clearNewElementFlag={clearNewElementFlag}
+          handleHeightChange={handleHeightChange}
+          handleTextAlignChange={handleTextAlignChange}
+          isEditMode={isEditMode}
+        />
 
         {isSelected && isEditMode && (
           <ElementControls
