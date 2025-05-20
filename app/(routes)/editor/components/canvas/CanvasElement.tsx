@@ -136,16 +136,16 @@ export function CanvasElement({
   // Handle mouse move for dragging and resizing
   useEffect(() => {
     if (!isDragging && !isResizing) return;
-
+    
     // Performance optimization: Use requestAnimationFrame for smoother rendering
     let animationFrameId: number | null = null;
     let lastEvent: MouseEvent | null = null;
-
+    
     const processDragOrResize = () => {
       if (!lastEvent || !canvasRef.current) return;
-
+      
       const e = lastEvent;
-
+      
       if (isDragging) {
         // Calculate the delta movement adjusted for scale
         const deltaX = (e.clientX - dragStart.x) / scale;
@@ -195,10 +195,21 @@ export function CanvasElement({
           e.clientX,
           e.clientY,
           scale,
-          isAltKeyPressed
+          isAltKeyPressed,
+          allElements, // Pass all elements for snapping
+          canvasWidth,
+          canvasHeight
         );
 
-        const { width: newWidth, height: newHeight, x: newX, y: newY, fontSize: newFontSize, widthChanged } = resizeResult;
+        const { 
+          width: newWidth, 
+          height: newHeight, 
+          x: newX, 
+          y: newY, 
+          fontSize: newFontSize, 
+          widthChanged,
+          alignments: resizeAlignments = { horizontal: [], vertical: [] } 
+        } = resizeResult;
 
         // Update element with new dimensions, position and font size
         updateElement(element.id, {
@@ -221,13 +232,24 @@ export function CanvasElement({
           setTextEditorKey((k) => k + 1);
         }
 
+        // Pass alignment guides for visualization, similar to drag operation
+        if (resizeAlignments) {
+          onDrag(
+            element, 
+            newX, 
+            newY, 
+            resizeAlignments, 
+            false
+          );
+        }
+
         // Update drag start position for next move
         setDragStart({
           x: e.clientX,
           y: e.clientY,
         });
       }
-
+      
       lastEvent = null;
     };
 

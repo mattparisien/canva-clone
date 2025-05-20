@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { Element as CanvasElement } from "@lib/types/canvas.types";
+import { useSnapping } from "./useSnapping";
 
 type ResizeState = {
   isResizing: boolean;
@@ -22,6 +23,10 @@ type ResizeResult = {
   y: number;
   fontSize?: number;
   widthChanged: boolean;
+  alignments?: {
+    horizontal: number[];
+    vertical: number[];
+  };
 };
 
 /**
@@ -49,6 +54,9 @@ export function useCanvasElementResize() {
     aspectRatio: 1,
     fontSize: undefined,
   });
+
+  // Get the snapping function from our useSnapping hook
+  const { getSnappedResize } = useSnapping();
 
   /**
    * Start the resize operation
@@ -113,7 +121,10 @@ export function useCanvasElementResize() {
       mouseX: number,
       mouseY: number,
       scale: number,
-      isAltKeyPressed: boolean
+      isAltKeyPressed: boolean,
+      otherElements: CanvasElement[] = [],
+      canvasWidth: number = 0,
+      canvasHeight: number = 0
     ): ResizeResult => {
       const {
         width: origWidth,
@@ -326,6 +337,40 @@ export function useCanvasElementResize() {
         }
       }
 
+      // Apply snapping if canvasWidth and height are provided along with other elements
+      if (canvasWidth > 0 && canvasHeight > 0 && resizeDirection) {
+        const filteredElements = otherElements.filter(el => el.id !== element.id);
+        const snappedResult = getSnappedResize(
+          element,
+          newWidth,
+          newHeight,
+          newX,
+          newY,
+          resizeDirection,
+          filteredElements,
+          canvasWidth,
+          canvasHeight,
+          isResizing,
+          true
+        );
+        
+        newWidth = snappedResult.width;
+        newHeight = snappedResult.height;
+        newX = snappedResult.x;
+        newY = snappedResult.y;
+        
+        // Return alignment guides for visualization
+        return {
+          width: newWidth,
+          height: newHeight,
+          x: newX,
+          y: newY,
+          fontSize: newFontSize,
+          widthChanged,
+          alignments: snappedResult.alignments
+        };
+      }
+
       return {
         width: newWidth,
         height: newHeight,
@@ -333,9 +378,13 @@ export function useCanvasElementResize() {
         y: newY,
         fontSize: newFontSize,
         widthChanged,
+        alignments: {
+          horizontal: [],
+          vertical: []
+        }
       };
     },
-    [resizeDirection]
+    [resizeDirection, isResizing, getSnappedResize]
   );
 
   return {
