@@ -2,16 +2,13 @@
 
 import React, { useState } from "react";
 
-import { HANDLE_BASE_SIZE } from "@/lib/constants/editor";
 import useCanvasStore from "@lib/stores/useCanvasStore";
 import { Element as EditorCanvasElement } from "@lib/types/canvas.types"; // Change Element import to CanvasElement
-import { useCallback, useEffect, useRef, useState as useStateHook, useMemo } from "react";
-import { TextEditor } from "../TextEditor";
-import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
 import classNames from "classnames";
+import { useCallback, useEffect, useRef } from "react";
+import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
 import { ElementControls } from "./controls/ElementControls";
 import ElementRenderer from "./renderers/ElementRenderer";
-import { ElementPopover } from "./controls/ElementPopover";
 
 
 interface CanvasElementProps {
@@ -50,6 +47,8 @@ export function CanvasElement({
   const deleteElement = useCanvasStore(state => state.deleteElement)
   const duplicateElement = useCanvasStore(state => state.duplicateElement)
   const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
+  const showElementActionBar = useCanvasStore(state => state.showElementActionBar)
+  const hideElementActionBar = useCanvasStore(state => state.hideElementActionBar)
 
   // Element ref and text editor key for rerendering
   const elementRef = useRef<HTMLDivElement>(null)
@@ -79,21 +78,6 @@ export function CanvasElement({
     setHandleHoverState,
   } = useCanvasElementInteraction()
 
-  // Handle element deletion
-  const handleDelete = useCallback((id: string) => {
-    deleteElement(id)
-  }, [deleteElement])
-
-  // Handle element duplication
-  const handleDuplicate = useCallback((id: string) => {
-    duplicateElement(id)
-  }, [duplicateElement])
-
-  // Handle element locking
-  const handleLock = useCallback((id: string) => {
-    // Toggle locked state
-    updateElement(id, { locked: !element.locked })
-  }, [updateElement, element.locked])
 
   // Modified mouse down handler
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -159,16 +143,16 @@ export function CanvasElement({
   // Handle mouse move for dragging and resizing
   useEffect(() => {
     if (!isDragging && !isResizing) return;
-    
+
     // Performance optimization: Use requestAnimationFrame for smoother rendering
     let animationFrameId: number | null = null;
     let lastEvent: MouseEvent | null = null;
-    
+
     const processDragOrResize = () => {
       if (!lastEvent || !canvasRef.current) return;
-      
+
       const e = lastEvent;
-      
+
       if (isDragging) {
         // Calculate the delta movement adjusted for scale
         const deltaX = (e.clientX - dragStart.x) / scale;
@@ -224,14 +208,14 @@ export function CanvasElement({
           canvasHeight
         );
 
-        const { 
-          width: newWidth, 
-          height: newHeight, 
-          x: newX, 
-          y: newY, 
-          fontSize: newFontSize, 
+        const {
+          width: newWidth,
+          height: newHeight,
+          x: newX,
+          y: newY,
+          fontSize: newFontSize,
           widthChanged,
-          alignments: resizeAlignments = { horizontal: [], vertical: [] } 
+          alignments: resizeAlignments = { horizontal: [], vertical: [] }
         } = resizeResult;
 
         // Update element with new dimensions, position and font size
@@ -258,10 +242,10 @@ export function CanvasElement({
         // Pass alignment guides for visualization, similar to drag operation
         if (resizeAlignments) {
           onDrag(
-            element, 
-            newX, 
-            newY, 
-            resizeAlignments, 
+            element,
+            newX,
+            newY,
+            resizeAlignments,
             false
           );
         }
@@ -272,7 +256,7 @@ export function CanvasElement({
           y: e.clientY,
         });
       }
-      
+
       lastEvent = null;
     };
 
@@ -363,6 +347,23 @@ export function CanvasElement({
       }
     }
   }, [element, updateElement, measureElementHeight])
+
+  // Show element action bar when this element is selected
+  useEffect(() => {
+    if (isSelected && isEditMode && !isDragging && !isResizing) {
+      // Position the action bar at the top center of the element
+      const centerX = element.x + element.width / 2;
+      const topY = element.y;
+
+      showElementActionBar(element.id, { x: centerX, y: topY });
+    } else {
+      // Only hide the action bar if this element is the one that triggered it
+      const elementActionBarState = useCanvasStore.getState().elementActionBar;
+      if (elementActionBarState.elementId === element.id) {
+        hideElementActionBar();
+      }
+    }
+  }, [element.id, element.x, element.y, element.width, isSelected, isEditMode, isDragging, isResizing, showElementActionBar, hideElementActionBar]);
 
   return (
     <>

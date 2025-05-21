@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import BottomBar from "./BottomBar";
 import Canvas from "./canvas/Canvas";
 import PageNavigation from "./PageNavigation";
+import { ElementActionBar } from "./canvas/ElementActionBar";
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.
@@ -260,8 +261,27 @@ export default function Editor() {
             className="flex flex-1 overflow-hidden flex-col relative bg-editor pl-sidebar"
             ref={editorContainerRef}
         >
+
+
             {/* Main canvas area with wheel handler - removing inline wheel handler */}
             <div className="flex-1 overflow-hidden relative flex items-center justify-center bg-editor">
+
+                {/* Element Action Bar */}
+                {selectedElement && (
+                    <ElementActionBar
+                        element={selectedElement}
+                        onDelete={() => {
+                            deleteSelectedElements();
+                            clearSelection();
+                        }}
+                        onLock={() => updateElement(selectedElement.id, { locked: !selectedElement.locked })}
+                        onDuplicate={() => {
+                            const newElement = { ...selectedElement, id: crypto.randomUUID(), isNew: true };
+                            updateElement(newElement.id, newElement);
+                        }}
+                    />
+                )}
+
                 {/* TextToolbar moved here */}
                 {selectedElement && selectedElement.type === "text" && (
                     <TextToolbar
