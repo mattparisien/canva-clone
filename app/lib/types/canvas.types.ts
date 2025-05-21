@@ -47,6 +47,7 @@ export type HistoryAction =
   | { type: "ADD_PAGE"; page: Page }
   | { type: "DELETE_PAGE"; page: Page }
   | { type: "REORDER_PAGES"; before: string[]; after: string[] }
+  | { type: "REORDER_ELEMENT"; pageId: string; elementId: string; fromIndex: number; toIndex: number }; // Added for element reordering
 
 // Editor context handles document-level state and page management
 export interface EditorContextType {
@@ -87,6 +88,15 @@ export interface CanvasContextType {
   isCanvasSelected: boolean
   canvasSize: CanvasSize
   isLoaded: boolean // Canvas loading state
+  elementActionBar: {
+    isActive: boolean,
+    position: {
+      x: number
+      y: number
+    },
+    elementId: string | null
+  }
+
 
   // Element manipulation
   addElement: (element: Omit<Element, "id">) => void

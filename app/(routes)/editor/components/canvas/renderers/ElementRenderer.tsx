@@ -1,6 +1,13 @@
 import { Element as CanvasElement } from "@/lib/types/canvas.types";
 import { memo } from "react";
-import { TextEditor } from "../../TextEditor";
+
+// Fix the import paths - this is likely the source of the error
+// Make sure these paths correctly point to where your element components are located
+import { ArrowElement } from "../elements/ArrowElement";
+import { CircleElement } from "../elements/CircleElement";
+import { LineElement } from "../elements/LineElement";
+import { RectangleElement } from "../elements/RectangleElement";
+import { TextElement } from "../elements/TextElement";
 
 // Define interface for ElementRenderer props
 interface ElementRendererProps {
@@ -24,105 +31,33 @@ const ElementRenderer = memo(({
     handleTextAlignChange,
     isEditMode
 }: ElementRendererProps) => {
+    // Use a simple switch to route to the appropriate component
     switch (element.type) {
         case "text":
             return (
-                <div className="w-full h-full text-element">
-                    <TextEditor
-                        key={textEditorKey}
-                        content={element.content || ""}
-                        fontSize={element.fontSize}
-                        fontFamily={element.fontFamily}
-                        isSelected={isSelected}
-                        isNew={element.isNew}
-                        onChange={(content) => updateElement(element.id, { content })}
-                        onFontSizeChange={(fontSize) => updateElement(element.id, { fontSize })}
-                        onFontFamilyChange={(fontFamily) => updateElement(element.id, { fontFamily })}
-                        onEditingStart={() => {
-                            if (element.isNew) {
-                                clearNewElementFlag(element.id)
-                            }
-                        }}
-                        onHeightChange={handleHeightChange}
-                        textAlign={element.textAlign || "center"}
-                        onTextAlignChange={handleTextAlignChange}
-                        isBold={element.isBold}
-                        isItalic={element.isItalic}
-                        isUnderlined={element.isUnderlined}
-                        isStrikethrough={element.isStrikethrough}
-                        isEditMode={isEditMode}
-                    />
-                </div>
-            )
+                <TextElement
+                    element={element}
+                    isSelected={isSelected}
+                    textEditorKey={textEditorKey}
+                    updateElement={updateElement}
+                    clearNewElementFlag={clearNewElementFlag}
+                    handleHeightChange={handleHeightChange}
+                    handleTextAlignChange={handleTextAlignChange}
+                    isEditMode={isEditMode}
+                />
+            );
         case "rectangle":
-            return (
-                <div
-                    className="w-full h-full"
-                    style={{
-                        backgroundColor: element.backgroundColor || "transparent",
-                        borderColor: element.borderColor || "transparent",
-                        borderWidth: element.borderWidth || 0,
-                        borderStyle: element.borderStyle || "solid",
-                        transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-                    }}
-                />
-            )
+            return <RectangleElement element={element} />;
         case "circle":
-            return (
-                <div
-                    className="w-full h-full rounded-full"
-                    style={{
-                        backgroundColor: element.backgroundColor || "transparent",
-                        borderColor: element.borderColor || "transparent",
-                        borderWidth: element.borderWidth || 0,
-                        borderStyle: element.borderStyle || "solid",
-                        transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-                    }}
-                />
-            )
+            return <CircleElement element={element} />;
         case "line":
-            return (
-                <div className="w-full h-full flex items-center">
-                    <div
-                        className="w-full"
-                        style={{
-                            height: "0px",
-                            borderTopColor: element.borderColor || "#000000",
-                            borderTopWidth: element.borderWidth || 2,
-                            borderTopStyle: element.borderStyle || "solid",
-                            transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-                        }}
-                    />
-                </div>
-            )
+            return <LineElement element={element} />;
         case "arrow":
-            return (
-                <div className="w-full h-full flex items-center relative">
-                    <div
-                        className="w-full"
-                        style={{
-                            height: "0px",
-                            borderTopColor: element.borderColor || "#000000",
-                            borderTopWidth: element.borderWidth || 2,
-                            borderTopStyle: element.borderStyle || "solid",
-                        }}
-                    />
-                    <div
-                        style={{
-                            position: "absolute",
-                            right: "0",
-                            width: "10px",
-                            height: "10px",
-                            borderRight: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
-                            borderTop: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
-                            transform: "rotate(45deg) translateY(-50%)",
-                        }}
-                    />
-                </div>
-            )
+            return <ArrowElement element={element} />;
         default:
-            return null
+            return null;
     }
 });
+
 ElementRenderer.displayName = 'ElementRenderer';
-export default ElementRenderer; 
+export default ElementRenderer;

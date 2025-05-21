@@ -12,6 +12,7 @@ interface EditorState extends Omit<EditorContextType, "currentPage"> {
   popover: {
     isOpen: boolean;
     activeItemId: string | null;
+    content: React.ReactNode | null; // Add the missing content property
   };
 
   // Sidebar popover actions
@@ -311,13 +312,15 @@ const useEditorStore = create<EditorState>((set, get) => ({
   openPopover: (itemId: string) => set({
     popover: {
       isOpen: true,
-      activeItemId: itemId
+      activeItemId: itemId,
+      content: undefined
     }
   }),
   closePopover: () => set({
     popover: {
       isOpen: false,
-      activeItemId: null
+      activeItemId: null,
+      content: undefined
     }
   })
 }));

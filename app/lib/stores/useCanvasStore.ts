@@ -7,6 +7,19 @@ import { nanoid } from 'nanoid';
 interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'> {
   historyIndex: number;
   history: HistoryAction[];
+  duplicateElement: (id: string) => void;
+  elementActionBar: {
+    isActive: boolean;
+    position: { x: number; y: number };
+    elementId: string | null;
+  };
+  showElementActionBar: (elementId: string, position: { x: number; y: number }) => void;
+  hideElementActionBar: () => void;
+  setElementActionBarPosition: (position: { x: number; y: number }) => void;
+  bringElementForward: (elementId: string) => void;
+  sendElementBackward: (elementId: string) => void;
+  bringElementToFront: (elementId: string) => void;
+  sendElementToBack: (elementId: string) => void;
 }
 
 // Create the canvas store
@@ -20,6 +33,11 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   history: [],
   canUndo: false,
   canRedo: false,
+  elementActionBar: {
+    isActive: false,
+    position: { x: 0, y: 0 },
+    elementId: null,
+  },
 
   // Add new element to the canvas
   addElement: (elementData) => {
@@ -692,6 +710,160 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
     });
   },
 
+  // Element Action Bar actions
+  showElementActionBar: (elementId, position) => {
+    set({
+      elementActionBar: {
+        isActive: true,
+        position,
+        elementId,
+      },
+    });
+  },
+  hideElementActionBar: () => {
+    set(state => ({
+      elementActionBar: { ...state.elementActionBar, isActive: false, elementId: null },
+    }));
+  },
+  setElementActionBarPosition: (position) => {
+    set(state => ({
+      elementActionBar: { ...state.elementActionBar, position },
+    }));
+  },
+
+  // Element reordering actions
+  bringElementForward: (elementId) => {
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+    if (!currentPageId) return;
+
+    const currentPage = editor.pages.find(page => page.id === currentPageId);
+    if (!currentPage) return;
+
+    const elements = [...currentPage.elements];
+    const index = elements.findIndex(el => el.id === elementId);
+
+    if (index === -1 || index === elements.length - 1) return; // Not found or already at front
+
+    const element = elements.splice(index, 1)[0];
+    elements.splice(index + 1, 0, element);
+
+    editor.updatePageElements(currentPageId, elements);
+    // Add to history
+    const historyAction: HistoryAction = {
+      type: 'REORDER_ELEMENT',
+      pageId: currentPageId,
+      elementId,
+      fromIndex: index,
+      toIndex: index + 1,
+    };
+    set(state => ({
+      history: [...state.history.slice(0, state.historyIndex + 1), historyAction],
+      historyIndex: state.historyIndex + 1,
+      canUndo: true,
+      canRedo: false,
+    }));
+  },
+
+  sendElementBackward: (elementId) => {
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+    if (!currentPageId) return;
+
+    const currentPage = editor.pages.find(page => page.id === currentPageId);
+    if (!currentPage) return;
+
+    const elements = [...currentPage.elements];
+    const index = elements.findIndex(el => el.id === elementId);
+
+    if (index === -1 || index === 0) return; // Not found or already at back
+
+    const element = elements.splice(index, 1)[0];
+    elements.splice(index - 1, 0, element);
+
+    editor.updatePageElements(currentPageId, elements);
+    // Add to history
+    const historyAction: HistoryAction = {
+      type: 'REORDER_ELEMENT',
+      pageId: currentPageId,
+      elementId,
+      fromIndex: index,
+      toIndex: index - 1,
+    };
+    set(state => ({
+      history: [...state.history.slice(0, state.historyIndex + 1), historyAction],
+      historyIndex: state.historyIndex + 1,
+      canUndo: true,
+      canRedo: false,
+    }));
+  },
+
+  bringElementToFront: (elementId) => {
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+    if (!currentPageId) return;
+
+    const currentPage = editor.pages.find(page => page.id === currentPageId);
+    if (!currentPage) return;
+
+    const elements = [...currentPage.elements];
+    const index = elements.findIndex(el => el.id === elementId);
+
+    if (index === -1 || index === elements.length - 1) return; // Not found or already at front
+
+    const element = elements.splice(index, 1)[0];
+    elements.push(element);
+
+    editor.updatePageElements(currentPageId, elements);
+    // Add to history
+    const historyAction: HistoryAction = {
+      type: 'REORDER_ELEMENT',
+      pageId: currentPageId,
+      elementId,
+      fromIndex: index,
+      toIndex: elements.length - 1,
+    };
+    set(state => ({
+      history: [...state.history.slice(0, state.historyIndex + 1), historyAction],
+      historyIndex: state.historyIndex + 1,
+      canUndo: true,
+      canRedo: false,
+    }));
+  },
+
+  sendElementToBack: (elementId) => {
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+    if (!currentPageId) return;
+
+    const currentPage = editor.pages.find(page => page.id === currentPageId);
+    if (!currentPage) return;
+
+    const elements = [...currentPage.elements];
+    const index = elements.findIndex(el => el.id === elementId);
+
+    if (index === -1 || index === 0) return; // Not found or already at back
+
+    const element = elements.splice(index, 1)[0];
+    elements.unshift(element);
+
+    editor.updatePageElements(currentPageId, elements);
+    // Add to history
+    const historyAction: HistoryAction = {
+      type: 'REORDER_ELEMENT',
+      pageId: currentPageId,
+      elementId,
+      fromIndex: index,
+      toIndex: 0,
+    };
+    set(state => ({
+      history: [...state.history.slice(0, state.historyIndex + 1), historyAction],
+      historyIndex: state.historyIndex + 1,
+      canUndo: true,
+      canRedo: false,
+    }));
+  },
+  // ...existing code...
 }));
 
 // Create a selector to get the current page elements

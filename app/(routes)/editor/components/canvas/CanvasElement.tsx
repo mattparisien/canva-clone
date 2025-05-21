@@ -59,7 +59,7 @@ export function CanvasElement({
   // Initialize our custom hooks
   const { getSnappedPosition } = useSnapping()
   const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize()
-  const { measurerRef, measureElementHeight, renderMeasurer } = useTextMeasurement()
+  const { measureElementHeight, renderMeasurer } = useTextMeasurement()
   const {
     isDragging,
     isAltKeyPressed,
@@ -68,7 +68,6 @@ export function CanvasElement({
     rightBorderHover,
     setLeftBorderHover,
     setRightBorderHover,
-    handleHover,
     dragStart,
     setDragStart,
     startDrag,
@@ -79,19 +78,6 @@ export function CanvasElement({
     getHandleBg,
     setHandleHoverState,
   } = useCanvasElementInteraction()
-
-  // Handle element dragging
-  const handleDragStart = useCallback((e: React.MouseEvent) => {
-    if (!isEditMode) return
-
-    startDrag(
-      e,
-      element,
-      onDragStart,
-      selectElement,
-      clearNewElementFlag
-    )
-  }, [element, onDragStart, selectElement, clearNewElementFlag, isEditMode, startDrag])
 
   // Handle element deletion
   const handleDelete = useCallback((id: string) => {
@@ -112,7 +98,7 @@ export function CanvasElement({
   // Modified mouse down handler
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!isEditMode) return
-    
+
     // Show popover on mouse down
     setShowPopover(true)
 
@@ -125,16 +111,21 @@ export function CanvasElement({
     )
   }, [element, onDragStart, selectElement, clearNewElementFlag, isEditMode, startDrag])
 
-  // Add a mouse up handler to hide popover if clicking elsewhere
+  // Add a mouse up handler to hide popover only when clicking outside this element
   useEffect(() => {
-    const handleClickOutside = () => {
-      setShowPopover(false)
-    }
+    const popoverRef = elementRef;
 
-    document.addEventListener('mouseup', handleClickOutside)
+    const handleClickOutside = (e: MouseEvent) => {
+      // Only hide the popover if the click is outside the current element
+      if (popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
+        setShowPopover(false);
+      }
+    };
+
+    document.addEventListener('mouseup', handleClickOutside);
     return () => {
-      document.removeEventListener('mouseup', handleClickOutside)
-    }
+      document.removeEventListener('mouseup', handleClickOutside);
+    };
   }, [])
 
   // Handle text height change
@@ -373,122 +364,6 @@ export function CanvasElement({
     }
   }, [element, updateElement, measureElementHeight])
 
-  // Calculate if the element is too small to show all corner handles
-  const handleSize = HANDLE_BASE_SIZE / scale
-  const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5
-
-  // Render the appropriate element based on type
-  const renderElement = useCallback(() => {
-    switch (element.type) {
-      case "text":
-        return (
-          <div className="w-full h-full text-element">
-            <TextEditor
-              key={textEditorKey}
-              content={element.content || ""}
-              fontSize={element.fontSize}
-              fontFamily={element.fontFamily}
-              isSelected={isSelected}
-              isNew={element.isNew}
-              onChange={(content) => updateElement(element.id, { content })}
-              onFontSizeChange={(fontSize) => updateElement(element.id, { fontSize })}
-              onFontFamilyChange={(fontFamily) => updateElement(element.id, { fontFamily })}
-              onEditingStart={() => {
-                if (element.isNew) {
-                  clearNewElementFlag(element.id)
-                }
-              }}
-              onHeightChange={handleHeightChange}
-              textAlign={element.textAlign || "center"}
-              onTextAlignChange={handleTextAlignChange}
-              isBold={element.isBold}
-              isItalic={element.isItalic}
-              isUnderlined={element.isUnderlined}
-              isStrikethrough={element.isStrikethrough}
-              isEditMode={isEditMode}
-            />
-          </div>
-        )
-      case "rectangle":
-        return (
-          <div
-            className="w-full h-full"
-            style={{
-              backgroundColor: element.backgroundColor || "transparent",
-              borderColor: element.borderColor || "transparent",
-              borderWidth: element.borderWidth || 0,
-              borderStyle: element.borderStyle || "solid",
-              transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-            }}
-          />
-        )
-      case "circle":
-        return (
-          <div
-            className="w-full h-full rounded-full"
-            style={{
-              backgroundColor: element.backgroundColor || "transparent",
-              borderColor: element.borderColor || "transparent",
-              borderWidth: element.borderWidth || 0,
-              borderStyle: element.borderStyle || "solid",
-              transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-            }}
-          />
-        )
-      case "line":
-        return (
-          <div className="w-full h-full flex items-center">
-            <div
-              className="w-full"
-              style={{
-                height: "0px",
-                borderTopColor: element.borderColor || "#000000",
-                borderTopWidth: element.borderWidth || 2,
-                borderTopStyle: element.borderStyle || "solid",
-                transform: element.rotation ? `rotate(${element.rotation}deg)` : "none",
-              }}
-            />
-          </div>
-        )
-      case "arrow":
-        return (
-          <div className="w-full h-full flex items-center relative">
-            <div
-              className="w-full"
-              style={{
-                height: "0px",
-                borderTopColor: element.borderColor || "#000000",
-                borderTopWidth: element.borderWidth || 2,
-                borderTopStyle: element.borderStyle || "solid",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                right: "0",
-                width: "10px",
-                height: "10px",
-                borderRight: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
-                borderTop: `${element.borderWidth || 2}px solid ${element.borderColor || "#000000"}`,
-                transform: "rotate(45deg) translateY(-50%)",
-              }}
-            />
-          </div>
-        )
-      default:
-        return null
-    }
-  }, [
-    element,
-    isSelected,
-    textEditorKey,
-    updateElement,
-    clearNewElementFlag,
-    handleHeightChange,
-    handleTextAlignChange,
-    isEditMode
-  ])
-
   return (
     <>
       {/* Hidden measurer for text height calculation */}
@@ -512,8 +387,8 @@ export function CanvasElement({
           zIndex: element.type === "text" ? 1 : 0,
         }}
         onMouseDown={handleMouseDown}
-        onMouseEnter={handleElementMouseEnter}
-        onMouseLeave={handleElementMouseLeave}
+        onMouseEnter={() => handleMouseEnter(element.id, onHover, isEditMode)}
+        onMouseLeave={() => handleMouseLeave(onHover)}
       >
         <ElementRenderer
           element={element}
@@ -540,16 +415,6 @@ export function CanvasElement({
             setLeftBorderHover={setLeftBorderHover}
             setRightBorderHover={setRightBorderHover}
             isDragging={isDragging}
-          />
-        )}
-        
-        {/* Show popover on mousedown */}
-        {showPopover && isEditMode && (
-          <ElementPopover
-            element={element}
-            onLock={handleLock}
-            onDuplicate={handleDuplicate}
-            onDelete={handleDelete}
           />
         )}
       </div>
