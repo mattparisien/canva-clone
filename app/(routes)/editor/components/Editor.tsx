@@ -271,13 +271,26 @@ export default function Editor() {
                     <ElementActionBar
                         element={selectedElement}
                         onDelete={() => {
-                            deleteSelectedElements();
-                            clearSelection();
+                            if (selectedElement) {
+                                // Delete the element and clear selection
+                                deleteSelectedElements();
+                                clearSelection();
+                            }
                         }}
-                        onLock={() => updateElement(selectedElement.id, { locked: !selectedElement.locked })}
+                        onLock={() => {
+                            if (selectedElement) {
+                                // Toggle the locked state
+                                const newLockedState = !selectedElement.locked;
+                                console.log(`Setting element ${selectedElement.id} locked: ${newLockedState}`);
+                                updateElement(selectedElement.id, { locked: newLockedState });
+                            }
+                        }}
                         onDuplicate={() => {
-                            const newElement = { ...selectedElement, id: crypto.randomUUID(), isNew: true };
-                            updateElement(newElement.id, newElement);
+                            if (selectedElement) {
+                                // Use the duplicateElement method from the Canvas Store
+                                const duplicateElement = useCanvasStore.getState().duplicateElement;
+                                duplicateElement(selectedElement.id);
+                            }
                         }}
                     />
                 )}
