@@ -214,7 +214,10 @@ export function ElementPropertyBar({
         </button>
 
         {showFontDropdown && (
-          <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-100">
+          <div 
+            className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-100"
+            onClick={(e) => e.stopPropagation()}
+          >
             {FONT_FAMILIES.map((font) => (
               <button
                 key={font}
