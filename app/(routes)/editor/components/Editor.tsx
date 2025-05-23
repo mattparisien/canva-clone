@@ -1,6 +1,6 @@
 "use client"
 
-import { TextToolbar } from "@/(routes)/editor/components/TextToolbar";
+import { ElementPropertyBar } from "@/(routes)/editor/components/ElementPropertyBar";
 import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor";
 import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore";
 import useEditorStore from "@lib/stores/useEditorStore";
@@ -295,9 +295,9 @@ export default function Editor() {
                     />
                 )}
 
-                {/* TextToolbar moved here */}
-                {selectedElement && selectedElement.type === "text" && (
-                    <TextToolbar
+                {/* ElementPropertyBar moved here */}
+                {selectedElement  && (
+                    <ElementPropertyBar
                         selectedElement={selectedElement}
                         onFontSizeChange={handleFontSizeChange}
                         onFontFamilyChange={handleFontFamilyChange}

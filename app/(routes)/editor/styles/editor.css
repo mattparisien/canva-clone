@@ -1,6 +1,6 @@
 .is-highlighted {
     @apply before:content-[''] before:absolute before:inset-0 
-    before:rounded-lg before:pointer-events-none before:z-[-1];
+     before:pointer-events-none before:z-[-1];
 }
 
 .is-highlighted::before {

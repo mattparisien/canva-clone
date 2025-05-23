@@ -27,7 +27,7 @@ import {
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
-interface TextToolbarProps {
+interface ElementPropertyBarProps {
   selectedElement: Element | null
   onFontSizeChange: (size: number) => void
   onFontFamilyChange: (family: string) => void
@@ -39,7 +39,7 @@ interface TextToolbarProps {
   canvasWidth: number
 }
 
-export function TextToolbar({
+export function ElementPropertyBar({
   selectedElement,
   onFontSizeChange,
   onFontFamilyChange,
@@ -48,7 +48,7 @@ export function TextToolbar({
   onPositionChange,
   elementId,
   canvasWidth,
-}: TextToolbarProps) {
+}: ElementPropertyBarProps) {
   const [fontSize, setFontSize] = useState(selectedElement?.fontSize || DEFAULT_FONT_SIZE)
   const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || FONT_FAMILIES[0])
   const [showFontDropdown, setShowFontDropdown] = useState(false)
@@ -108,7 +108,8 @@ export function TextToolbar({
   }
 
   // Handle text formatting changes
-  const handleBoldChange = () => {
+  const handleBoldChange = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const newValue = !isBold
     setIsBold(newValue)
     if (onFormatChange) {
@@ -116,7 +117,8 @@ export function TextToolbar({
     }
   }
 
-  const handleItalicChange = () => {
+  const handleItalicChange = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const newValue = !isItalic
     setIsItalic(newValue)
     if (onFormatChange) {
@@ -124,7 +126,8 @@ export function TextToolbar({
     }
   }
 
-  const handleUnderlineChange = () => {
+  const handleUnderlineChange = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const newValue = !isUnderlined
     setIsUnderlined(newValue)
     if (onFormatChange) {
@@ -132,7 +135,8 @@ export function TextToolbar({
     }
   }
 
-  const handleStrikethroughChange = () => {
+  const handleStrikethroughChange = (e: React.MouseEvent) => {
+    e.stopPropagation();
     const newValue = !isStrikethrough
     setIsStrikethrough(newValue)
     if (onFormatChange) {
@@ -141,18 +145,21 @@ export function TextToolbar({
   }
 
   // Handle horizontal positioning changes
-  const handleAlignStart = () => {
+  const handleAlignStart = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!selectedElement || !onPositionChange) return;
     onPositionChange({ x: 0 });
   }
 
-  const handleAlignCenter = () => {
+  const handleAlignCenter = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!selectedElement || !onPositionChange) return;
     const centerX = (canvasWidth - selectedElement.width) / 2;
     onPositionChange({ x: centerX });
   }
 
-  const handleAlignEnd = () => {
+  const handleAlignEnd = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!selectedElement || !onPositionChange) return;
     const endX = canvasWidth - selectedElement.width;
     onPositionChange({ x: endX });
@@ -197,7 +204,10 @@ export function TextToolbar({
       <div className="relative">
         <button
           className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition font-medium text-sm w-[100px]"
-          onClick={() => setShowFontDropdown(!showFontDropdown)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowFontDropdown(!showFontDropdown);
+          }}
         >
           <span className="truncate">{fontFamily}</span>
           <ChevronDown className="h-3 w-3 opacity-70 flex-shrink-0" />
@@ -213,7 +223,10 @@ export function TextToolbar({
                   fontFamily === font ? "bg-gray-50 font-medium text-purple-600" : "",
                 )}
                 style={{ fontFamily: font }}
-                onClick={() => handleFontFamilyChange(font)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFontFamilyChange(font);
+                }}
               >
                 {font}
               </button>
@@ -229,7 +242,10 @@ export function TextToolbar({
         <div className="flex items-stretch rounded-lg overflow-hidden border border-gray-200">
           <button
             className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-purple-600 transition flex items-center justify-center border-r border-gray-200"
-            onClick={() => handleFontSizeChange(fontSize - 1)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFontSizeChange(fontSize - 1);
+            }}
           >
             <Minus className="h-3.5 w-3.5" />
           </button>
@@ -241,12 +257,16 @@ export function TextToolbar({
             max={MAX_FONT_SIZE}
             placeholder="– –"
             onChange={(e) => handleFontSizeChange(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
             className="w-12 px-1.5 py-0.5 text-sm font-medium focus:ring-1 focus:ring-purple-400 focus:outline-none text-center border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
 
           <button
             className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-purple-600 transition flex items-center justify-center border-l border-gray-200"
-            onClick={() => handleFontSizeChange(fontSize + 1)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleFontSizeChange(fontSize + 1);
+            }}
           >
             <Plus className="h-3.5 w-3.5" />
           </button>
@@ -256,7 +276,10 @@ export function TextToolbar({
       <div className="h-5 w-px bg-gray-200 mx-1"></div>
 
       {/* Text Color (placeholder) */}
-      <button className="rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition">
+      <button 
+        className="rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Type className="h-3.5 w-3.5" />
       </button>
 
@@ -301,28 +324,40 @@ export function TextToolbar({
         <button
           className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             textAlign === "left" && "bg-purple-50 text-purple-600")}
-          onClick={() => handleTextAlignChange("left")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTextAlignChange("left");
+          }}
         >
           <AlignLeft className="h-3.5 w-3.5" />
         </button>
         <button
           className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             textAlign === "center" && "bg-purple-50 text-purple-600")}
-          onClick={() => handleTextAlignChange("center")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTextAlignChange("center");
+          }}
         >
           <AlignCenter className="h-3.5 w-3.5" />
         </button>
         <button
           className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             textAlign === "right" && "bg-purple-50 text-purple-600")}
-          onClick={() => handleTextAlignChange("right")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTextAlignChange("right");
+          }}
         >
           <AlignRight className="h-3.5 w-3.5" />
         </button>
         <button
           className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
             textAlign === "justify" && "bg-purple-50 text-purple-600")}
-          onClick={() => handleTextAlignChange("justify")}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTextAlignChange("justify");
+          }}
         >
           <AlignJustify className="h-3.5 w-3.5" />
         </button>
