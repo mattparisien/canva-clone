@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import useCanvasStore from "@lib/stores/useCanvasStore";
 import { Element as EditorCanvasElement } from "@lib/types/canvas.types"; // Change Element import to CanvasElement
@@ -50,7 +50,7 @@ export function CanvasElement({
   const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
   const showElementActionBar = useCanvasStore(state => state.showElementActionBar)
   const hideElementActionBar = useCanvasStore(state => state.hideElementActionBar)
-
+  
   // Element ref and text editor key for rerendering
   const elementRef = useRef<HTMLDivElement>(null)
   const [textEditorKey, setTextEditorKey] = useState(0)
@@ -99,6 +99,13 @@ export function CanvasElement({
 
     // Show popover on mouse down
     setShowPopover(true)
+    
+    // For locked elements, we only want to allow selection but not dragging
+    if (element.locked) {
+      // Just select the element but don't start dragging
+      selectElement(element.id, e.shiftKey);
+      return;
+    }
 
     startDrag(
       e,
@@ -141,7 +148,7 @@ export function CanvasElement({
 
   // Handle element resizing
   const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
-    if (!isEditMode) return
+    if (!isEditMode || element.locked) return
 
     e.stopPropagation()
 

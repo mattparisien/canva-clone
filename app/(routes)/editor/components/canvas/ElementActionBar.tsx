@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Element as CanvasElement } from "@/lib/types/canvas.types";
 import { CopyIcon, LockIcon, TrashIcon } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, forwardRef, ForwardRefRenderFunction } from 'react';
 
 interface ElementActionBarProps {
     element: CanvasElement;
@@ -10,12 +10,12 @@ interface ElementActionBarProps {
     onDelete: () => void;
 }
 
-export const ElementActionBar = ({
+const ElementActionBarComponent: ForwardRefRenderFunction<HTMLDivElement, ElementActionBarProps> = ({
     element,
     onLock,
     onDuplicate,
     onDelete
-}: ElementActionBarProps) => {
+}, ref) => {
     // Create refs for positioning
     const actionBarRef = useRef<HTMLDivElement>(null);
     const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -28,6 +28,16 @@ export const ElementActionBar = ({
 
     // Track element's position for movement detection
     const lastElementPosRef = useRef({ x: element.x, y: element.y });
+
+    // Combine internal ref with forwarded ref
+    const handleRef = (node: HTMLDivElement) => {
+        actionBarRef.current = node;
+        if (typeof ref === 'function') {
+            ref(node);
+        } else if (ref) {
+            ref.current = node;
+        }
+    };
 
     // Function to update position based on canvas and element properties
     const updatePosition = useCallback(() => {
@@ -72,32 +82,32 @@ export const ElementActionBar = ({
         }
     }, [element.x, element.y, updatePosition, isMouseDown]);
 
-    // Add mouse down/up event listeners to track dragging state
-    useEffect(() => {
-        const handleMouseDown = (e: MouseEvent) => {
-            // Only set isMouseDown to true if click is not on the action bar
-            if (actionBarRef.current && !actionBarRef.current.contains(e.target as Node)) {
-                setIsMouseDown(true);
-            }
-        };
+    // // Add mouse down/up event listeners to track dragging state
+    // useEffect(() => {
+    //     const handleMouseDown = (e: MouseEvent) => {
+    //         // Only set isMouseDown to true if click is not on the action bar
+    //         if (actionBarRef.current && !actionBarRef.current.contains(e.target as Node)) {
+    //             setIsMouseDown(true);
+    //         }
+    //     };
 
-        const handleMouseUp = () => {
-            if (isMouseDown) {
-                setIsMouseDown(false);
-                // When mouse is released after being down, update position immediately
-                updatePosition();
-            }
-        };
+    //     const handleMouseUp = () => {
+    //         if (isMouseDown) {
+    //             setIsMouseDown(false);
+    //             // When mouse is released after being down, update position immediately
+    //             updatePosition();
+    //         }
+    //     };
 
-        // Add global listeners to track mouse state
-        document.addEventListener('mousedown', handleMouseDown);
-        document.addEventListener('mouseup', handleMouseUp);
+    //     // Add global listeners to track mouse state
+    //     document.addEventListener('mousedown', handleMouseDown);
+    //     document.addEventListener('mouseup', handleMouseUp);
 
-        return () => {
-            document.removeEventListener('mousedown', handleMouseDown);
-            document.removeEventListener('mouseup', handleMouseUp);
-        };
-    }, [updatePosition, isMouseDown]);
+    //     return () => {
+    //         document.removeEventListener('mousedown', handleMouseDown);
+    //         document.removeEventListener('mouseup', handleMouseUp);
+    //     };
+    // }, [updatePosition, isMouseDown]);
 
     // Get canvas container node by querying the DOM and set up all necessary listeners
     useEffect(() => {
@@ -148,7 +158,7 @@ export const ElementActionBar = ({
 
     return (
         <div
-            ref={actionBarRef}
+            ref={handleRef}
             className="fixed bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_3px_10px_rgba(0,0,0,0.15)] flex items-center p-1 border border-gray-100 space-x-0.5 z-50 pointer-events-auto"
             style={{
                 left: `${position.left}px`,
@@ -172,3 +182,5 @@ export const ElementActionBar = ({
         </div>
     );
 };
+
+export const ElementActionBar = forwardRef(ElementActionBarComponent);

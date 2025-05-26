@@ -44,6 +44,21 @@ export const ElementControls = React.memo(({
   // Don't render controls when dragging for performance
   if (isDragging) return null;
   
+  // Don't render resize controls when element is locked
+  if (element.locked) {
+    // Only render the selection border to indicate selection
+    return (
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          border: '2px solid rgba(30, 136, 229, 0.8)',
+          borderRadius: '2px',
+          background: 'transparent'
+        }}
+      />
+    );
+  }
+  
   // Calculate handle sizes
   const handleSize = 18 / scale; // Using constant HANDLE_BASE_SIZE = 18
   const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5;

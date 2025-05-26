@@ -19,6 +19,8 @@ export default function Editor() {
     const editorContainerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLDivElement>(null);
     const elementPropertyBarRef = useRef<HTMLDivElement>(null);
+    const elementActionBarRef = useRef<HTMLDivElement>(null);
+
     const [zoom, setZoom] = useState(30) // 25 – 200 %
     const [isFullscreen, setIsFullscreen] = useState(false)
     // Track which page thumbnail is selected (for delete functionality)
@@ -311,6 +313,7 @@ export default function Editor() {
                 {selectedElement && (
                     <ElementActionBar
                         element={selectedElement}
+                        ref={elementActionBarRef}
                         onDelete={() => {
                             if (selectedElement) {
                                 // Delete the element and clear selection
