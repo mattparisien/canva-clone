@@ -101,3 +101,35 @@ export const calculateFitScale = (
   const scaleY = containerClientHeight / contentHeight;
   return Math.min(scaleX, scaleY); // Use the smaller scale to fit and maintain aspect ratio
 }
+
+/**
+ * Calculates viewport-relative rect coordinates for an element
+ * @param element - The canvas element
+ * @param canvasRef - Reference to the canvas DOM element
+ * @param scale - Current canvas scale factor
+ * @returns Viewport-relative position and dimensions
+ */
+export const calculateViewportRect = (
+  element: Element,
+  canvasRef: React.RefObject<HTMLDivElement>,
+  scale: number
+): { x: number; y: number; width: number; height: number } => {
+  if (!canvasRef.current) {
+    return { x: 0, y: 0, width: 0, height: 0 };
+  }
+
+  const canvasRect = canvasRef.current.getBoundingClientRect();
+  
+  // Calculate element position relative to viewport
+  const viewportX = canvasRect.left + (element.x * scale);
+  const viewportY = canvasRect.top + (element.y * scale);
+  const viewportWidth = element.width * scale;
+  const viewportHeight = element.height * scale;
+
+  return {
+    x: viewportX,
+    y: viewportY,
+    width: viewportWidth,
+    height: viewportHeight
+  };
+};

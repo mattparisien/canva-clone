@@ -6,17 +6,18 @@ import { calculateFitScale } from "@/lib/utils/canvas-utils"
 import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@lib/stores/useCanvasStore"
 import useEditorStore from "@lib/stores/useEditorStore"
 import classNames from "classnames"
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, forwardRef, ForwardRefRenderFunction } from "react"
 
-export default function Canvas({
-  zoom,
-  setZoom,
-  editorRef
-}: {
+type CanvasProps = {
   zoom: number;
   setZoom: (zoom: number) => void;
   editorRef?: React.RefObject<HTMLDivElement | null>;
-}) {
+};
+
+const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
+  { zoom, setZoom, editorRef },
+  ref
+) => {
   /* ------------------------------------------------------------------
    * Context / refs
    * ------------------------------------------------------------------ */
@@ -36,6 +37,16 @@ export default function Canvas({
   const updateMultipleElements = useCanvasStore(state => state.updateMultipleElements)
 
   const canvasRef = useRef<HTMLDivElement>(null) // un‑scaled logical canvas
+
+  // Combine internal ref with forwarded ref
+  const handleRef = useCallback((node: HTMLDivElement) => {
+    canvasRef.current = node;
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
+    }
+  }, [ref]);
 
   /* ------------------------------------------------------------------
    * State
@@ -203,40 +214,39 @@ export default function Canvas({
   }, [])
 
   // Handle clicks outside the canvas to clear element selection
-  useEffect(() => {
-    const handleOutsideClick = (e: globalThis.MouseEvent) => {
-      // Only process if we're in edit mode
-      if (!isEditMode) return;
+  // useEffect(() => {
+  //   const handleOutsideClick = (e: globalThis.MouseEvent) => {
+  //     // Only process if we're in edit mode
+  //     if (!isEditMode) return;
       
-      // Check if click is outside canvas
-      if (canvasRef.current && !canvasRef.current.contains(e.target as Node)) {
-        // Clear element selection
-        if (selectedElementIds.length > 0 || selectedElement !== null) {
-          selectElement(null);
-        }
+  //     // Check if click is outside canvas
+  //     if (canvasRef.current && !canvasRef.current.contains(e.target as Node)) {
+  //       // Clear element selection
+  //       if (selectedElementIds.length > 0 || selectedElement !== null) {
+  //         selectElement(null);
+  //       }
         
-        // Also clear canvas selection if needed
-        if (isCanvasSelected) {
-          selectCanvas(false);
-        }
-      }
-    };
+  //       // Also clear canvas selection if needed
+  //       if (isCanvasSelected) {
+  //         selectCanvas(false);
+  //       }
+  //     }
+  //   };
 
-    // Add the event listener
-    document.addEventListener("click", handleOutsideClick);
+  //   // Add the event listener
+  //   document.addEventListener("click", handleOutsideClick);
 
-    // Clean up the event listener
-    return () => {
-      document.removeEventListener("click", handleOutsideClick);
-    };
-  }, [selectElement, selectCanvas, selectedElementIds, selectedElement, isCanvasSelected, isEditMode]);
+  //   // Clean up the event listener
+  //   return () => {
+  //     document.removeEventListener("click", handleOutsideClick);
+  //   };
+  // }, [selectElement, selectCanvas, selectedElementIds, selectedElement, isCanvasSelected, isEditMode]);
 
   const isBorderActive = (isCanvasSelected && isEditMode) || isCanvasHovering && isEditMode;
 
   return (
-
     <div
-      ref={canvasRef}
+      ref={handleRef}
       className={classNames("flex items-center justify-center p-1 z-50 relative bg-white shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)] overflow-hidden",
         // "border-4 border-brand-blue": isBorderActive,
         isBorderActive && "is-highlighted"
@@ -260,9 +270,7 @@ export default function Canvas({
         console.log('Canvas mouse enter triggered');
         if (isEditMode) setIsCanvasHovering(true);
       }}
-
     >
-
       {/* Loading indicator - shown when canvas is not loaded */}
       {
         !isLoaded && (
@@ -311,3 +319,7 @@ export default function Canvas({
     </div>
   )
 }
+
+const Canvas = forwardRef<HTMLDivElement, CanvasProps>(CanvasComponent);
+
+export default Canvas;

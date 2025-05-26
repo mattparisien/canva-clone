@@ -14,6 +14,12 @@ export interface Element {
   y: number
   width: number
   height: number
+  rect?: { // Viewport-relative position and dimensions
+    x: number
+    y: number
+    width: number
+    height: number
+  }
   content?: string
   fontSize?: number
   fontFamily?: string

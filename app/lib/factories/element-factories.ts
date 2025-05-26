@@ -4,6 +4,20 @@ import { measureTextWidth } from "@utils/canvas-utils"
 import { DEFAULT_TEXT_ALIGN } from "@constants/editor"
 
 /**
+ * Helper function to calculate initial viewport rect for new elements
+ */
+const calculateInitialRect = (
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): { x: number; y: number; width: number; height: number } => {
+  // For new elements, we'll set the rect to match canvas coordinates initially
+  // This will be updated by the CanvasElement component once it's rendered
+  return { x, y, width, height };
+};
+
+/**
  * Creates a new text element with appropriate default values
  * @param options - Element creation options
  * @param canvasWidth - The current canvas width for calculating defaults
@@ -28,15 +42,15 @@ export function createTextElement(
   canvasWidth: number,
   canvasHeight: number
 ): Omit<Element, "id"> {
+  const content = options.content || "Add text here"
   const fontSize = options.fontSize || Math.round(canvasWidth * DEFAULT_TEXT_FONT_SIZE_RATIO)
-  const content = options.content || "Add your text here"
   const fontFamily = options.fontFamily || "Inter"
   
-  // Calculate width and height based on content and fontSize
-  const width = options.width || measureTextWidth(content, fontSize, fontFamily)
-  const height = options.height || fontSize * 1.2
-
-  // Calculate centered position if not specified
+  // Calculate text width based on content and font size
+  const textWidth = measureTextWidth(content, fontSize, fontFamily)
+  const width = options.width || Math.max(textWidth, 200) // Minimum 200px width
+  const height = options.height || Math.round(fontSize * 1.4) // 1.4 line height multiplier
+  
   const x = options.x !== undefined ? options.x : (canvasWidth - width) / 2
   const y = options.y !== undefined ? options.y : (canvasHeight - height) / 2
 
@@ -46,6 +60,7 @@ export function createTextElement(
     y,
     width,
     height,
+    rect: calculateInitialRect(x, y, width, height),
     content,
     fontSize,
     fontFamily,
@@ -93,6 +108,7 @@ export function createRectangleElement(
     y,
     width: size,
     height: size, // Use the same value as width to ensure a perfect square
+    rect: calculateInitialRect(x, y, size, size),
     isNew: true,
     backgroundColor: options.backgroundColor || "#000000",
     borderColor: options.borderColor,
@@ -124,19 +140,20 @@ export function createCircleElement(
   canvasWidth: number,
   canvasHeight: number
 ): Omit<Element, "id"> {
-  // Default size - make it square for a perfect circle
-  const size = options.width || Math.min(canvasWidth, canvasHeight) * 0.15
+  // Default size - use the same value for both width and height to create a perfect circle
+  const size = options.width || Math.round(Math.min(canvasWidth, canvasHeight) * 0.2);
   
   // Position in center by default
-  const x = options.x !== undefined ? options.x : (canvasWidth - size) / 2
-  const y = options.y !== undefined ? options.y : (canvasHeight - size) / 2
+  const x = options.x !== undefined ? options.x : (canvasWidth - size) / 2;
+  const y = options.y !== undefined ? options.y : (canvasHeight - size) / 2;
 
   return {
     type: "circle",
     x,
     y,
     width: size,
-    height: size, // Same as width for perfect circle
+    height: size, // Use the same value as width to ensure a perfect circle
+    rect: calculateInitialRect(x, y, size, size),
     isNew: true,
     backgroundColor: options.backgroundColor || "#000000",
     borderColor: options.borderColor,
@@ -181,6 +198,7 @@ export function createLineElement(
     y,
     width,
     height,
+    rect: calculateInitialRect(x, y, width, height),
     isNew: true,
     borderColor: options.borderColor || "#000000",
     borderWidth: options.borderWidth || 2,
@@ -224,6 +242,7 @@ export function createArrowElement(
     y,
     width,
     height,
+    rect: calculateInitialRect(x, y, width, height),
     isNew: true,
     borderColor: options.borderColor || "#000000",
     borderWidth: options.borderWidth || 2,

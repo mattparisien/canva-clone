@@ -16,7 +16,9 @@ import { ElementActionBar } from "./canvas/ElementActionBar";
  */
 export default function Editor() {
     // Reference for the editor container
-    const editorContainerRef = useRef<HTMLDivElement>(null)
+    const editorContainerRef = useRef<HTMLDivElement>(null);
+    const canvasRef = useRef<HTMLDivElement>(null);
+    const elementPropertyBarRef = useRef<HTMLDivElement>(null);
     const [zoom, setZoom] = useState(30) // 25 – 200 %
     const [isFullscreen, setIsFullscreen] = useState(false)
     // Track which page thumbnail is selected (for delete functionality)
@@ -29,6 +31,8 @@ export default function Editor() {
     const addPage = useEditorStore(state => state.addPage)
     const goToPage = useEditorStore(state => state.goToPage)
     const deletePage = useEditorStore(state => state.deletePage)
+    const isEditMode = useEditorStore(state => state.isEditMode)
+
 
     // Canvas store selectors
     const canvasSize = useCurrentCanvasSize()
@@ -37,6 +41,10 @@ export default function Editor() {
     const updateElement = useCanvasStore(state => state.updateElement)
     const clearSelection = useCanvasStore(state => state.clearSelection)
     const deleteSelectedElements = useCanvasStore(state => state.deleteSelectedElements)
+    const selectElement = useCanvasStore(state => state.selectElement)
+    const selectCanvas = useCanvasStore(state => state.selectCanvas);
+    const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected);
+
 
     // Zoom handler that will be passed to Canvas
     const handleZoomChange = useCallback((newZoom: number) => {
@@ -232,6 +240,12 @@ export default function Editor() {
                     y: (canvasSize.height - 100) / 2, // Center vertically with default height
                     width: 300, // Default width
                     height: 100, // Default height
+                    rect: { // Add viewport-relative rect
+                        x: (canvasSize.width - 300) / 2,
+                        y: (canvasSize.height - 100) / 2,
+                        width: 300,
+                        height: 100
+                    },
                     content: "Add your text here",
                     fontSize: 36, // Default font size
                     fontFamily: "Inter", // Default font
@@ -255,6 +269,33 @@ export default function Editor() {
             document.removeEventListener("keydown", handleKeyDown);
         };
     }, [canvasSize.width, canvasSize.height]);
+
+    useEffect(() => {
+        const handleOutsideClick = (e: globalThis.MouseEvent) => {
+            // Only process if we're in edit mode
+            if (!isEditMode) return;
+
+            // Check if click is outside canvas
+            if (canvasRef.current && !canvasRef.current.contains(e.target as Node) &&
+                elementPropertyBarRef.current && !elementPropertyBarRef.current?.contains(e.target as Node)) {
+                {
+                    // Clear element selection
+                    if (selectedElementIds.length > 0 || selectedElement !== null) {
+                        selectElement(null);
+                    }
+
+                    // Also clear canvas selection if needed
+                    if (isCanvasSelected) {
+                        selectCanvas(false);
+                    }
+                }
+            }
+        }
+
+        // Add click event listener to the document
+        document.addEventListener("mousedown", handleOutsideClick);
+
+    }, []);
 
     return (
         <div
@@ -296,7 +337,7 @@ export default function Editor() {
                 )}
 
                 {/* ElementPropertyBar moved here */}
-                {selectedElement  && (
+                {selectedElement && (
                     <ElementPropertyBar
                         selectedElement={selectedElement}
                         onFontSizeChange={handleFontSizeChange}
@@ -307,11 +348,13 @@ export default function Editor() {
                         isHovering={false}
                         elementId={selectedElement?.id || null}
                         canvasWidth={canvasSize.width}
+                        ref={elementPropertyBarRef}
                     />
                 )}
                 <Canvas
                     zoom={zoom}
                     setZoom={handleZoomChange}
+                    ref={canvasRef}
                 />
                 {/* Page Navigation Controls with refined styling */}
                 <PageNavigation

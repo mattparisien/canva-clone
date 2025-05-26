@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
 import { ElementControls } from "./controls/ElementControls";
 import ElementRenderer from "./renderers/ElementRenderer";
+import { calculateViewportRect } from "@lib/utils/canvas-utils";
 
 
 interface CanvasElementProps {
@@ -78,6 +79,19 @@ export function CanvasElement({
     setHandleHoverState,
   } = useCanvasElementInteraction()
 
+  // Helper function to update element with viewport rect
+  const updateElementWithRect = useCallback((updates: Partial<EditorCanvasElement>) => {
+    const newRect = calculateViewportRect(
+      { ...element, ...updates },
+      canvasRef,
+      scale
+    );
+    
+    updateElement(element.id, {
+      ...updates,
+      rect: newRect
+    });
+  }, [element, canvasRef, scale, updateElement]);
 
   // Modified mouse down handler
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -115,9 +129,9 @@ export function CanvasElement({
   // Handle text height change
   const handleHeightChange = useCallback((newHeight: number) => {
     if (element.type === "text") {
-      updateElement(element.id, { height: newHeight })
+      updateElementWithRect({ height: newHeight })
     }
-  }, [element, updateElement])
+  }, [element, updateElementWithRect])
 
   // Handle text alignment change
   const handleTextAlignChange = useCallback((align: "left" | "center" | "right" | "justify") => {
@@ -178,8 +192,8 @@ export function CanvasElement({
           isSelected
         );
 
-        // Update element position
-        updateElement(element.id, {
+        // Update element position with viewport rect
+        updateElementWithRect({
           x: snappedX,
           y: snappedY,
         });
@@ -218,8 +232,8 @@ export function CanvasElement({
           alignments: resizeAlignments = { horizontal: [], vertical: [] }
         } = resizeResult;
 
-        // Update element with new dimensions, position and font size
-        updateElement(element.id, {
+        // Update element with new dimensions, position and font size, including viewport rect
+        updateElementWithRect({
           width: newWidth,
           height: newHeight,
           x: newX,
@@ -232,7 +246,7 @@ export function CanvasElement({
           const measuredHeight = measureElementHeight(element);
 
           if (measuredHeight && measuredHeight !== newHeight) {
-            updateElement(element.id, { height: measuredHeight });
+            updateElementWithRect({ height: measuredHeight });
           }
 
           // Force TextEditor re-render to recalculate height
@@ -309,7 +323,7 @@ export function CanvasElement({
     isResizing,
     dragStart,
     element,
-    updateElement,
+    updateElementWithRect,
     scale,
     canvasRef,
     allElements,
@@ -343,10 +357,24 @@ export function CanvasElement({
       const measuredHeight = measureElementHeight(element)
 
       if (measuredHeight && measuredHeight !== element.height) {
-        updateElement(element.id, { height: measuredHeight })
+        updateElementWithRect({ height: measuredHeight })
       }
     }
-  }, [element, updateElement, measureElementHeight])
+  }, [element, updateElementWithRect, measureElementHeight])
+
+  // Update viewport rect when canvas position/scale changes
+  useEffect(() => {
+    const newRect = calculateViewportRect(element, canvasRef, scale);
+    
+    // Only update if rect has actually changed to avoid unnecessary re-renders
+    if (!element.rect || 
+        element.rect.x !== newRect.x || 
+        element.rect.y !== newRect.y || 
+        element.rect.width !== newRect.width || 
+        element.rect.height !== newRect.height) {
+      updateElement(element.id, { rect: newRect });
+    }
+  }, [element.x, element.y, element.width, element.height, scale, canvasRef, updateElement]);
 
   // Show element action bar when this element is selected
   useEffect(() => {

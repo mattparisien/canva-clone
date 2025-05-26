@@ -25,7 +25,7 @@ import {
   Type,
   Underline
 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, forwardRef, ForwardRefRenderFunction } from "react"
 
 interface ElementPropertyBarProps {
   selectedElement: Element | null
@@ -39,7 +39,7 @@ interface ElementPropertyBarProps {
   canvasWidth: number
 }
 
-export function ElementPropertyBar({
+const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, ElementPropertyBarProps> = ({
   selectedElement,
   onFontSizeChange,
   onFontFamilyChange,
@@ -48,7 +48,7 @@ export function ElementPropertyBar({
   onPositionChange,
   elementId,
   canvasWidth,
-}: ElementPropertyBarProps) {
+}, ref) => {
   const [fontSize, setFontSize] = useState(selectedElement?.fontSize || DEFAULT_FONT_SIZE)
   const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || FONT_FAMILIES[0])
   const [showFontDropdown, setShowFontDropdown] = useState(false)
@@ -66,6 +66,16 @@ export function ElementPropertyBar({
 
   const toolbarRef = useRef<HTMLDivElement>(null)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Combine internal ref with forwarded ref
+  const handleRef = (node: HTMLDivElement) => {
+    toolbarRef.current = node;
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
+    }
+  };
 
   // Update local state when selected element changes
   useEffect(() => {
@@ -194,7 +204,7 @@ export function ElementPropertyBar({
 
   return (
     <div
-      ref={toolbarRef}
+      ref={handleRef}
       className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center bg-white/95 backdrop-blur-sm rounded-md shadow-toolbar-float px-2.5 py-1.5 gap-1 border border-gray-100"
       onMouseEnter={handleToolbarMouseEnter}
       onMouseLeave={handleToolbarMouseLeave}
@@ -203,7 +213,7 @@ export function ElementPropertyBar({
       {/* Font Family Dropdown */}
       <div className="relative">
         <button
-          className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition font-medium text-sm w-[100px]"
+          className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-brand-blue transition font-medium text-sm w-[100px]"
           onClick={(e) => {
             e.stopPropagation();
             setShowFontDropdown(!showFontDropdown);
@@ -220,7 +230,7 @@ export function ElementPropertyBar({
                 key={font}
                 className={cn(
                   "w-full text-left px-4 py-2 text-sm hover:bg-gray-50",
-                  fontFamily === font ? "bg-gray-50 font-medium text-purple-600" : "",
+                  fontFamily === font ? "bg-gray-50 font-medium text-brand-blue" : "",
                 )}
                 style={{ fontFamily: font }}
                 onClick={(e) => {
@@ -241,7 +251,7 @@ export function ElementPropertyBar({
       <div className="flex items-center">
         <div className="flex items-stretch rounded-lg overflow-hidden border border-gray-200">
           <button
-            className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-purple-600 transition flex items-center justify-center border-r border-gray-200"
+            className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-brand-blue transition flex items-center justify-center border-r border-gray-200"
             onClick={(e) => {
               e.stopPropagation();
               handleFontSizeChange(fontSize - 1);
@@ -258,11 +268,11 @@ export function ElementPropertyBar({
             placeholder="– –"
             onChange={(e) => handleFontSizeChange(e.target.value)}
             onClick={(e) => e.stopPropagation()}
-            className="w-12 px-1.5 py-0.5 text-sm font-medium focus:ring-1 focus:ring-purple-400 focus:outline-none text-center border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            className="w-12 px-1.5 py-0.5 text-sm font-medium focus:ring-1 focus:ring-brand-blue focus:outline-none text-center border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
 
           <button
-            className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-purple-600 transition flex items-center justify-center border-l border-gray-200"
+            className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-brand-blue transition flex items-center justify-center border-l border-gray-200"
             onClick={(e) => {
               e.stopPropagation();
               handleFontSizeChange(fontSize + 1);
@@ -277,7 +287,7 @@ export function ElementPropertyBar({
 
       {/* Text Color (placeholder) */}
       <button 
-        className="rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition"
+        className="rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition"
         onClick={(e) => e.stopPropagation()}
       >
         <Type className="h-3.5 w-3.5" />
@@ -288,29 +298,29 @@ export function ElementPropertyBar({
       {/* Text Formatting */}
       <div className="flex items-center">
         <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
-            isBold && "bg-purple-50 text-purple-600")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
+            isBold && "bg-brand-blue-light text-brand-blue")}
           onClick={handleBoldChange}
         >
           <Bold className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
-            isItalic && "bg-purple-50 text-purple-600")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
+            isItalic && "bg-brand-blue-light text-brand-blue")}
           onClick={handleItalicChange}
         >
           <Italic className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
-            isUnderlined && "bg-purple-50 text-purple-600")}
+          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
+            isUnderlined && "bg-brand-blue-light text-brand-blue")}
           onClick={handleUnderlineChange}
         >
           <Underline className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
-            isStrikethrough && "bg-purple-50 text-purple-600")}
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
+            isStrikethrough && "bg-brand-blue-light text-brand-blue")}
           onClick={handleStrikethroughChange}
         >
           <Strikethrough className="h-3.5 w-3.5" />
@@ -322,8 +332,8 @@ export function ElementPropertyBar({
       {/* Text Alignment */}
       <div className="flex items-center">
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
-            textAlign === "left" && "bg-purple-50 text-purple-600")}
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
+            textAlign === "left" && "bg-brand-blue-light text-brand-blue")}
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("left");
@@ -332,8 +342,8 @@ export function ElementPropertyBar({
           <AlignLeft className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
-            textAlign === "center" && "bg-purple-50 text-purple-600")}
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
+            textAlign === "center" && "bg-brand-blue-light text-brand-blue")}
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("center");
@@ -342,8 +352,8 @@ export function ElementPropertyBar({
           <AlignCenter className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
-            textAlign === "right" && "bg-purple-50 text-purple-600")}
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
+            textAlign === "right" && "bg-brand-blue-light text-brand-blue")}
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("right");
@@ -352,8 +362,8 @@ export function ElementPropertyBar({
           <AlignRight className="h-3.5 w-3.5" />
         </button>
         <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-purple-600 transition",
-            textAlign === "justify" && "bg-purple-50 text-purple-600")}
+          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
+            textAlign === "justify" && "bg-brand-blue-light text-brand-blue")}
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("justify");
@@ -370,27 +380,27 @@ export function ElementPropertyBar({
 
         <Popover>
           <PopoverTrigger asChild>
-            <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-purple-600 transition text-sm font-medium">Position</button>
+            <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-brand-blue transition text-sm font-medium">Position</button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-3 bg-white border border-gray-100 rounded-xl shadow-lg">
             <div className="space-y-2">
               <div className="flex items-center gap-1.5 justify-between">
                 <button
-                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-purple-600 transition"
+                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-brand-blue transition"
                   onClick={handleAlignStart}
                 >
                   <AlignLeft className="h-4 w-4" />
                   <span className="text-xs font-medium">Left</span>
                 </button>
                 <button
-                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-purple-600 transition"
+                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-brand-blue transition"
                   onClick={handleAlignCenter}
                 >
                   <AlignCenter className="h-4 w-4" />
                   <span className="text-xs font-medium">Center</span>
                 </button>
                 <button
-                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-purple-600 transition"
+                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-gray-50 hover:text-brand-blue transition"
                   onClick={handleAlignEnd}
                 >
                   <AlignRight className="h-4 w-4" />
@@ -404,3 +414,5 @@ export function ElementPropertyBar({
     </div>
   )
 }
+
+export const ElementPropertyBar = forwardRef<HTMLDivElement, ElementPropertyBarProps>(ElementPropertyBarComponent);
