@@ -197,7 +197,6 @@ export function TextEditor({
     boxSizing: "border-box",
     direction: "ltr",
     textAlign: textAlign,
-    cursor: isEditing ? "text" : isEditMode ? "move" : "default",
     fontWeight: isBold ? "bold" : "normal",
     fontStyle: isItalic ? "italic" : "normal",
     textDecoration: `${isUnderlined ? "underline" : ""} ${isStrikethrough ? "line-through" : ""}`.trim() || "none",

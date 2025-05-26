@@ -416,7 +416,7 @@ export function CanvasElement({
           top: element.y,
           width: element.width,
           height: element.height,
-          cursor: isEditMode ? (isDragging ? "grabbing" : "grab") : "default",
+          cursor: isEditMode ? (element.locked ? "default" : (isDragging ? "grabbing" : "grab")) : "default",
           transform: "none",
           borderRadius: "2px",
           // Fixed stacking order based only on element type
