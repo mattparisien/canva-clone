@@ -4,11 +4,12 @@ import { Element as CanvasElement } from "@lib/types/canvas.types";
 /**
  * Hook to handle element interactions including dragging and keyboard modifiers
  */
-export function useCanvasElementInteraction() {
+export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDivElement | null>) {
   // Track state
   const [isDragging, setIsDragging] = useState(false);
   const [isAltKeyPressed, setIsAltKeyPressed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [isSelected, setIsSelected] = useState(false);
   
   // Track positions
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -68,21 +69,21 @@ export function useCanvasElementInteraction() {
   /**
    * Handle mouse enter/leave
    */
-  const handleMouseEnter = useCallback((id: string, onHover: (id: string | null) => void, isEditMode: boolean) => {
+  const handleMouseEnter = useCallback((id: string, isEditMode: boolean, onHover?: (id: string | null) => void) => {
     if (isEditMode) {
       setIsHovering(true);
-      onHover(id);
+      onHover?.(id);
     }
   }, []);
 
-  const handleMouseLeave = useCallback((onHover: (id: string | null) => void) => {
+  const handleMouseLeave = useCallback((onHover?: (id: string | null) => void) => {
     if (justFinishedResizing.current) {
       // If we just finished resizing, prevent immediate deselect
       setIsHovering(false);
       return;
     }
     setIsHovering(false);
-    onHover(null);
+    onHover?.(null);
   }, []);
 
   /**
@@ -118,6 +119,39 @@ export function useCanvasElementInteraction() {
   const setHandleHoverState = useCallback((handle: string, isHovering: boolean) => {
     setHandleHover(prev => ({ ...prev, [handle]: isHovering }));
   }, []);
+
+  /**
+   * Handle selection on click
+   */
+  const handleClick = useCallback((e: React.MouseEvent, element: CanvasElement, onElementSelect?: (id: string, addToSelection: boolean) => void) => {
+    e.stopPropagation();
+    
+    // Check if shift key is pressed for multi-selection
+    const isShiftPressed = e.shiftKey;
+    
+    // Select element
+    onElementSelect?.(element.id, isShiftPressed);
+    setIsSelected(true);
+  }, []);
+
+  /**
+   * Handle outside clicks to deselect
+   */
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (elementRef?.current && !elementRef.current.contains(e.target as Node)) {
+        setIsSelected(false);
+      }
+    };
+
+    if (isSelected) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isSelected, elementRef]);
 
   // Track Alt/Option key state
   useEffect(() => {
@@ -155,6 +189,7 @@ export function useCanvasElementInteraction() {
     isDragging,
     isAltKeyPressed,
     isHovering,
+    isSelected,
     leftBorderHover,
     rightBorderHover,
     setLeftBorderHover,
@@ -166,6 +201,7 @@ export function useCanvasElementInteraction() {
     endDrag,
     handleMouseEnter,
     handleMouseLeave,
+    handleClick,
     setJustFinishedResizing,
     getHandleBg,
     setHandleHoverState,

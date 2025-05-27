@@ -5,11 +5,13 @@ import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor";
 import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore";
 import useEditorStore from "@lib/stores/useEditorStore";
 import { useCallback, useEffect, useRef, useState } from "react";
+import useElementActionBar from "../hooks/useElementActionBar";
 import BottomBar from "./BottomBar";
 import Canvas from "./canvas/Canvas";
-import PageNavigation from "./PageNavigation";
+import ElementControlsRefactored from "./canvas/controls/ElementControls-Refactored";
 import { ElementActionBar } from "./canvas/ElementActionBar";
-import useElementActionBar from "../hooks/useElementActionBar";
+import PageNavigation from "./PageNavigation";
+
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.
@@ -41,6 +43,7 @@ export default function Editor() {
     const canvasSize = useCurrentCanvasSize()
     const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
     const selectedElement = useCanvasStore(state => state.selectedElement)
+    const elements = useEditorStore(state => state.pages[currentPageIndex]?.elements || [])
     const updateElement = useCanvasStore(state => state.updateElement)
     const clearSelection = useCanvasStore(state => state.clearSelection)
     const deleteSelectedElements = useCanvasStore(state => state.deleteSelectedElements)
@@ -307,8 +310,6 @@ export default function Editor() {
             className="flex flex-1 overflow-hidden flex-col relative bg-editor pl-sidebar"
             ref={editorContainerRef}
         >
-
-
             {/* Main canvas area with wheel handler - removing inline wheel handler */}
             <div className="flex-1 overflow-hidden relative flex items-center justify-center bg-editor">
 
@@ -374,6 +375,15 @@ export default function Editor() {
                     selectedPageThumbnail={selectedPageThumbnail}
                     setSelectedPageThumbnail={setSelectedPageThumbnail}
                 />
+
+                {elements.map(element => (
+                    <ElementControlsRefactored
+                        key={element.id}
+                        element={element}
+                        scale={zoom / 100}
+                        isEditMode={isEditMode}
+                    />
+                ))}
 
             </div>
 

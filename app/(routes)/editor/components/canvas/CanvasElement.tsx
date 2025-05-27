@@ -409,7 +409,7 @@ export function CanvasElement({
       <div
         ref={elementRef}
         className={classNames("absolute", {
-          "is-highlighted": (isSelected && isEditMode) || (isHovering && isEditMode),
+          // "is-highlighted": (isSelected && isEditMode) || (isHovering && isEditMode),
         })}
         style={{
           left: element.x,
@@ -436,7 +436,7 @@ export function CanvasElement({
           handleTextAlignChange={handleTextAlignChange}
           isEditMode={isEditMode}
         />
-
+{/* 
         {isSelected && isEditMode && (
           <ElementControls
             element={element}
@@ -452,7 +452,7 @@ export function CanvasElement({
             setRightBorderHover={setRightBorderHover}
             isDragging={isDragging}
           />
-        )}
+        )} */}
       </div>
     </>
   )
