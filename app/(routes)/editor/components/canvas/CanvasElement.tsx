@@ -6,7 +6,7 @@ import useCanvasStore from "@lib/stores/useCanvasStore";
 import { Element as EditorCanvasElement } from "@lib/types/canvas.types"; // Change Element import to CanvasElement
 import classNames from "classnames";
 import { useCallback, useEffect, useRef } from "react";
-import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
+import { useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
 import { ElementControls } from "./controls/ElementControls";
 import ElementRenderer from "./renderers/ElementRenderer";
 import { calculateViewportRect } from "@lib/utils/canvas-utils";
@@ -57,27 +57,8 @@ export function CanvasElement({
   const [showPopover, setShowPopover] = useState(false)
 
   // Initialize our custom hooks
-  const { getSnappedPosition } = useSnapping()
   const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize()
   const { measureElementHeight, renderMeasurer } = useTextMeasurement()
-  const {
-    isDragging,
-    isAltKeyPressed,
-    isHovering,
-    leftBorderHover,
-    rightBorderHover,
-    setLeftBorderHover,
-    setRightBorderHover,
-    dragStart,
-    setDragStart,
-    startDrag,
-    endDrag,
-    handleMouseEnter,
-    handleMouseLeave,
-    setJustFinishedResizing,
-    getHandleBg,
-    setHandleHoverState,
-  } = useCanvasElementInteraction()
 
   // Helper function to update element with viewport rect
   const updateElementWithRect = useCallback((updates: Partial<EditorCanvasElement>) => {
@@ -93,28 +74,13 @@ export function CanvasElement({
     });
   }, [element, canvasRef, scale, updateElement]);
 
-  // Modified mouse down handler
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!isEditMode) return
-
-    // Show popover on mouse down
-    setShowPopover(true)
+  // Simple click handler for selection only
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    if (!isEditMode) return;
     
-    // For locked elements, we only want to allow selection but not dragging
-    if (element.locked) {
-      // Just select the element but don't start dragging
-      selectElement(element.id, e.shiftKey);
-      return;
-    }
-
-    startDrag(
-      e,
-      element,
-      onDragStart,
-      selectElement,
-      clearNewElementFlag
-    )
-  }, [element, onDragStart, selectElement, clearNewElementFlag, isEditMode, startDrag])
+    e.stopPropagation();
+    selectElement(element.id, e.shiftKey);
+  }, [element.id, isEditMode, selectElement]);
 
   // Add a mouse up handler to hide popover only when clicking outside this element
   useEffect(() => {
@@ -161,152 +127,86 @@ export function CanvasElement({
     )
   }, [element, clearNewElementFlag, isEditMode, startResize])
 
-  // Handle mouse move for dragging and resizing
+  // Handle mouse move for resizing only
   useEffect(() => {
-    if (!isDragging && !isResizing) return;
+    if (!isResizing) return;
 
-    // Performance optimization: Use requestAnimationFrame for smoother rendering
     let animationFrameId: number | null = null;
     let lastEvent: MouseEvent | null = null;
 
-    const processDragOrResize = () => {
+    const processResize = () => {
       if (!lastEvent || !canvasRef.current) return;
 
       const e = lastEvent;
 
-      if (isDragging) {
-        // Calculate the delta movement adjusted for scale
-        const deltaX = (e.clientX - dragStart.x) / scale;
-        const deltaY = (e.clientY - dragStart.y) / scale;
+      // Calculate new dimensions and position
+      const resizeResult = calculateResize(
+        element,
+        e.clientX,
+        e.clientY,
+        scale,
+        false, // isAltKeyPressed is false by default
+        allElements,
+        canvasWidth,
+        canvasHeight
+      );
 
-        // Calculate new position
-        const newX = element.x + deltaX;
-        const newY = element.y + deltaY;
+      const {
+        width: newWidth,
+        height: newHeight,
+        x: newX,
+        y: newY,
+        fontSize: newFontSize,
+        widthChanged,
+        alignments: resizeAlignments = { horizontal: [], vertical: [] }
+      } = resizeResult;
 
-        // Get snapped position and alignment guides
-        const {
-          x: snappedX,
-          y: snappedY,
-          alignments: newAlignments,
-        } = getSnappedPosition(
-          element,
-          newX,
-          newY,
-          allElements.filter((el) => el.id !== element.id),
-          canvasWidth,
-          canvasHeight,
-          isDragging,
-          isSelected
-        );
+      // Update element with new dimensions, position and font size
+      updateElementWithRect({
+        width: newWidth,
+        height: newHeight,
+        x: newX,
+        y: newY,
+        ...(element.type === "text" ? { fontSize: newFontSize } : {}),
+      });
 
-        // Update element position with viewport rect
-        updateElementWithRect({
-          x: snappedX,
-          y: snappedY,
-        });
+      // If resizing a text element horizontally, measure and update height immediately
+      if (element.type === "text" && widthChanged) {
+        const measuredHeight = measureElementHeight(element);
 
-        // Check if this is a multi-selection drag
-        const isMultiSelectionDrag = selectedElementIds.length > 1 && selectedElementIds.includes(element.id);
-
-        // Notify parent component
-        onDrag(element, snappedX, snappedY, newAlignments, isMultiSelectionDrag);
-
-        // Update drag start position for next move
-        setDragStart({
-          x: e.clientX,
-          y: e.clientY,
-        });
-      } else if (isResizing) {
-        // Calculate new dimensions and position
-        const resizeResult = calculateResize(
-          element,
-          e.clientX,
-          e.clientY,
-          scale,
-          isAltKeyPressed,
-          allElements, // Pass all elements for snapping
-          canvasWidth,
-          canvasHeight
-        );
-
-        const {
-          width: newWidth,
-          height: newHeight,
-          x: newX,
-          y: newY,
-          fontSize: newFontSize,
-          widthChanged,
-          alignments: resizeAlignments = { horizontal: [], vertical: [] }
-        } = resizeResult;
-
-        // Update element with new dimensions, position and font size, including viewport rect
-        updateElementWithRect({
-          width: newWidth,
-          height: newHeight,
-          x: newX,
-          y: newY,
-          ...(element.type === "text" ? { fontSize: newFontSize } : {}),
-        });
-
-        // If resizing a text element horizontally, measure and update height immediately
-        if (element.type === "text" && widthChanged) {
-          const measuredHeight = measureElementHeight(element);
-
-          if (measuredHeight && measuredHeight !== newHeight) {
-            updateElementWithRect({ height: measuredHeight });
-          }
-
-          // Force TextEditor re-render to recalculate height
-          setTextEditorKey((k) => k + 1);
+        if (measuredHeight && measuredHeight !== newHeight) {
+          updateElementWithRect({ height: measuredHeight });
         }
 
-        // Pass alignment guides for visualization, similar to drag operation
-        if (resizeAlignments) {
-          onDrag(
-            element,
-            newX,
-            newY,
-            resizeAlignments,
-            false
-          );
-        }
+        // Force TextEditor re-render to recalculate height
+        setTextEditorKey((k) => k + 1);
+      }
 
-        // Update drag start position for next move
-        setDragStart({
-          x: e.clientX,
-          y: e.clientY,
-        });
+      // Pass alignment guides for visualization
+      if (resizeAlignments) {
+        onDrag(element, newX, newY, resizeAlignments, false);
       }
 
       lastEvent = null;
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      // Store only the most recent event and process in the next animation frame
       lastEvent = e;
 
       if (animationFrameId === null) {
         animationFrameId = requestAnimationFrame(() => {
-          processDragOrResize();
+          processResize();
           animationFrameId = null;
         });
       }
     };
 
     const handleMouseUp = () => {
-      if (isDragging) {
-        endDrag(onDragEnd);
-      }
-
       if (isResizing) {
         endResize();
-        // Only call when ending a resize operation, with false to not toggle selection
         selectElement(element.id, false);
-        // Set the flag to prevent immediate deselect
-        setJustFinishedResizing(true);
       }
 
-      // Cancel any pending animation frame
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
@@ -320,15 +220,12 @@ export function CanvasElement({
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
 
-      // Ensure we clean up any pending animation frame
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
       }
     };
   }, [
-    isDragging,
     isResizing,
-    dragStart,
     element,
     updateElementWithRect,
     scale,
@@ -337,19 +234,12 @@ export function CanvasElement({
     canvasWidth,
     canvasHeight,
     onDrag,
-    onDragEnd,
-    selectedElementIds,
-    isSelected,
-    getSnappedPosition,
     calculateResize,
-    isAltKeyPressed,
-    endDrag,
     endResize,
     selectElement,
-    setDragStart,
-    setJustFinishedResizing,
     measureElementHeight,
-  ])
+    setTextEditorKey
+  ]);
 
   // Track width and fontSize for text elements to trigger height recalculation
   useEffect(() => {
@@ -385,7 +275,7 @@ export function CanvasElement({
 
   // Show element action bar when this element is selected
   useEffect(() => {
-    if (isSelected && isEditMode && !isDragging && !isResizing) {
+    if (isSelected && isEditMode && !isResizing) {
       // Position the action bar at the top center of the element
       const centerX = element.x + element.width / 2;
       const topY = element.y;
@@ -398,7 +288,7 @@ export function CanvasElement({
         hideElementActionBar();
       }
     }
-  }, [element.id, element.x, element.y, element.width, isSelected, isEditMode, isDragging, isResizing, showElementActionBar, hideElementActionBar]);
+  }, [element.id, element.x, element.y, element.width, isSelected, isEditMode, isResizing, showElementActionBar, hideElementActionBar]);
 
   return (
     <>
@@ -416,15 +306,15 @@ export function CanvasElement({
           top: element.y,
           width: element.width,
           height: element.height,
-          cursor: isEditMode ? (element.locked ? "default" : (isDragging ? "grabbing" : "grab")) : "default",
+          cursor: isEditMode ? (element.locked ? "default" : "grab") : "default",
           transform: "none",
           borderRadius: "2px",
           // Fixed stacking order based only on element type
           zIndex: element.type === "text" ? 1 : 0,
         }}
-        onMouseDown={handleMouseDown}
-        onMouseEnter={() => handleMouseEnter(element.id, onHover, isEditMode)}
-        onMouseLeave={() => handleMouseLeave(onHover)}
+        onClick={handleClick}
+        onMouseEnter={() => onHover?.(element.id)}
+        onMouseLeave={() => onHover?.(null)}
       >
         <ElementRenderer
           element={element}

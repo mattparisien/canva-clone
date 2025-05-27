@@ -145,11 +145,11 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     };
 
     if (isSelected) {
-      document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('click', handleOutsideClick);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('click', handleOutsideClick);
     };
   }, [isSelected, elementRef]);
 
