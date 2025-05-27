@@ -9,6 +9,7 @@ import BottomBar from "./BottomBar";
 import Canvas from "./canvas/Canvas";
 import PageNavigation from "./PageNavigation";
 import { ElementActionBar } from "./canvas/ElementActionBar";
+import useElementActionBar from "../hooks/useElementActionBar";
 
 /**
  * Editor component serves as the main wrapper for the canvas editing experience.
@@ -47,6 +48,8 @@ export default function Editor() {
     const selectCanvas = useCanvasStore(state => state.selectCanvas);
     const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected);
 
+    // Hooks
+    const { position, placement } = useElementActionBar(selectedElement, elementActionBarRef, elementPropertyBarRef);
 
     // Zoom handler that will be passed to Canvas
     const handleZoomChange = useCallback((newZoom: number) => {
@@ -312,6 +315,8 @@ export default function Editor() {
                 {/* Element Action Bar */}
                 {selectedElement && (
                     <ElementActionBar
+                        placement={placement}
+                        position={position}
                         element={selectedElement}
                         ref={elementActionBarRef}
                         onDelete={() => {
