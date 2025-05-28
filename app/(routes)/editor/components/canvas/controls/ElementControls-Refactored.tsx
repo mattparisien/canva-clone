@@ -355,7 +355,22 @@ const ElementControlsRefactored = memo(({
             onMouseEnter={() => handleMouseEnter(element.id, isEditMode)}
             onMouseLeave={() => handleMouseLeave()}
             onMouseDown={handleMouseDown}
-        />
+        >
+
+            <Handles
+                element={element}
+                isResizing={isResizing}
+                resizeDirection={resizeDirection}
+                handleResizeStart={handleResizeStart}
+                getHandleBg={getHandleBg}
+                setHandleHoverState={setHandleHoverState}
+                leftBorderHover={leftBorderHover}
+                rightBorderHover={rightBorderHover}
+                setLeftBorderHover={setLeftBorderHover}
+                setRightBorderHover={setRightBorderHover}
+                scale={scale}
+            />
+        </div>
     );
 });
 
@@ -376,8 +391,8 @@ interface HandlesProps {
 
 const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart, getHandleBg, setHandleHoverState, leftBorderHover, rightBorderHover, setLeftBorderHover, setRightBorderHover, scale }: HandlesProps) => {
     // Calculate handle sizes
-    const handleSize = 18 / scale; // Using constant HANDLE_BASE_SIZE = 18
-    const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5;
+    const handleSize = 18; // Using constant HANDLE_BASE_SIZE = 18
+    // const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5;
 
     /**
      * Determine if an element should show top/bottom handles 
@@ -412,7 +427,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
         )}
 
         {/* Top handle - only for shape elements */}
-        {showTopBottomHandles && !isTooSmallForAllHandles && (!isResizing || resizeDirection === "n") && (
+        {showTopBottomHandles && (!isResizing || resizeDirection === "n") && (
             <div
                 className="absolute cursor-ns-resize"
                 style={{
@@ -434,7 +449,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
         )}
 
         {/* These corner handles only show when element is big enough */}
-        {!isTooSmallForAllHandles && (
+        
             <>
                 {/* Northeast corner handle */}
                 {(!isResizing || resizeDirection === "ne") && (
@@ -480,7 +495,6 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
                     />
                 )}
             </>
-        )}
 
         {/* Southeast corner handle */}
         {(!isResizing || resizeDirection === "se") && (
@@ -505,7 +519,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
         )}
 
         {/* Bottom handle - only for shape elements */}
-        {showTopBottomHandles && !isTooSmallForAllHandles && (!isResizing || resizeDirection === "s") && (
+        {showTopBottomHandles && (!isResizing || resizeDirection === "s") && (
             <div
                 className="absolute cursor-ns-resize"
                 style={{
@@ -549,7 +563,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
         )}
 
         {/* Left handle with enhanced styling */}
-        {!isTooSmallForAllHandles && (!isResizing || resizeDirection === "w") && (
+        {(!isResizing || resizeDirection === "w") && (
             <div
                 className="absolute cursor-ew-resize"
                 style={{
