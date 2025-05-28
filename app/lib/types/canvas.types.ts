@@ -120,6 +120,7 @@ export interface CanvasContextType {
   scaleElement: (element: Element, scaleFactor: number) => Element
   fitCanvasToView: (container: HTMLDivElement, canvas: HTMLDivElement) => number
   toggleCanvasSelection: () => void
+  setElementActive: (isActive: boolean) => void // Add the setElementActive function
 
   // History
   canUndo: boolean

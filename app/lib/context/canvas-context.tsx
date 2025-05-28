@@ -27,6 +27,8 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     isCanvasSelected: store.isCanvasSelected,
     canvasSize,
     isLoaded: store.isLoaded,
+    isElementActive: store.isElementActive,
+    elementActionBar: store.elementActionBar,
     
     // Element manipulation
     addElement: store.addElement,
@@ -43,6 +45,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     clearNewElementFlag: store.clearNewElementFlag,
     scaleElement: store.scaleElement,
     toggleCanvasSelection: store.toggleCanvasSelection,
+    setElementActive: store.setElementActive,
     
     // History
     canUndo: store.canUndo,
@@ -62,11 +65,11 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
 }
 
 export function useCanvas() {
-  const context = useContext(CanvasContext);
+  const context = useContext(CanvasContext)
   if (context === undefined) {
-    throw new Error("useCanvas must be used within a CanvasProvider");
+    throw new Error('useCanvas must be used within a CanvasProvider')
   }
-  return context;
+  return context
 }
 export type { Element }
 
