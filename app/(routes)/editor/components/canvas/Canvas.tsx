@@ -107,6 +107,7 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
     }
   }, [isEditMode, selectElement, selectCanvas]);
 
+  
 
   /* ------------------------------------------------------------------
    * Canvas click → deselect
@@ -132,8 +133,11 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   }, [selectElement, selectCanvas, canvasRef, isCanvasSelected, isEditMode])
 
   /* ------------------------------------------------------------------
-   * Drag handlers (logical units)
+   * Drag handlers (logical units) - Optimized for performance
    * ------------------------------------------------------------------ */
+  const dragAnimationFrameRef = useRef<number | null>(null);
+  const lastDragUpdateRef = useRef<number>(0);
+
   const handleDragStart = useCallback((element: any) => {
     // If in view mode, do nothing
     if (!isEditMode) return;
@@ -148,6 +152,10 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
     // If in view mode, do nothing
     if (!isEditMode) return;
 
+    // Throttle alignment updates to improve performance
+    const now = performance.now();
+    if (now - lastDragUpdateRef.current < 16) return; // ~60fps throttling
+
     setAlignments(newAlignments)
 
     // When dragging multiple elements, update their positions
@@ -157,16 +165,24 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
         const deltaX = x - lastDragPos.x;
         const deltaY = y - lastDragPos.y;
 
-        // Update positions of all selected elements
-        updateMultipleElements((prev) => {
-          return {
-            x: prev.x + deltaX,
-            y: prev.y + deltaY
-          };
-        });
+        // Use requestAnimationFrame for smooth updates
+        if (dragAnimationFrameRef.current === null) {
+          dragAnimationFrameRef.current = requestAnimationFrame(() => {
+            // Update positions of all selected elements
+            updateMultipleElements((prev) => {
+              return {
+                x: prev.x + deltaX,
+                y: prev.y + deltaY
+              };
+            });
+
+            dragAnimationFrameRef.current = null;
+          });
+        }
 
         // Update last drag position
         setLastDragPos({ x, y });
+        lastDragUpdateRef.current = now;
       }
     }
   }, [selectedElementIds, updateMultipleElements, lastDragPos, isEditMode])
@@ -174,6 +190,12 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   const handleDragEnd = useCallback(() => {
     // If in view mode, do nothing
     if (!isEditMode) return;
+
+    // Clean up any pending animation frames
+    if (dragAnimationFrameRef.current !== null) {
+      cancelAnimationFrame(dragAnimationFrameRef.current);
+      dragAnimationFrameRef.current = null;
+    }
 
     setIsDragging(false)
     setActiveDragElement(null)
@@ -213,34 +235,6 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
     setIsHoveringChild(false)
   }, [])
 
-  // Handle clicks outside the canvas to clear element selection
-  // useEffect(() => {
-  //   const handleOutsideClick = (e: globalThis.MouseEvent) => {
-  //     // Only process if we're in edit mode
-  //     if (!isEditMode) return;
-      
-  //     // Check if click is outside canvas
-  //     if (canvasRef.current && !canvasRef.current.contains(e.target as Node)) {
-  //       // Clear element selection
-  //       if (selectedElementIds.length > 0 || selectedElement !== null) {
-  //         selectElement(null);
-  //       }
-        
-  //       // Also clear canvas selection if needed
-  //       if (isCanvasSelected) {
-  //         selectCanvas(false);
-  //       }
-  //     }
-  //   };
-
-  //   // Add the event listener
-  //   document.addEventListener("click", handleOutsideClick);
-
-  //   // Clean up the event listener
-  //   return () => {
-  //     document.removeEventListener("click", handleOutsideClick);
-  //   };
-  // }, [selectElement, selectCanvas, selectedElementIds, selectedElement, isCanvasSelected, isEditMode]);
 
   const isBorderActive = (isCanvasSelected && isEditMode) || isCanvasHovering && isEditMode;
 

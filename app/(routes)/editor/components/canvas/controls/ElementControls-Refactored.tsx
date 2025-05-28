@@ -15,7 +15,6 @@ interface ElementControlsProps {
     canvasWidth?: number;
     canvasHeight?: number;
     isEditMode: boolean;
-
 }
 
 const ElementControlsRefactored = memo(({
@@ -28,9 +27,10 @@ const ElementControlsRefactored = memo(({
     canvasHeight = 0,
 }: ElementControlsProps) => {
     const elementRef = useRef<HTMLDivElement>(null);
+    const dragAnimationFrameRef = useRef<number | null>(null);
+    const lastDragUpdateRef = useRef<number>(0);
 
     const [showPopover, setShowPopover] = useState(false)
-
 
     // Canvas store methods
     const updateElement = useCanvasStore(state => state.updateElement);
@@ -40,13 +40,10 @@ const ElementControlsRefactored = memo(({
     const hideElementActionBar = useCanvasStore(state => state.hideElementActionBar)
     const { measureElementHeight, renderMeasurer } = useTextMeasurement()
 
-
     const [textEditorKey, setTextEditorKey] = useState(0)
-
 
     // Use the resize hook
     const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize()
-
 
     // Use the interaction hook
     const {
@@ -84,7 +81,6 @@ const ElementControlsRefactored = memo(({
         );
     }, [element, isEditMode, startDrag, selectElement, clearNewElementFlag]);
 
-
     // Handle element resizing
     const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
         if (!isEditMode || element.locked) return
@@ -100,7 +96,7 @@ const ElementControlsRefactored = memo(({
         )
     }, [element, clearNewElementFlag, isEditMode, startResize])
 
-    // Helper function to update element with viewport rect
+    // Helper function to update element with viewport rect - optimized
     const updateElementWithRect = useCallback((updates: Partial<Element>) => {
         const newRect = calculateViewportRect(
             { ...element, ...updates },
@@ -112,9 +108,9 @@ const ElementControlsRefactored = memo(({
             ...updates,
             rect: newRect
         });
-    }, [element, canvasRef, scale, updateElement]);
+    }, [element.id, element.x, element.y, element.width, element.height, canvasRef, scale, updateElement]);
 
-    // Handle mouse move for resizing only
+    // Handle mouse move for resizing only - already optimized with RAF
     useEffect(() => {
         if (!isResizing) return;
 
@@ -169,11 +165,6 @@ const ElementControlsRefactored = memo(({
                 setTextEditorKey((k) => k + 1);
             }
 
-            // Pass alignment guides for visualization
-            if (resizeAlignments) {
-                // onDrag(element, newX, newY, resizeAlignments, false);
-            }
-
             lastEvent = null;
         };
 
@@ -220,7 +211,6 @@ const ElementControlsRefactored = memo(({
         elements,
         canvasWidth,
         canvasHeight,
-        // onDrag,
         calculateResize,
         endResize,
         selectElement,
@@ -228,22 +218,27 @@ const ElementControlsRefactored = memo(({
         setTextEditorKey
     ]);
 
-    // Update viewport rect when canvas position/scale changes
+    // Optimized viewport rect update - only when necessary
     useEffect(() => {
-
         if (!element || !canvasRef.current) return;
 
+        // Throttle viewport rect calculations
+        const now = performance.now();
+        if (now - lastDragUpdateRef.current < 16) return; // ~60fps throttling
+        
         const newRect = calculateViewportRect(element, canvasRef as RefObject<HTMLDivElement>, scale);
 
-        // Only update if rect has actually changed to avoid unnecessary re-renders
+        // Only update if rect has actually changed significantly (avoid micro-updates)
+        const threshold = 0.5;
         if (!element.rect ||
-            element.rect.x !== newRect.x ||
-            element.rect.y !== newRect.y ||
-            element.rect.width !== newRect.width ||
-            element.rect.height !== newRect.height) {
+            Math.abs(element.rect.x - newRect.x) > threshold ||
+            Math.abs(element.rect.y - newRect.y) > threshold ||
+            Math.abs(element.rect.width - newRect.width) > threshold ||
+            Math.abs(element.rect.height - newRect.height) > threshold) {
             updateElement(element.id, { rect: newRect });
+            lastDragUpdateRef.current = now;
         }
-    }, [element.x, element.y, element.width, element.height, scale, canvasRef, updateElement]);
+    }, [element.x, element.y, element.width, element.height, scale]);
 
     // Show element action bar when this element is selected
     useEffect(() => {
@@ -261,6 +256,7 @@ const ElementControlsRefactored = memo(({
             }
         }
     }, [element.id, element.x, element.y, element.width, isSelected, isEditMode, isResizing, showElementActionBar, hideElementActionBar]);
+
     // Add a mouse up handler to hide popover only when clicking outside this element
     useEffect(() => {
         const popoverRef = elementRef;
@@ -278,12 +274,17 @@ const ElementControlsRefactored = memo(({
         };
     }, [])
 
-
-    // Handle drag movement
+    // Optimized drag movement with requestAnimationFrame
     useEffect(() => {
         if (!isDragging) return;
 
-        const handleMouseMove = (e: MouseEvent) => {
+        let lastEvent: MouseEvent | null = null;
+
+        const processDrag = () => {
+            if (!lastEvent) return;
+
+            const e = lastEvent;
+            
             // Calculate delta movement adjusted for scale
             const deltaX = (e.clientX - dragStart.x) / scale;
             const deltaY = (e.clientY - dragStart.y) / scale;
@@ -292,14 +293,33 @@ const ElementControlsRefactored = memo(({
             const newX = element.x + deltaX;
             const newY = element.y + deltaY;
 
-            // Update element position in canvas store
+            // Batch update: only update position, not viewport rect yet
             updateElement(element.id, { x: newX, y: newY });
 
             // Update drag start for next movement
             setDragStart({ x: e.clientX, y: e.clientY });
+            
+            lastEvent = null;
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            lastEvent = e;
+
+            if (dragAnimationFrameRef.current === null) {
+                dragAnimationFrameRef.current = requestAnimationFrame(() => {
+                    processDrag();
+                    dragAnimationFrameRef.current = null;
+                });
+            }
         };
 
         const handleMouseUp = () => {
+            // Cancel any pending animation frame
+            if (dragAnimationFrameRef.current !== null) {
+                cancelAnimationFrame(dragAnimationFrameRef.current);
+                dragAnimationFrameRef.current = null;
+            }
+            
             // Use the hook's endDrag function
             endDrag(() => { }); // onDragEnd callback
         };
@@ -310,8 +330,14 @@ const ElementControlsRefactored = memo(({
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
+            
+            // Clean up animation frame
+            if (dragAnimationFrameRef.current !== null) {
+                cancelAnimationFrame(dragAnimationFrameRef.current);
+                dragAnimationFrameRef.current = null;
+            }
         };
-    }, [isDragging, dragStart, element, scale, updateElement, setDragStart, endDrag]);
+    }, [isDragging, dragStart, element.x, element.y, scale, updateElement, setDragStart, endDrag]);
 
     // Track width and fontSize for text elements to trigger height recalculation
     useEffect(() => {
@@ -392,7 +418,11 @@ interface HandlesProps {
 const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart, getHandleBg, setHandleHoverState, leftBorderHover, rightBorderHover, setLeftBorderHover, setRightBorderHover, scale }: HandlesProps) => {
     // Calculate handle sizes
     const handleSize = 18; // Using constant HANDLE_BASE_SIZE = 18
+    const handleSizeSide = Math.min(handleSize * 2.2, element.height * 0.6)
+    
+
     // const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5;
+    const isReducedHandles = ((handleSizeSide) + (handleSize * 2)) >= element.height * scale;
 
     /**
      * Determine if an element should show top/bottom handles 
@@ -431,8 +461,8 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
             <div
                 className="absolute cursor-ns-resize"
                 style={{
-                    width: `${handleSize * 2.2}px`,
-                    height: `${handleSize * 0.7}px`,
+                    width: `${handleSizeSide}px`,
+                    height: `${handleSize}px`,
                     borderRadius: `${handleSize * 0.35}px`,
                     boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                     border: "1px solid var(--handle-border)",
@@ -452,7 +482,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
         
             <>
                 {/* Northeast corner handle */}
-                {(!isResizing || resizeDirection === "ne") && (
+                {(!isReducedHandles && (!isResizing || resizeDirection === "ne")) && (
                     <div
                         className="absolute cursor-nesw-resize"
                         style={{
@@ -474,7 +504,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
                 )}
 
                 {/* Southwest corner handle */}
-                {(!isResizing || resizeDirection === "sw") && (
+                {!isReducedHandles && (!isResizing || resizeDirection === "sw") && (
                     <div
                         className="absolute cursor-nesw-resize"
                         style={{
@@ -497,7 +527,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
             </>
 
         {/* Southeast corner handle */}
-        {(!isResizing || resizeDirection === "se") && (
+        {(!isReducedHandles && !isResizing || resizeDirection === "se") && (
             <div
                 className="absolute cursor-nwse-resize"
                 style={{
@@ -546,7 +576,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
                 className="absolute cursor-ew-resize"
                 style={{
                     width: `${handleSize * 0.7}px`,
-                    height: `${Math.min(handleSize * 2.2, element.height * 0.6)}px`,
+                    height: `${handleSizeSide}px`,
                     borderRadius: `${handleSize * 0.35}px`,
                     boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                     border: "1px solid var(--handle-border)",
@@ -563,12 +593,12 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
         )}
 
         {/* Left handle with enhanced styling */}
-        {(!isResizing || resizeDirection === "w") && (
+        {!isReducedHandles &&  (!isResizing || resizeDirection === "w") && (
             <div
                 className="absolute cursor-ew-resize"
                 style={{
                     width: `${handleSize * 0.7}px`,
-                    height: `${Math.min(handleSize * 2.2, element.height * 0.6)}px`,
+                    height: `${handleSizeSide}px`,
                     borderRadius: `${handleSize * 0.35}px`,
                     boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
                     border: "1px solid var(--handle-border)",
