@@ -8,6 +8,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   // Track state
   const [isDragging, setIsDragging] = useState(false);
   const [isAltKeyPressed, setIsAltKeyPressed] = useState(false);
+  const [isShiftKeyPressed, setIsShiftKeyPressed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   
@@ -159,11 +160,17 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
       if (e.key === 'Alt' || e.key === 'Option') {
         setIsAltKeyPressed(true);
       }
+      if (e.key === 'Shift') {
+        setIsShiftKeyPressed(true);
+      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.key === 'Alt' || e.key === 'Option') {
         setIsAltKeyPressed(false);
+      }
+      if (e.key === 'Shift') {
+        setIsShiftKeyPressed(false);
       }
     };
 
@@ -188,6 +195,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   return {
     isDragging,
     isAltKeyPressed,
+    isShiftKeyPressed,
     isHovering,
     isSelected,
     leftBorderHover,

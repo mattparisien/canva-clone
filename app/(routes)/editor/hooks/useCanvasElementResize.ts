@@ -2,6 +2,11 @@ import { useCallback, useRef, useState } from "react";
 import { Element as CanvasElement } from "@lib/types/canvas.types";
 import { useSnapping } from "./useSnapping";
 
+interface Alignments {
+  horizontal: number[];
+  vertical: number[];
+}
+
 type ResizeState = {
   isResizing: boolean;
   resizeDirection: string | null;
@@ -23,10 +28,7 @@ type ResizeResult = {
   y: number;
   fontSize?: number;
   widthChanged: boolean;
-  alignments?: {
-    horizontal: number[];
-    vertical: number[];
-  };
+  alignments?: Alignments;
 };
 
 /**
@@ -115,23 +117,30 @@ export function useCanvasElementResize() {
   /**
    * Calculate new dimensions and position based on mouse movement during resize
    */
-  const calculateResize = useCallback(
-    (
-      element: CanvasElement,
-      mouseX: number,
-      mouseY: number,
-      scale: number,
-      isAltKeyPressed: boolean,
-      otherElements: CanvasElement[] = [],
-      canvasWidth: number = 0,
-      canvasHeight: number = 0
-    ): ResizeResult => {
+  const calculateResize = useCallback((
+    element: CanvasElement,
+    mouseX: number,
+    mouseY: number,
+    scale: number,
+    otherElements: CanvasElement[] = [],
+    canvasWidth: number = 0,
+    canvasHeight: number = 0,
+    isAltKeyPressed: boolean = false,
+    shouldScaleFromCenter: boolean = false // New parameter
+  ): ResizeResult | null => {
+    if (!isResizing || !resizeDirection) {
+      return null;
+    }
+
+    // Calculate the resize result
+    try {
+      // Get original dimensions and position
       const {
-        width: origWidth,
-        height: origHeight,
-        x: origX,
-        y: origY,
-        aspectRatio,
+        width: origWidth = 100,
+        height: origHeight = 100,
+        x: origX = 0,
+        y: origY = 0,
+        aspectRatio = origWidth / origHeight,
         fontSize: origFontSize = element.fontSize || 36,
       } = originalState.current;
 
@@ -152,6 +161,65 @@ export function useCanvasElementResize() {
       let newFontSize = origFontSize;
       let widthChanged = false;
 
+      // Scale from center handling for Option+Shift functionality
+      if (shouldScaleFromCenter) {
+        // Save the original center point
+        const centerX = origX + origWidth / 2;
+        const centerY = origY + origHeight / 2;
+        
+        // Calculate a single scaling factor from the primary resize direction
+        let scaleFactor = 1.0;
+        
+        // Determine which direction provides the dominant scaling
+        switch (resizeDirection) {
+          case "e":
+          case "w":
+            // Horizontal scaling
+            scaleFactor = (origWidth + (resizeDirection === "e" ? totalDeltaX : -totalDeltaX)) / origWidth;
+            break;
+          case "n":
+          case "s":
+            // Vertical scaling
+            scaleFactor = (origHeight + (resizeDirection === "s" ? totalDeltaY : -totalDeltaY)) / origHeight;
+            break;
+          case "ne":
+          case "nw":
+          case "se":
+          case "sw":
+            // For corners, use the larger of the two scaling factors
+            const scaleX = (origWidth + (resizeDirection.includes("e") ? totalDeltaX : -totalDeltaX)) / origWidth;
+            const scaleY = (origHeight + (resizeDirection.includes("s") ? totalDeltaY : -totalDeltaY)) / origHeight;
+            scaleFactor = Math.max(scaleX, scaleY);
+            break;
+        }
+        
+        // Apply the scale factor uniformly
+        newWidth = Math.max(50, origWidth * scaleFactor);
+        newHeight = Math.max(20, origHeight * scaleFactor);
+        
+        // Adjust font size proportionally for text elements
+        if (element.type === "text" && origFontSize) {
+          newFontSize = origFontSize * scaleFactor;
+        }
+        
+        // Recalculate position to maintain center point
+        newX = centerX - newWidth / 2;
+        newY = centerY - newHeight / 2;
+        
+        widthChanged = true;
+        
+        // Early return since we've handled the resize
+        return {
+          width: newWidth,
+          height: newHeight,
+          x: newX,
+          y: newY,
+          fontSize: newFontSize,
+          widthChanged
+        };
+      }
+
+      // Regular resize (non-center) continues with existing logic
       // Check if we're resizing from a corner
       const isCornerResize = resizeDirection && resizeDirection.length > 1;
 
@@ -383,9 +451,11 @@ export function useCanvasElementResize() {
           vertical: []
         }
       };
-    },
-    [resizeDirection, isResizing, getSnappedResize]
-  );
+    } catch (error) {
+      console.error("Error in resize calculation:", error);
+      return null;
+    }
+  }, [resizeDirection, isResizing, getSnappedResize]);
 
   return {
     isResizing,

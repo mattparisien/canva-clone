@@ -1,5 +1,6 @@
 import { useState } from "react";
-import CheckmarkIcon from "@components/ui/checkmark-icon";
+import { cn } from "@/lib/utils";
+import CheckmarkIcon from "@/components/ui/checkmark-icon";
 
 interface SelectionCheckboxProps {
     id: string;

@@ -283,27 +283,36 @@ export default function Editor() {
             // Only process if we're in edit mode
             if (!isEditMode) return;
 
-            // Check if click is outside canvas
-            if (canvasRef.current && !canvasRef.current.contains(e.target as Node) &&
-                elementPropertyBarRef.current && !elementPropertyBarRef.current?.contains(e.target as Node)) {
-                {
-                    // Clear element selection
-                    if (selectedElementIds.length > 0 || selectedElement !== null) {
-                        selectElement(null);
-                    }
+            // Check if it's a click on an action bar or property bar (keep selection if so)
+            if (elementPropertyBarRef.current && elementPropertyBarRef.current.contains(e.target as Node)) {
+                return;
+            }
+            if (elementActionBarRef.current && elementActionBarRef.current.contains(e.target as Node)) {
+                return;
+            }
 
-                    // Also clear canvas selection if needed
-                    if (isCanvasSelected) {
-                        selectCanvas(false);
-                    }
+            // Check if click is outside canvas
+            if (canvasRef.current && !canvasRef.current.contains(e.target as Node)) {
+                // Clear element selection
+                if (selectedElementIds.length > 0 || selectedElement !== null) {
+                    selectElement(null);
+                }
+                
+                // Also clear canvas selection if needed
+                if (isCanvasSelected) {
+                    selectCanvas(false);
                 }
             }
-        }
+        };
 
         // Add click event listener to the document
         document.addEventListener("mousedown", handleOutsideClick);
-
-    }, []);
+        
+        // Important: Clean up the event listener on component unmount
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+        };
+    }, [selectedElementIds, selectedElement, isCanvasSelected, selectElement, selectCanvas, isEditMode]);
 
     return (
         <div

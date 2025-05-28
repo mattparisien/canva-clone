@@ -1,4 +1,4 @@
-import { Card } from "@components/ui/card";
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { useSelection } from "@lib/context/selection-context";
 import { SelectionCheckbox } from "./SelectionCheckbox";

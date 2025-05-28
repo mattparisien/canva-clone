@@ -7,6 +7,12 @@ import { useTextMeasurement } from "@/(routes)/editor/hooks";
 import { calculateViewportRect } from "@/lib/utils/canvas-utils";
 import { useState } from "react";
 
+// Define alignments type for clarity
+interface Alignments {
+    horizontal: number[];
+    vertical: number[];
+}
+
 interface ElementControlsProps {
     element: Element;
     elements?: Element[];
@@ -30,25 +36,28 @@ const ElementControlsRefactored = memo(({
     const dragAnimationFrameRef = useRef<number | null>(null);
     const lastDragUpdateRef = useRef<number>(0);
 
-    const [showPopover, setShowPopover] = useState(false)
+    const [showPopover, setShowPopover] = useState(false);
+    // Add missing alignments state
+    const [alignments, setAlignments] = useState<Alignments>({ horizontal: [], vertical: [] });
 
     // Canvas store methods
     const updateElement = useCanvasStore(state => state.updateElement);
     const selectElement = useCanvasStore(state => state.selectElement);
     const clearNewElementFlag = useCanvasStore(state => state.clearNewElementFlag);
-    const showElementActionBar = useCanvasStore(state => state.showElementActionBar)
-    const hideElementActionBar = useCanvasStore(state => state.hideElementActionBar)
-    const { measureElementHeight, renderMeasurer } = useTextMeasurement()
+    const showElementActionBar = useCanvasStore(state => state.showElementActionBar);
+    const hideElementActionBar = useCanvasStore(state => state.hideElementActionBar);
+    const { measureElementHeight, renderMeasurer } = useTextMeasurement();
 
-    const [textEditorKey, setTextEditorKey] = useState(0)
+    const [textEditorKey, setTextEditorKey] = useState(0);
 
     // Use the resize hook
-    const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize()
+    const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize();
 
     // Use the interaction hook
     const {
         isDragging,
         isAltKeyPressed,
+        isShiftKeyPressed,
         isHovering,
         leftBorderHover,
         rightBorderHover,
@@ -65,7 +74,7 @@ const ElementControlsRefactored = memo(({
         setJustFinishedResizing,
         getHandleBg,
         setHandleHoverState,
-    } = useCanvasElementInteraction(elementRef)
+    } = useCanvasElementInteraction(elementRef);
 
     // Handle mouse down to start drag
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -83,9 +92,9 @@ const ElementControlsRefactored = memo(({
 
     // Handle element resizing
     const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
-        if (!isEditMode || element.locked) return
+        if (!isEditMode || element.locked) return;
 
-        e.stopPropagation()
+        e.stopPropagation();
 
         startResize(
             element,
@@ -93,14 +102,16 @@ const ElementControlsRefactored = memo(({
             e.clientX,
             e.clientY,
             (elementId: string) => clearNewElementFlag(elementId)
-        )
-    }, [element, clearNewElementFlag, isEditMode, startResize])
+        );
+    }, [element, clearNewElementFlag, isEditMode, startResize]);
 
     // Helper function to update element with viewport rect - optimized
     const updateElementWithRect = useCallback((updates: Partial<Element>) => {
+        if (!canvasRef.current) return;
+        
         const newRect = calculateViewportRect(
             { ...element, ...updates },
-            canvasRef,
+            canvasRef as React.RefObject<HTMLDivElement>,
             scale
         );
 
@@ -108,9 +119,9 @@ const ElementControlsRefactored = memo(({
             ...updates,
             rect: newRect
         });
-    }, [element.id, element.x, element.y, element.width, element.height, canvasRef, scale, updateElement]);
+    }, [element, canvasRef, scale, updateElement]);
 
-    // Handle mouse move for resizing only - already optimized with RAF
+    // Handle mouse move for resizing only - optimized with RAF
     useEffect(() => {
         if (!isResizing) return;
 
@@ -121,48 +132,45 @@ const ElementControlsRefactored = memo(({
             if (!lastEvent || !canvasRef.current) return;
 
             const e = lastEvent;
-
+            
+            // Calculate with support for Alt+Shift (scale from center)
+            const shouldScaleFromCenter = isAltKeyPressed && isShiftKeyPressed;
+            
             // Calculate new dimensions and position
-            const resizeResult = calculateResize(
+            const result = calculateResize(
                 element,
                 e.clientX,
                 e.clientY,
                 scale,
-                false, // isAltKeyPressed is false by default
-                elements,
+                elements.filter(el => el.id !== element.id),
                 canvasWidth,
-                canvasHeight
+                canvasHeight,
+                isAltKeyPressed,
+                shouldScaleFromCenter
             );
 
-            const {
-                width: newWidth,
-                height: newHeight,
-                x: newX,
-                y: newY,
-                fontSize: newFontSize,
-                widthChanged,
-                alignments: resizeAlignments = { horizontal: [], vertical: [] }
-            } = resizeResult;
+            if (result) {
+                // Update element with new dimensions using batched update
+                updateElementWithRect({
+                    width: result.width,
+                    height: result.height,
+                    x: result.x,
+                    y: result.y,
+                    fontSize: result.fontSize
+                });
 
-            // Update element with new dimensions, position and font size
-            updateElementWithRect({
-                width: newWidth,
-                height: newHeight,
-                x: newX,
-                y: newY,
-                ...(element.type === "text" ? { fontSize: newFontSize } : {}),
-            });
+                setAlignments(result.alignments || { horizontal: [], vertical: [] });
+                
+                // For text elements, measure height after resize and set text editor key
+                if (element.type === "text" && result.widthChanged) {
+                    const measuredHeight = measureElementHeight(element);
+                    if (measuredHeight && measuredHeight !== result.height) {
+                        updateElementWithRect({ height: measuredHeight });
+                    }
 
-            // If resizing a text element horizontally, measure and update height immediately
-            if (element.type === "text" && widthChanged) {
-                const measuredHeight = measureElementHeight(element);
-
-                if (measuredHeight && measuredHeight !== newHeight) {
-                    updateElementWithRect({ height: measuredHeight });
+                    // Force TextEditor re-render to recalculate height
+                    setTextEditorKey((k) => k + 1);
                 }
-
-                // Force TextEditor re-render to recalculate height
-                setTextEditorKey((k) => k + 1);
             }
 
             lastEvent = null;
