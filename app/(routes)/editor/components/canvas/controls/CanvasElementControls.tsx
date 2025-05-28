@@ -13,7 +13,7 @@ interface Alignments {
     vertical: number[];
 }
 
-interface ElementControlsProps {
+interface CanvasElementControlsProps {
     element: Element;
     elements?: Element[];
     scale?: number;
@@ -23,7 +23,7 @@ interface ElementControlsProps {
     isEditMode: boolean;
 }
 
-const ElementControlsRefactored = memo(({
+const CanvasElementControls = memo(({
     element,
     elements = [],
     scale = 1,
@@ -31,7 +31,7 @@ const ElementControlsRefactored = memo(({
     canvasRef,
     canvasWidth = 0,
     canvasHeight = 0,
-}: ElementControlsProps) => {
+}: CanvasElementControlsProps) => {
     const elementRef = useRef<HTMLDivElement>(null);
     const dragAnimationFrameRef = useRef<number | null>(null);
     const lastDragUpdateRef = useRef<number>(0);
@@ -46,6 +46,7 @@ const ElementControlsRefactored = memo(({
     const clearNewElementFlag = useCanvasStore(state => state.clearNewElementFlag);
     const showElementActionBar = useCanvasStore(state => state.showElementActionBar);
     const hideElementActionBar = useCanvasStore(state => state.hideElementActionBar);
+    const setElementActive = useCanvasStore(state => state.setElementActive);
     const { measureElementHeight, renderMeasurer } = useTextMeasurement();
 
     const [textEditorKey, setTextEditorKey] = useState(0);
@@ -84,17 +85,21 @@ const ElementControlsRefactored = memo(({
         startDrag(
             e,
             element,
-            () => { }, // onDragStart callback
+            () => {
+                setElementActive(true); // Set canvas store dragging state to true
+            },
             selectElement,
             clearNewElementFlag
         );
-    }, [element, isEditMode, startDrag, selectElement, clearNewElementFlag]);
+    }, [element, isEditMode, startDrag, selectElement, clearNewElementFlag, setElementActive]);
 
     // Handle element resizing
     const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
         if (!isEditMode || element.locked) return;
 
         e.stopPropagation();
+
+        setElementActive(true); // Set canvas store active state to true when resizing starts
 
         startResize(
             element,
@@ -103,12 +108,12 @@ const ElementControlsRefactored = memo(({
             e.clientY,
             (elementId: string) => clearNewElementFlag(elementId)
         );
-    }, [element, clearNewElementFlag, isEditMode, startResize]);
+    }, [element, clearNewElementFlag, isEditMode, startResize, setElementActive]);
 
     // Helper function to update element with viewport rect - optimized
     const updateElementWithRect = useCallback((updates: Partial<Element>) => {
         if (!canvasRef.current) return;
-        
+
         const newRect = calculateViewportRect(
             { ...element, ...updates },
             canvasRef as React.RefObject<HTMLDivElement>,
@@ -132,10 +137,10 @@ const ElementControlsRefactored = memo(({
             if (!lastEvent || !canvasRef.current) return;
 
             const e = lastEvent;
-            
+
             // Calculate with support for Alt+Shift (scale from center)
             const shouldScaleFromCenter = isAltKeyPressed && isShiftKeyPressed;
-            
+
             // Calculate new dimensions and position
             const result = calculateResize(
                 element,
@@ -160,7 +165,7 @@ const ElementControlsRefactored = memo(({
                 });
 
                 setAlignments(result.alignments || { horizontal: [], vertical: [] });
-                
+
                 // For text elements, measure height after resize and set text editor key
                 if (element.type === "text" && result.widthChanged) {
                     const measuredHeight = measureElementHeight(element);
@@ -190,6 +195,7 @@ const ElementControlsRefactored = memo(({
         const handleMouseUp = () => {
             if (isResizing) {
                 endResize();
+                setElementActive(false); // Set canvas store active state to false when resizing ends
                 selectElement(element.id, false);
             }
 
@@ -223,7 +229,10 @@ const ElementControlsRefactored = memo(({
         endResize,
         selectElement,
         measureElementHeight,
-        setTextEditorKey
+        setTextEditorKey,
+        setElementActive,
+        isAltKeyPressed,
+        isShiftKeyPressed
     ]);
 
     // Optimized viewport rect update - only when necessary
@@ -233,7 +242,7 @@ const ElementControlsRefactored = memo(({
         // Throttle viewport rect calculations
         const now = performance.now();
         if (now - lastDragUpdateRef.current < 16) return; // ~60fps throttling
-        
+
         const newRect = calculateViewportRect(element, canvasRef as RefObject<HTMLDivElement>, scale);
 
         // Only update if rect has actually changed significantly (avoid micro-updates)
@@ -292,7 +301,7 @@ const ElementControlsRefactored = memo(({
             if (!lastEvent) return;
 
             const e = lastEvent;
-            
+
             // Calculate delta movement adjusted for scale
             const deltaX = (e.clientX - dragStart.x) / scale;
             const deltaY = (e.clientY - dragStart.y) / scale;
@@ -306,7 +315,7 @@ const ElementControlsRefactored = memo(({
 
             // Update drag start for next movement
             setDragStart({ x: e.clientX, y: e.clientY });
-            
+
             lastEvent = null;
         };
 
@@ -327,9 +336,11 @@ const ElementControlsRefactored = memo(({
                 cancelAnimationFrame(dragAnimationFrameRef.current);
                 dragAnimationFrameRef.current = null;
             }
-            
+
             // Use the hook's endDrag function
-            endDrag(() => { }); // onDragEnd callback
+            endDrag(() => { 
+                setElementActive(false); // Set canvas store active state to false when dragging ends
+            });
         };
 
         document.addEventListener('mousemove', handleMouseMove);
@@ -338,14 +349,14 @@ const ElementControlsRefactored = memo(({
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
-            
+
             // Clean up animation frame
             if (dragAnimationFrameRef.current !== null) {
                 cancelAnimationFrame(dragAnimationFrameRef.current);
                 dragAnimationFrameRef.current = null;
             }
         };
-    }, [isDragging, dragStart, element.x, element.y, scale, updateElement, setDragStart, endDrag]);
+    }, [isDragging, dragStart, element.x, element.y, scale, updateElement, setDragStart, endDrag, setElementActive]);
 
     // Track width and fontSize for text elements to trigger height recalculation
     useEffect(() => {
@@ -391,7 +402,7 @@ const ElementControlsRefactored = memo(({
             onMouseDown={handleMouseDown}
         >
 
-            <Handles
+            {isSelected && <Handles
                 element={element}
                 isResizing={isResizing}
                 resizeDirection={resizeDirection}
@@ -403,7 +414,7 @@ const ElementControlsRefactored = memo(({
                 setLeftBorderHover={setLeftBorderHover}
                 setRightBorderHover={setRightBorderHover}
                 scale={scale}
-            />
+            />}
         </div>
     );
 });
@@ -427,7 +438,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
     // Calculate handle sizes
     const handleSize = 18; // Using constant HANDLE_BASE_SIZE = 18
     const handleSizeSide = Math.min(handleSize * 2.2, element.height * 0.6)
-    
+
 
     // const isTooSmallForAllHandles = element.width < handleSize * 3.5 || element.height < handleSize * 3.5;
     const isReducedHandles = ((handleSizeSide) + (handleSize * 2)) >= element.height * scale;
@@ -487,52 +498,52 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
         )}
 
         {/* These corner handles only show when element is big enough */}
-        
-            <>
-                {/* Northeast corner handle */}
-                {(!isReducedHandles && (!isResizing || resizeDirection === "ne")) && (
-                    <div
-                        className="absolute cursor-nesw-resize"
-                        style={{
-                            width: `${handleSize}px`,
-                            height: `${handleSize}px`,
-                            borderRadius: "50%",
-                            boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
-                            border: "1px solid var(--handle-border)",
-                            zIndex: 10,
-                            top: 0,
-                            right: 0,
-                            transform: `translate(50%, -50%) scale(${1})`,
-                            background: getHandleBg("ne", resizeDirection, isResizing) === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
-                        }}
-                        onMouseDown={(e) => handleResizeStart(e, "ne")}
-                        onMouseEnter={() => setHandleHoverState("ne", true)}
-                        onMouseLeave={() => setHandleHoverState("ne", false)}
-                    />
-                )}
 
-                {/* Southwest corner handle */}
-                {!isReducedHandles && (!isResizing || resizeDirection === "sw") && (
-                    <div
-                        className="absolute cursor-nesw-resize"
-                        style={{
-                            width: `${handleSize}px`,
-                            height: `${handleSize}px`,
-                            borderRadius: "50%",
-                            boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
-                            border: "1px solid var(--handle-border)",
-                            zIndex: 10,
-                            bottom: 0,
-                            left: 0,
-                            transform: `translate(-50%, 50%) scale(${1})`,
-                            background: getHandleBg("sw", resizeDirection, isResizing) === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
-                        }}
-                        onMouseDown={(e) => handleResizeStart(e, "sw")}
-                        onMouseEnter={() => setHandleHoverState("sw", true)}
-                        onMouseLeave={() => setHandleHoverState("sw", false)}
-                    />
-                )}
-            </>
+        <>
+            {/* Northeast corner handle */}
+            {(!isReducedHandles && (!isResizing || resizeDirection === "ne")) && (
+                <div
+                    className="absolute cursor-nesw-resize"
+                    style={{
+                        width: `${handleSize}px`,
+                        height: `${handleSize}px`,
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+                        border: "1px solid var(--handle-border)",
+                        zIndex: 10,
+                        top: 0,
+                        right: 0,
+                        transform: `translate(50%, -50%) scale(${1})`,
+                        background: getHandleBg("ne", resizeDirection, isResizing) === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, "ne")}
+                    onMouseEnter={() => setHandleHoverState("ne", true)}
+                    onMouseLeave={() => setHandleHoverState("ne", false)}
+                />
+            )}
+
+            {/* Southwest corner handle */}
+            {!isReducedHandles && (!isResizing || resizeDirection === "sw") && (
+                <div
+                    className="absolute cursor-nesw-resize"
+                    style={{
+                        width: `${handleSize}px`,
+                        height: `${handleSize}px`,
+                        borderRadius: "50%",
+                        boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
+                        border: "1px solid var(--handle-border)",
+                        zIndex: 10,
+                        bottom: 0,
+                        left: 0,
+                        transform: `translate(-50%, 50%) scale(${1})`,
+                        background: getHandleBg("sw", resizeDirection, isResizing) === "var(--handle-hover)" ? "#1E88E5" : "#ffffff",
+                    }}
+                    onMouseDown={(e) => handleResizeStart(e, "sw")}
+                    onMouseEnter={() => setHandleHoverState("sw", true)}
+                    onMouseLeave={() => setHandleHoverState("sw", false)}
+                />
+            )}
+        </>
 
         {/* Southeast corner handle */}
         {(!isReducedHandles && !isResizing || resizeDirection === "se") && (
@@ -601,7 +612,7 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
         )}
 
         {/* Left handle with enhanced styling */}
-        {!isReducedHandles &&  (!isResizing || resizeDirection === "w") && (
+        {!isReducedHandles && (!isResizing || resizeDirection === "w") && (
             <div
                 className="absolute cursor-ew-resize"
                 style={{
@@ -677,6 +688,6 @@ const Handles = memo(({ element, isResizing, resizeDirection, handleResizeStart,
 })
 
 
-ElementControlsRefactored.displayName = 'ElementControlsRefactored';
+CanvasElementControls.displayName = 'CanvasElementControls';
 
-export default ElementControlsRefactored;
+export default CanvasElementControls;

@@ -35,6 +35,7 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   const selectedElement = useCanvasStore(state => state.selectedElement)
   const isLoaded = useCanvasStore(state => state.isLoaded)
   const updateMultipleElements = useCanvasStore(state => state.updateMultipleElements)
+  const isElementActive = useCanvasStore(state => state.isElementActive)
 
   const canvasRef = useRef<HTMLDivElement>(null) // un‑scaled logical canvas
 
@@ -132,84 +133,7 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
     }
   }, [selectElement, selectCanvas, canvasRef, isCanvasSelected, isEditMode])
 
-  /* ------------------------------------------------------------------
-   * Drag handlers (logical units) - Optimized for performance
-   * ------------------------------------------------------------------ */
-  const dragAnimationFrameRef = useRef<number | null>(null);
-  const lastDragUpdateRef = useRef<number>(0);
 
-  const handleDragStart = useCallback((element: any) => {
-    // If in view mode, do nothing
-    if (!isEditMode) return;
-
-    setIsDragging(true)
-    setActiveDragElement(element.id)
-    setAlignments({ horizontal: [], vertical: [] })
-    setLastDragPos({ x: element.x, y: element.y }) // Initialize last drag position
-  }, [isEditMode])
-
-  const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments, isDragSelection: boolean = false) => {
-    // If in view mode, do nothing
-    if (!isEditMode) return;
-
-    // Throttle alignment updates to improve performance
-    const now = performance.now();
-    if (now - lastDragUpdateRef.current < 16) return; // ~60fps throttling
-
-    setAlignments(newAlignments)
-
-    // When dragging multiple elements, update their positions
-    if (isDragSelection && selectedElementIds.length > 1) {
-      if (lastDragPos) {
-        // Calculate the delta movement
-        const deltaX = x - lastDragPos.x;
-        const deltaY = y - lastDragPos.y;
-
-        // Use requestAnimationFrame for smooth updates
-        if (dragAnimationFrameRef.current === null) {
-          dragAnimationFrameRef.current = requestAnimationFrame(() => {
-            // Update positions of all selected elements
-            updateMultipleElements((prev) => {
-              return {
-                x: prev.x + deltaX,
-                y: prev.y + deltaY
-              };
-            });
-
-            dragAnimationFrameRef.current = null;
-          });
-        }
-
-        // Update last drag position
-        setLastDragPos({ x, y });
-        lastDragUpdateRef.current = now;
-      }
-    }
-  }, [selectedElementIds, updateMultipleElements, lastDragPos, isEditMode])
-
-  const handleDragEnd = useCallback(() => {
-    // If in view mode, do nothing
-    if (!isEditMode) return;
-
-    // Clean up any pending animation frames
-    if (dragAnimationFrameRef.current !== null) {
-      cancelAnimationFrame(dragAnimationFrameRef.current);
-      dragAnimationFrameRef.current = null;
-    }
-
-    setIsDragging(false)
-    setActiveDragElement(null)
-    setAlignments({ horizontal: [], vertical: [] })
-    setLastDragPos(null) // Reset last drag position
-  }, [isEditMode])
-
-  // Handle element hover
-  const handleElementHover = useCallback((id: string | null) => {
-    // Only set hover states in edit mode
-    if (isEditMode) {
-      setIsHoveringChild(id !== null)
-    }
-  }, [isEditMode])
 
   /* ------------------------------------------------------------------
    * Render
@@ -236,7 +160,7 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   }, [])
 
 
-  const isBorderActive = (isCanvasSelected && isEditMode) || isCanvasHovering && isEditMode;
+  const isBorderActive = !isElementActive && (isCanvasSelected && isEditMode) || isCanvasHovering && isEditMode;
 
   return (
     <div
@@ -302,10 +226,6 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
             allElements={elements}
             canvasWidth={canvasSize.width}
             canvasHeight={canvasSize.height}
-            onDragStart={handleDragStart}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-            onHover={handleElementHover}
             isEditMode={isEditMode}
           />
         ))

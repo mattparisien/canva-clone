@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import useElementActionBar from "../hooks/useElementActionBar";
 import BottomBar from "./BottomBar";
 import Canvas from "./canvas/Canvas";
-import ElementControlsRefactored from "./canvas/controls/ElementControls-Refactored";
+import CanvasElementControls from "./canvas/controls/CanvasElementControls";
 import { ElementActionBar } from "./canvas/ElementActionBar";
 import PageNavigation from "./PageNavigation";
 
@@ -297,7 +297,7 @@ export default function Editor() {
                 if (selectedElementIds.length > 0 || selectedElement !== null) {
                     selectElement(null);
                 }
-                
+
                 // Also clear canvas selection if needed
                 if (isCanvasSelected) {
                     selectCanvas(false);
@@ -307,7 +307,7 @@ export default function Editor() {
 
         // Add click event listener to the document
         document.addEventListener("mousedown", handleOutsideClick);
-        
+
         // Important: Clean up the event listener on component unmount
         return () => {
             document.removeEventListener("mousedown", handleOutsideClick);
@@ -386,7 +386,7 @@ export default function Editor() {
                 />
 
                 {elements.map(element => (
-                    <ElementControlsRefactored
+                    <CanvasElementControls
                         key={element.id}
                         element={element}
                         scale={zoom / 100}

@@ -23,6 +23,7 @@ interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'>
   sendElementBackward: (elementId: string) => void;
   bringElementToFront: (elementId: string) => void;
   sendElementToBack: (elementId: string) => void;
+  setElementActive: (isActive: boolean) => void;
 }
 
 // Create the canvas store
@@ -32,6 +33,7 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   selectedElementIds: [],
   isCanvasSelected: false,
   isLoaded: true,
+  isElementActive: false,
   historyIndex: -1,
   history: [],
   canUndo: false,
@@ -876,6 +878,12 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       canRedo: false,
     }));
   },
+
+  setElementActive: (isActive: boolean) => {
+    set(state => ({
+      isElementActive: isActive
+    }));
+  }
 }));
 
 // Create a selector to get the current page elements

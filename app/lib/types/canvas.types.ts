@@ -92,6 +92,7 @@ export interface CanvasContextType {
   selectedElement: Element | null
   selectedElementIds: string[]
   isCanvasSelected: boolean
+  isElementActive: boolean // Whether an element is currently being manipulated
   canvasSize: CanvasSize
   isLoaded: boolean // Canvas loading state
   elementActionBar: {
