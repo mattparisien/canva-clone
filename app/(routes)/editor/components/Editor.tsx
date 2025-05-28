@@ -382,6 +382,8 @@ export default function Editor() {
                         element={element}
                         scale={zoom / 100}
                         isEditMode={isEditMode}
+                        canvasRef={canvasRef}
+
                     />
                 ))}
 
