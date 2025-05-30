@@ -95,6 +95,9 @@ export function BrandList() {
               <div className="h-2 bg-gradient-to-r from-violet-500 to-fuchsia-500" />
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">{brand.name}</CardTitle>
+                {brand.tagline && (
+                  <p className="text-sm text-gray-600 italic mb-1">{brand.tagline}</p>
+                )}
                 {brand.industry && (
                   <CardDescription className="text-xs uppercase tracking-wide">
                     {brand.industry}

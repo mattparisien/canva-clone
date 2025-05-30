@@ -218,6 +218,9 @@ export default function BrandDetailPage() {
                 <>
                     <div>
                         <h1 className="text-3xl font-bold mb-2">{brand.name}</h1>
+                        {brand.tagline && (
+                            <p className="text-lg text-gray-700 italic mb-3">{brand.tagline}</p>
+                        )}
                         {brand.industry && (
                             <p className="text-gray-500 text-sm">{brand.industry}</p>
                         )}
@@ -232,6 +235,17 @@ export default function BrandDetailPage() {
                         </TabsList>
 
                         <TabsContent value="overview" className="space-y-4 mt-6">
+                            {brand.tagline && (
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Tagline</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-lg italic text-gray-800">{brand.tagline}</p>
+                                    </CardContent>
+                                </Card>
+                            )}
+
                             {brand.description && (
                                 <Card>
                                     <CardHeader>
