@@ -12,8 +12,10 @@ import { Brand } from "@lib/types/brands"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { AlertCircle, ArrowLeft, Check, Palette } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useCallback, useRef } from "react"
+import React from "react"
 import { HexColorPicker } from "react-colorful"
+import type { FC } from "react"
 
 export default function BrandDetailPage() {
     const params = useParams()
@@ -28,6 +30,8 @@ export default function BrandDetailPage() {
         paletteIndex: number;
         colorIndex?: number;
     } | null>(null)
+    const [tempColor, setTempColor] = useState<string>("")
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     // Use React Query to fetch the brand data
     const {
@@ -62,8 +66,40 @@ export default function BrandDetailPage() {
         }
     })
 
-    // Handle color change and save
+    // Debounced save function
+    const debouncedSave = useCallback((color: string) => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current)
+        }
+        
+        saveTimeoutRef.current = setTimeout(() => {
+            if (!selectedColor || !brand) return
+
+            const { type, paletteIndex, colorIndex } = selectedColor
+
+            // Create a deep copy of the brand's color palettes
+            const updatedColorPalettes = JSON.parse(JSON.stringify(brand.colorPalettes || []))
+
+            // Update the specific color
+            if (type === "primary") {
+                updatedColorPalettes[paletteIndex].primary = color
+            } else if (colorIndex !== undefined) {
+                updatedColorPalettes[paletteIndex][type][colorIndex] = color
+            }
+
+            // Update brand with new colors
+            updateBrandMutation.mutate({ colorPalettes: updatedColorPalettes })
+        }, 500) // Wait 500ms after user stops changing color
+    }, [selectedColor, brand, updateBrandMutation])
+
+    // Handle color change (just update temp state, don't save)
     const handleColorChange = (color: string) => {
+        setTempColor(color)
+        debouncedSave(color)
+    }
+
+    // Actually save the color to the database
+    const handleColorSave = (color: string) => {
         if (!selectedColor || !brand) return
 
         const { type, paletteIndex, colorIndex } = selectedColor
@@ -82,6 +118,19 @@ export default function BrandDetailPage() {
         updateBrandMutation.mutate({ colorPalettes: updatedColorPalettes })
     }
 
+    // Handle color selection complete (when user clicks the check button)
+    const handleColorComplete = () => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current)
+        }
+        if (tempColor) {
+            handleColorSave(tempColor)
+        }
+        setSelectedColor(null)
+        setTempColor("")
+    }
+
+
     // Generate color palette component
     const renderColorPalette = (colors: string[], type: "primary" | "secondary" | "accent", paletteIndex: number) => {
         return (
@@ -93,25 +142,28 @@ export default function BrandDetailPage() {
                                 className="w-8 h-8 rounded-full border border-gray-200 cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
                                 style={{ backgroundColor: color }}
                                 title={`Click to change color: ${color}`}
-                                onClick={() => setSelectedColor({
-                                    value: color,
-                                    type: type,
-                                    paletteIndex: paletteIndex,
-                                    colorIndex: type !== "primary" ? index : undefined
-                                })}
+                                onClick={() => {
+                                    setSelectedColor({
+                                        value: color,
+                                        type: type,
+                                        paletteIndex: paletteIndex,
+                                        colorIndex: type !== "primary" ? index : undefined
+                                    });
+                                    setTempColor(color);
+                                }}
                             />
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-3">
                             <div className="space-y-4">
                                 <p className="text-sm font-medium">Choose a color</p>
-                                <HexColorPicker
-                                    color={color}
-                                    onChange={(newColor) => {
+                                {React.createElement(HexColorPicker as any, {
+                                    color: tempColor || color,
+                                    onChange: (newColor: string) => {
                                         if (selectedColor) {
                                             handleColorChange(newColor);
                                         }
-                                    }}
-                                />
+                                    }
+                                })}
                                 <div className="flex items-center justify-between">
                                     <code className="text-xs bg-gray-100 px-2 py-1 rounded">{color}</code>
                                     <Button
@@ -119,7 +171,7 @@ export default function BrandDetailPage() {
                                         size="sm"
                                         className="ml-2"
                                         disabled={updateBrandMutation.isPending}
-                                        onClick={() => setSelectedColor(null)}
+                                        onClick={() => handleColorComplete()}
                                     >
                                         <Check className="h-4 w-4" />
                                     </Button>
@@ -259,24 +311,27 @@ export default function BrandDetailPage() {
                                                                 className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
                                                                 style={{ backgroundColor: palette.primary }}
                                                                 title={`Click to change color: ${palette.primary}`}
-                                                                onClick={() => setSelectedColor({
-                                                                    value: palette.primary,
-                                                                    type: "primary",
-                                                                    paletteIndex: index
-                                                                })}
+                                                                onClick={() => {
+                                                                    setSelectedColor({
+                                                                        value: palette.primary,
+                                                                        type: "primary",
+                                                                        paletteIndex: index
+                                                                    });
+                                                                    setTempColor(palette.primary);
+                                                                }}
                                                             />
                                                         </PopoverTrigger>
                                                         <PopoverContent className="w-auto p-3">
                                                             <div className="space-y-4">
                                                                 <p className="text-sm font-medium">Choose a color</p>
-                                                                <HexColorPicker
-                                                                    color={palette.primary}
-                                                                    onChange={(newColor) => {
+                                                                {React.createElement(HexColorPicker as any, {
+                                                                    color: palette.primary,
+                                                                    onChange: (newColor: string) => {
                                                                         if (selectedColor) {
                                                                             handleColorChange(newColor);
                                                                         }
-                                                                    }}
-                                                                />
+                                                                    }
+                                                                })}
                                                                 <div className="flex items-center justify-between">
                                                                     <code className="text-xs bg-gray-100 px-2 py-1 rounded">{palette.primary}</code>
                                                                     <Button
@@ -284,7 +339,7 @@ export default function BrandDetailPage() {
                                                                         size="sm"
                                                                         className="ml-2"
                                                                         disabled={updateBrandMutation.isPending}
-                                                                        onClick={() => setSelectedColor(null)}
+                                                                        onClick={() => handleColorComplete()}
                                                                     >
                                                                         <Check className="h-4 w-4" />
                                                                     </Button>
@@ -305,25 +360,28 @@ export default function BrandDetailPage() {
                                                                     className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
                                                                     style={{ backgroundColor: color }}
                                                                     title={`Click to change color: ${color}`}
-                                                                    onClick={() => setSelectedColor({
-                                                                        value: color,
-                                                                        type: "secondary",
-                                                                        paletteIndex: index,
-                                                                        colorIndex: i
-                                                                    })}
+                                                                    onClick={() => {
+                                                                        setSelectedColor({
+                                                                            value: color,
+                                                                            type: "secondary",
+                                                                            paletteIndex: index,
+                                                                            colorIndex: i
+                                                                        });
+                                                                        setTempColor(color);
+                                                                    }}
                                                                 />
                                                             </PopoverTrigger>
                                                             <PopoverContent className="w-auto p-3">
                                                                 <div className="space-y-4">
                                                                     <p className="text-sm font-medium">Choose a color</p>
-                                                                    <HexColorPicker
-                                                                        color={color}
-                                                                        onChange={(newColor) => {
+                                                                    {React.createElement(HexColorPicker as any, {
+                                                                        color: color,
+                                                                        onChange: (newColor: string) => {
                                                                             if (selectedColor) {
                                                                                 handleColorChange(newColor);
                                                                             }
-                                                                        }}
-                                                                    />
+                                                                        }
+                                                                    })}
                                                                     <div className="flex items-center justify-between">
                                                                         <code className="text-xs bg-gray-100 px-2 py-1 rounded">{color}</code>
                                                                         <Button
@@ -331,7 +389,7 @@ export default function BrandDetailPage() {
                                                                             size="sm"
                                                                             className="ml-2"
                                                                             disabled={updateBrandMutation.isPending}
-                                                                            onClick={() => setSelectedColor(null)}
+                                                                            onClick={() => handleColorComplete()}
                                                                         >
                                                                             <Check className="h-4 w-4" />
                                                                         </Button>
@@ -353,25 +411,28 @@ export default function BrandDetailPage() {
                                                                     className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
                                                                     style={{ backgroundColor: color }}
                                                                     title={`Click to change color: ${color}`}
-                                                                    onClick={() => setSelectedColor({
-                                                                        value: color,
-                                                                        type: "accent",
-                                                                        paletteIndex: index,
-                                                                        colorIndex: i
-                                                                    })}
+                                                                    onClick={() => {
+                                                                        setSelectedColor({
+                                                                            value: color,
+                                                                            type: "accent",
+                                                                            paletteIndex: index,
+                                                                            colorIndex: i
+                                                                        });
+                                                                        setTempColor(color);
+                                                                    }}
                                                                 />
                                                             </PopoverTrigger>
                                                             <PopoverContent className="w-auto p-3">
                                                                 <div className="space-y-4">
                                                                     <p className="text-sm font-medium">Choose a color</p>
-                                                                    <HexColorPicker
-                                                                        color={color}
-                                                                        onChange={(newColor) => {
+                                                                    {React.createElement(HexColorPicker as any, {
+                                                                        color: color,
+                                                                        onChange: (newColor: string) => {
                                                                             if (selectedColor) {
                                                                                 handleColorChange(newColor);
                                                                             }
-                                                                        }}
-                                                                    />
+                                                                        }
+                                                                    })}
                                                                     <div className="flex items-center justify-between">
                                                                         <code className="text-xs bg-gray-100 px-2 py-1 rounded">{color}</code>
                                                                         <Button
@@ -379,7 +440,7 @@ export default function BrandDetailPage() {
                                                                             size="sm"
                                                                             className="ml-2"
                                                                             disabled={updateBrandMutation.isPending}
-                                                                            onClick={() => setSelectedColor(null)}
+                                                                            onClick={() => handleColorComplete()}
                                                                         >
                                                                             <Check className="h-4 w-4" />
                                                                         </Button>
