@@ -1,6 +1,5 @@
 "use client";
 
-import { authAPI } from "@/lib/api/";
 import { Alert, AlertDescription } from "@components/ui/alert";
 import { Button } from "@components/ui/button";
 import { Checkbox } from "@components/ui/checkbox";
@@ -10,9 +9,11 @@ import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSession, signIn } from "next-auth/react";
 
 export default function SignIn() {
   const router = useRouter();
+  const { status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +47,6 @@ export default function SignIn() {
       });
 
       if (result?.error) {
-
         let msg;
 
         switch (result.error) {
@@ -75,7 +75,6 @@ export default function SignIn() {
             msg = "An unknown error occurred. Please try again.";
         }
 
-
         setError(msg || "Failed to sign in");
       } else {
         router.push(returnUrl);
@@ -86,14 +85,6 @@ export default function SignIn() {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    const loginTemp = async () => {
-      const resp = await authAPI.login("matthewparisien4@gmail.com", "Chewing389389");
-    }
-
-    loginTemp();
-  }, [])
 
   return (
     <div className="flex h-screen">
