@@ -87,6 +87,7 @@ export interface Brand {
   name: string;
   userId: string;
   description?: string;
+  tagline?: string;
   industry?: string;
   colorPalettes: ColorPalette[];
   typography: Typography[];
