@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import { Readable } from "stream";
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000/api';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001/api';
 
 // Helper function to convert ReadableStream to Buffer
 async function streamToBuffer(stream: ReadableStream): Promise<Buffer> {

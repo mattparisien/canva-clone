@@ -1,15 +1,8 @@
 import axios from 'axios';
-import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Get the backend URL from environment variables
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
-
-// Helper function to forward the authorization header
-async function getAuthHeader() {
-  const headersList = await headers();
-  return headersList.get('authorization') || '';
-}
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
 // GET: Fetch paginated projects with filters
 export async function GET(req: NextRequest) {
@@ -22,11 +15,7 @@ export async function GET(req: NextRequest) {
     const endpoint = `/api/projects/paginated?${searchParams.toString()}`;
 
     // Make request to backend
-    const response = await axios.get(`${BACKEND_URL}${endpoint}`, {
-      headers: {
-        Authorization: await getAuthHeader(),
-      },
-    });
+    const response = await axios.get(`${BACKEND_URL}${endpoint}`);
 
     console.log(response);
 

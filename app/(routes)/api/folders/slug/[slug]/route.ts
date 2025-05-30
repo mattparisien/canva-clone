@@ -1,37 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 
 // Environment variables
-const API_URL = process.env.API_URL || 'http://localhost:5000';
+const API_URL = process.env.API_URL || 'http://localhost:3001';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
 ) {
-  const session = await getServerSession(authOptions);
-  
-  if (!session) {
-    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-  }
-  
   const { slug } = params;
   
   // Extract userId from query parameters
   const searchParams = request.nextUrl.searchParams;
   const userId = searchParams.get('userId');
   
-  if (!userId) {
-    return NextResponse.json({ error: 'userId is required' }, { status: 400 });
-  }
-  
   try {
     // Make the request to the backend API
-    const response = await fetch(`${API_URL}/api/folders/slug/${slug}?userId=${userId}`, {
-      headers: {
-        'Authorization': `Bearer ${session.accessToken}`
-      }
-    });
+    let url = `${API_URL}/api/folders/slug/${slug}`;
+    if (userId) {
+      url += `?userId=${userId}`;
+    }
+    const response = await fetch(url);
     
     if (!response.ok) {
       const errorData = await response.json();

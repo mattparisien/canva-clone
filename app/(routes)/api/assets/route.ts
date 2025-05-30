@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000/api';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001/api';
 
 // Helper function to forward headers from the incoming request
 const getHeadersWithAuth = (req: NextRequest) => {
