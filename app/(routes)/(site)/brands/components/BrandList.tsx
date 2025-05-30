@@ -70,9 +70,7 @@ export function BrandList() {
 
 
       {isLoading ? (
-        <div className="flex justify-center py-20">
-          <RefreshCw className="h-8 w-8 animate-spin text-gray-400" />
-        </div>
+        <div className="p-8">Loading brands...</div>
       ) : error ? (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
