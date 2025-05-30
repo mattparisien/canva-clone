@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Palette, RefreshCw, AlertCircle } from "lucide-react"
+import { Plus, Palette, RefreshCw, AlertCircle, Trash2 } from "lucide-react"
 import { Brand } from "@/lib/types/brands"
 import { BrandDocumentUpload } from "./BrandDocumentUpload"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -18,7 +18,7 @@ export function BrandList() {
   const router = useRouter()
 
   // Use the brands hook
-  const { brands, isLoading, error, refetchBrands } = useBrands()
+  const { brands, isLoading, error, refetchBrands, deleteBrand } = useBrands()
 
   // Handle successful brand creation
   const handleBrandCreated = (newBrand: Brand) => {
@@ -26,6 +26,17 @@ export function BrandList() {
     // The useBrands hook will handle invalidation and refetching
     setIsSheetOpen(false)
     refetchBrands()
+  }
+
+  // Handle brand deletion
+  const handleDeleteBrand = async (brandId: string, brandName: string) => {
+    if (window.confirm(`Are you sure you want to delete "${brandName}"? This action cannot be undone.`)) {
+      try {
+        deleteBrand(brandId)
+      } catch (error) {
+        console.error('Failed to delete brand:', error)
+      }
+    }
   }
 
   // Navigate to brand details page
@@ -112,13 +123,23 @@ export function BrandList() {
               <CardFooter className="border-t bg-gray-50">
                 <div className="w-full flex justify-between items-center">
                   <span className="text-xs text-gray-500">Created {new Date(brand.createdAt).toLocaleDateString()}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleViewDetails(brand._id)}
-                  >
-                    View Details
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteBrand(brand._id, brand.name)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleViewDetails(brand._id)}
+                    >
+                      View Details
+                    </Button>
+                  </div>
                 </div>
               </CardFooter>
             </Card>
