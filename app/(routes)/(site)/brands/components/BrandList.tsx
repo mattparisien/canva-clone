@@ -1,32 +1,18 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Palette, RefreshCw, AlertCircle, Trash2 } from "lucide-react"
+import { Plus, Palette, AlertCircle, Trash2 } from "lucide-react"
 import { Brand } from "@/lib/types/brands"
-import { BrandDocumentUpload } from "./BrandDocumentUpload"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useBrands } from "@/features/brands/use-brands"
 
 export function BrandList() {
-  // State management
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const router = useRouter()
 
   // Use the brands hook
-  const { brands, isLoading, error, refetchBrands, deleteBrand } = useBrands()
-
-  // Handle successful brand creation
-  const handleBrandCreated = (newBrand: Brand) => {
-    // No need to manually update the brands array
-    // The useBrands hook will handle invalidation and refetching
-    setIsSheetOpen(false)
-    refetchBrands()
-  }
+  const { brands, isLoading, error, deleteBrand } = useBrands()
 
   // Handle brand deletion
   const handleDeleteBrand = async (brandId: string, brandName: string) => {
@@ -42,6 +28,11 @@ export function BrandList() {
   // Navigate to brand details page
   const handleViewDetails = (brandId: string) => {
     router.push(`/brands/${brandId}`)
+  }
+
+  // Navigate to create brand page
+  const handleCreateBrand = () => {
+    router.push('/brands/new')
   }
 
   // Render color palette circles
@@ -66,9 +57,7 @@ export function BrandList() {
   }
 
   return (
-    <>
-
-
+    <div className="space-y-6">
       {isLoading ? (
         <div className="p-8">Loading brands...</div>
       ) : error ? (
@@ -83,104 +72,83 @@ export function BrandList() {
           <p className="text-gray-500 mb-6 max-w-md mx-auto">
             Create your first brand by uploading documents or manually adding brand elements.
           </p>
-          <Button onClick={() => setIsSheetOpen(true)}>
+          <Button onClick={handleCreateBrand}>
             <Plus className="mr-2 h-4 w-4" />
             Create Your First Brand
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {brands?.map(brand => (
-            <Card key={brand._id} className="overflow-hidden">
-              <div className="h-2 bg-gradient-to-r from-violet-500 to-fuchsia-500" />
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{brand.name}</CardTitle>
-                {brand.tagline && (
-                  <p className="text-sm text-gray-600 italic mb-1">{brand.tagline}</p>
-                )}
-                {brand.industry && (
-                  <CardDescription className="text-xs uppercase tracking-wide">
-                    {brand.industry}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent className="text-sm">
-                {brand.description && <p className="mb-3 text-gray-600">{brand.description}</p>}
-                <div className="space-y-3">
-                  {brand.colorPalettes && brand.colorPalettes.length > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-xs">Colors:</span>
-                      {renderColorPalette(brand.colorPalettes[0])}
-                    </div>
+        <>
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-semibold">Your Brand Kits</h2>
+              <p className="text-gray-600">Manage and organize your brand identities</p>
+            </div>
+            <Button onClick={handleCreateBrand}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Brand
+            </Button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {brands?.map(brand => (
+              <Card key={brand._id} className="overflow-hidden">
+                <div className="h-2 bg-gradient-to-r from-violet-500 to-fuchsia-500" />
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{brand.name}</CardTitle>
+                  {brand.tagline && (
+                    <p className="text-sm text-gray-600 italic mb-1">{brand.tagline}</p>
                   )}
-                  {brand.typography && brand.typography.length > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-xs">Typography:</span>
-                      <span className="text-xs font-mono">{brand.typography[0].headingFont}/{brand.typography[0].bodyFont}</span>
-                    </div>
+                  {brand.industry && (
+                    <CardDescription className="text-xs uppercase tracking-wide">
+                      {brand.industry}
+                    </CardDescription>
                   )}
-                </div>
-              </CardContent>
-              <CardFooter className="border-t bg-gray-50">
-                <div className="w-full flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Created {new Date(brand.createdAt).toLocaleDateString()}</span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteBrand(brand._id, brand.name)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleViewDetails(brand._id)}
-                    >
-                      View Details
-                    </Button>
+                </CardHeader>
+                <CardContent className="text-sm">
+                  {brand.description && <p className="mb-3 text-gray-600">{brand.description}</p>}
+                  <div className="space-y-3">
+                    {brand.colorPalettes && brand.colorPalettes.length > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500 text-xs">Colors:</span>
+                        {renderColorPalette(brand.colorPalettes[0])}
+                      </div>
+                    )}
+                    {brand.typography && brand.typography.length > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500 text-xs">Typography:</span>
+                        <span className="text-xs font-mono">{brand.typography[0].headingFont}/{brand.typography[0].bodyFont}</span>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+                <CardFooter className="border-t bg-gray-50">
+                  <div className="w-full flex justify-between items-center">
+                    <span className="text-xs text-gray-500">Created {new Date(brand.createdAt).toLocaleDateString()}</span>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteBrand(brand._id, brand.name)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewDetails(brand._id)}
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
-
-      {/* Sheet for creating a new brand */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg md:max-w-2xl overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle>Create New Brand</SheetTitle>
-            <SheetDescription>
-              Upload documents to automatically generate a brand, or create one manually.
-            </SheetDescription>
-          </SheetHeader>
-
-          <Tabs defaultValue="upload" className="w-full">
-            <TabsList className="w-full mb-6">
-              <TabsTrigger value="upload" className="flex-1">Document Upload</TabsTrigger>
-              <TabsTrigger value="manual" className="flex-1">Manual Creation</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="upload" className="mt-0">
-              <BrandDocumentUpload
-                onSuccess={handleBrandCreated}
-                onCancel={() => setIsSheetOpen(false)}
-              />
-            </TabsContent>
-
-            <TabsContent value="manual" className="mt-0">
-              <div className="py-10 text-center">
-                <p className="text-gray-500">
-                  Manual brand creation feature coming soon. Please use document upload for now.
-                </p>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </SheetContent>
-      </Sheet>
-    </>
+    </div>
   )
 }

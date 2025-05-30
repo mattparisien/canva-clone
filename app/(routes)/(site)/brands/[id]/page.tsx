@@ -31,6 +31,7 @@ export default function BrandDetailPage() {
         colorIndex?: number;
     } | null>(null)
     const [tempColor, setTempColor] = useState<string>("")
+    const [openPopoverId, setOpenPopoverId] = useState<string | null>(null)
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     // Use React Query to fetch the brand data
@@ -126,8 +127,32 @@ export default function BrandDetailPage() {
         if (tempColor) {
             handleColorSave(tempColor)
         }
-        setSelectedColor(null)
+        // Don't clear selectedColor here, just close the popover
+        setOpenPopoverId(null)
         setTempColor("")
+    }
+
+    // Generate unique ID for each color picker
+    const getColorPickerId = (type: string, paletteIndex: number, colorIndex?: number) => {
+        return `${type}-${paletteIndex}-${colorIndex !== undefined ? colorIndex : 'primary'}`
+    }
+
+    // Handle popover open change
+    const handlePopoverOpenChange = (popoverId: string, isOpen: boolean, colorData: {
+        value: string;
+        type: "primary" | "secondary" | "accent";
+        paletteIndex: number;
+        colorIndex?: number;
+    }) => {
+        if (isOpen) {
+            setOpenPopoverId(popoverId)
+            setSelectedColor(colorData)
+            setTempColor(colorData.value)
+        } else {
+            setOpenPopoverId(null)
+            setSelectedColor(null)
+            setTempColor("")
+        }
     }
 
 
@@ -135,51 +160,56 @@ export default function BrandDetailPage() {
     const renderColorPalette = (colors: string[], type: "primary" | "secondary" | "accent", paletteIndex: number) => {
         return (
             <div className="flex items-center space-x-2 mt-2">
-                {colors.map((color, index) => (
-                    <Popover key={`${color}-${index}`}>
-                        <PopoverTrigger asChild>
-                            <div
-                                className="w-8 h-8 rounded-full border border-gray-200 cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
-                                style={{ backgroundColor: color }}
-                                title={`Click to change color: ${color}`}
-                                onClick={() => {
-                                    setSelectedColor({
-                                        value: color,
-                                        type: type,
-                                        paletteIndex: paletteIndex,
-                                        colorIndex: type !== "primary" ? index : undefined
-                                    });
-                                    setTempColor(color);
-                                }}
-                            />
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-3">
-                            <div className="space-y-4">
-                                <p className="text-sm font-medium">Choose a color</p>
-                                {React.createElement(HexColorPicker as any, {
-                                    color: tempColor || color,
-                                    onChange: (newColor: string) => {
-                                        if (selectedColor) {
-                                            handleColorChange(newColor);
+                {colors.map((color, index) => {
+                    const popoverId = getColorPickerId(type, paletteIndex, type !== "primary" ? index : undefined)
+                    const colorData = {
+                        value: color,
+                        type: type,
+                        paletteIndex: paletteIndex,
+                        colorIndex: type !== "primary" ? index : undefined
+                    }
+                    
+                    return (
+                        <Popover 
+                            key={`${color}-${index}`}
+                            open={openPopoverId === popoverId}
+                            onOpenChange={(isOpen) => handlePopoverOpenChange(popoverId, isOpen, colorData)}
+                        >
+                            <PopoverTrigger asChild>
+                                <div
+                                    className="w-8 h-8 rounded-full border border-gray-200 cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
+                                    style={{ backgroundColor: color }}
+                                    title={`Click to change color: ${color}`}
+                                />
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-3">
+                                <div className="space-y-4">
+                                    <p className="text-sm font-medium">Choose a color</p>
+                                    {React.createElement(HexColorPicker as any, {
+                                        color: tempColor || color,
+                                        onChange: (newColor: string) => {
+                                            if (selectedColor) {
+                                                handleColorChange(newColor);
+                                            }
                                         }
-                                    }
-                                })}
-                                <div className="flex items-center justify-between">
-                                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">{color}</code>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="ml-2"
-                                        disabled={updateBrandMutation.isPending}
-                                        onClick={() => handleColorComplete()}
-                                    >
-                                        <Check className="h-4 w-4" />
-                                    </Button>
+                                    })}
+                                    <div className="flex items-center justify-between">
+                                        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{tempColor || color}</code>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="ml-2"
+                                            disabled={updateBrandMutation.isPending}
+                                            onClick={() => handleColorComplete()}
+                                        >
+                                            <Check className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                ))}
+                            </PopoverContent>
+                        </Popover>
+                    )
+                })}
             </div>
         )
     }
@@ -319,150 +349,166 @@ export default function BrandDetailPage() {
                                             <div>
                                                 <p className="text-sm font-medium mb-2">Primary Color</p>
                                                 <div className="flex items-center gap-3">
-                                                    <Popover>
-                                                        <PopoverTrigger asChild>
-                                                            <div
-                                                                className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
-                                                                style={{ backgroundColor: palette.primary }}
-                                                                title={`Click to change color: ${palette.primary}`}
-                                                                onClick={() => {
-                                                                    setSelectedColor({
-                                                                        value: palette.primary,
-                                                                        type: "primary",
-                                                                        paletteIndex: index
-                                                                    });
-                                                                    setTempColor(palette.primary);
-                                                                }}
-                                                            />
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className="w-auto p-3">
-                                                            <div className="space-y-4">
-                                                                <p className="text-sm font-medium">Choose a color</p>
-                                                                {React.createElement(HexColorPicker as any, {
-                                                                    color: palette.primary,
-                                                                    onChange: (newColor: string) => {
-                                                                        if (selectedColor) {
-                                                                            handleColorChange(newColor);
-                                                                        }
-                                                                    }
-                                                                })}
-                                                                <div className="flex items-center justify-between">
-                                                                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">{palette.primary}</code>
-                                                                    <Button
-                                                                        variant="outline"
-                                                                        size="sm"
-                                                                        className="ml-2"
-                                                                        disabled={updateBrandMutation.isPending}
-                                                                        onClick={() => handleColorComplete()}
-                                                                    >
-                                                                        <Check className="h-4 w-4" />
-                                                                    </Button>
-                                                                </div>
-                                                            </div>
-                                                        </PopoverContent>
-                                                    </Popover>
+                                                    {(() => {
+                                                        const popoverId = getColorPickerId("primary", index)
+                                                        const colorData = {
+                                                            value: palette.primary,
+                                                            type: "primary" as const,
+                                                            paletteIndex: index
+                                                        }
+                                                        
+                                                        return (
+                                                            <Popover 
+                                                                open={openPopoverId === popoverId}
+                                                                onOpenChange={(isOpen) => handlePopoverOpenChange(popoverId, isOpen, colorData)}
+                                                            >
+                                                                <PopoverTrigger asChild>
+                                                                    <div
+                                                                        className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
+                                                                        style={{ backgroundColor: palette.primary }}
+                                                                        title={`Click to change color: ${palette.primary}`}
+                                                                    />
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-auto p-3">
+                                                                    <div className="space-y-4">
+                                                                        <p className="text-sm font-medium">Choose a color</p>
+                                                                        {React.createElement(HexColorPicker as any, {
+                                                                            color: tempColor || palette.primary,
+                                                                            onChange: (newColor: string) => {
+                                                                                if (selectedColor) {
+                                                                                    handleColorChange(newColor);
+                                                                                }
+                                                                            }
+                                                                        })}
+                                                                        <div className="flex items-center justify-between">
+                                                                            <code className="text-xs bg-gray-100 px-2 py-1 rounded">{tempColor || palette.primary}</code>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                className="ml-2"
+                                                                                disabled={updateBrandMutation.isPending}
+                                                                                onClick={() => handleColorComplete()}
+                                                                            >
+                                                                                <Check className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </div>
+                                                                    </div>
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )
+                                                    })()}
                                                 </div>
                                             </div>
 
                                             <div>
                                                 <p className="text-sm font-medium mb-2">Secondary Colors</p>
                                                 <div className="flex flex-wrap items-center gap-3">
-                                                    {palette.secondary.map((color, i) => (
-                                                        <Popover key={i}>
-                                                            <PopoverTrigger asChild>
-                                                                <div
-                                                                    className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
-                                                                    style={{ backgroundColor: color }}
-                                                                    title={`Click to change color: ${color}`}
-                                                                    onClick={() => {
-                                                                        setSelectedColor({
-                                                                            value: color,
-                                                                            type: "secondary",
-                                                                            paletteIndex: index,
-                                                                            colorIndex: i
-                                                                        });
-                                                                        setTempColor(color);
-                                                                    }}
-                                                                />
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className="w-auto p-3">
-                                                                <div className="space-y-4">
-                                                                    <p className="text-sm font-medium">Choose a color</p>
-                                                                    {React.createElement(HexColorPicker as any, {
-                                                                        color: color,
-                                                                        onChange: (newColor: string) => {
-                                                                            if (selectedColor) {
-                                                                                handleColorChange(newColor);
+                                                    {palette.secondary.map((color, i) => {
+                                                        const popoverId = getColorPickerId("secondary", index, i)
+                                                        const colorData = {
+                                                            value: color,
+                                                            type: "secondary" as const,
+                                                            paletteIndex: index,
+                                                            colorIndex: i
+                                                        }
+                                                        
+                                                        return (
+                                                            <Popover 
+                                                                key={i}
+                                                                open={openPopoverId === popoverId}
+                                                                onOpenChange={(isOpen) => handlePopoverOpenChange(popoverId, isOpen, colorData)}
+                                                            >
+                                                                <PopoverTrigger asChild>
+                                                                    <div
+                                                                        className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
+                                                                        style={{ backgroundColor: color }}
+                                                                        title={`Click to change color: ${color}`}
+                                                                    />
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-auto p-3">
+                                                                    <div className="space-y-4">
+                                                                        <p className="text-sm font-medium">Choose a color</p>
+                                                                        {React.createElement(HexColorPicker as any, {
+                                                                            color: tempColor || color,
+                                                                            onChange: (newColor: string) => {
+                                                                                if (selectedColor) {
+                                                                                    handleColorChange(newColor);
+                                                                                }
                                                                             }
-                                                                        }
-                                                                    })}
-                                                                    <div className="flex items-center justify-between">
-                                                                        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{color}</code>
-                                                                        <Button
-                                                                            variant="outline"
-                                                                            size="sm"
-                                                                            className="ml-2"
-                                                                            disabled={updateBrandMutation.isPending}
-                                                                            onClick={() => handleColorComplete()}
-                                                                        >
-                                                                            <Check className="h-4 w-4" />
-                                                                        </Button>
+                                                                        })}
+                                                                        <div className="flex items-center justify-between">
+                                                                            <code className="text-xs bg-gray-100 px-2 py-1 rounded">{tempColor || color}</code>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                className="ml-2"
+                                                                                disabled={updateBrandMutation.isPending}
+                                                                                onClick={() => handleColorComplete()}
+                                                                            >
+                                                                                <Check className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                    ))}
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )
+                                                    })}
                                                 </div>
                                             </div>
 
                                             <div>
                                                 <p className="text-sm font-medium mb-2">Accent Colors</p>
                                                 <div className="flex flex-wrap items-center gap-3">
-                                                    {palette.accent.map((color, i) => (
-                                                        <Popover key={i}>
-                                                            <PopoverTrigger asChild>
-                                                                <div
-                                                                    className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
-                                                                    style={{ backgroundColor: color }}
-                                                                    title={`Click to change color: ${color}`}
-                                                                    onClick={() => {
-                                                                        setSelectedColor({
-                                                                            value: color,
-                                                                            type: "accent",
-                                                                            paletteIndex: index,
-                                                                            colorIndex: i
-                                                                        });
-                                                                        setTempColor(color);
-                                                                    }}
-                                                                />
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className="w-auto p-3">
-                                                                <div className="space-y-4">
-                                                                    <p className="text-sm font-medium">Choose a color</p>
-                                                                    {React.createElement(HexColorPicker as any, {
-                                                                        color: color,
-                                                                        onChange: (newColor: string) => {
-                                                                            if (selectedColor) {
-                                                                                handleColorChange(newColor);
+                                                    {palette.accent.map((color, i) => {
+                                                        const popoverId = getColorPickerId("accent", index, i)
+                                                        const colorData = {
+                                                            value: color,
+                                                            type: "accent" as const,
+                                                            paletteIndex: index,
+                                                            colorIndex: i
+                                                        }
+                                                        
+                                                        return (
+                                                            <Popover 
+                                                                key={i}
+                                                                open={openPopoverId === popoverId}
+                                                                onOpenChange={(isOpen) => handlePopoverOpenChange(popoverId, isOpen, colorData)}
+                                                            >
+                                                                <PopoverTrigger asChild>
+                                                                    <div
+                                                                        className="w-12 h-12 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
+                                                                        style={{ backgroundColor: color }}
+                                                                        title={`Click to change color: ${color}`}
+                                                                    />
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className="w-auto p-3">
+                                                                    <div className="space-y-4">
+                                                                        <p className="text-sm font-medium">Choose a color</p>
+                                                                        {React.createElement(HexColorPicker as any, {
+                                                                            color: tempColor || color,
+                                                                            onChange: (newColor: string) => {
+                                                                                if (selectedColor) {
+                                                                                    handleColorChange(newColor);
+                                                                                }
                                                                             }
-                                                                        }
-                                                                    })}
-                                                                    <div className="flex items-center justify-between">
-                                                                        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{color}</code>
-                                                                        <Button
-                                                                            variant="outline"
-                                                                            size="sm"
-                                                                            className="ml-2"
-                                                                            disabled={updateBrandMutation.isPending}
-                                                                            onClick={() => handleColorComplete()}
-                                                                        >
-                                                                            <Check className="h-4 w-4" />
-                                                                        </Button>
+                                                                        })}
+                                                                        <div className="flex items-center justify-between">
+                                                                            <code className="text-xs bg-gray-100 px-2 py-1 rounded">{tempColor || color}</code>
+                                                                            <Button
+                                                                                variant="outline"
+                                                                                size="sm"
+                                                                                className="ml-2"
+                                                                                disabled={updateBrandMutation.isPending}
+                                                                                onClick={() => handleColorComplete()}
+                                                                            >
+                                                                                <Check className="h-4 w-4" />
+                                                                            </Button>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                    ))}
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        )
+                                                    })}
                                                 </div>
                                             </div>
                                         </CardContent>
