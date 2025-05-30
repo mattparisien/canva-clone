@@ -151,6 +151,7 @@ export class BrandsAPI extends APIBase implements BrandsAPIService {
     ): Promise<BrandType> {
         try {
             const assetIds = await this.uploadFilesAsAssets(files);
+            console.log(assetIds, 'the asset ids');
             if (!assetIds.length) {
                 throw new Error("No assets were created from the uploaded files");
             }
