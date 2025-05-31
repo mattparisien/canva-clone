@@ -1,9 +1,8 @@
 "use client"
 
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils/utils"
-import { Edit3, Plus, Trash2 } from "lucide-react"
+import { Edit3, Plus, Trash2 , Pipette} from "lucide-react"
 import React, { useEffect, useState } from "react"
 import { HexColorPicker } from "react-colorful"
 
@@ -35,7 +34,6 @@ export function EnhancedColorPicker({
     onDeleteColor,
     className
 }: ColorPickerProps) {
-    const [activeTab, setActiveTab] = useState("solid")
     const [currentColorName, setCurrentColorName] = useState(colorName)
     const [isEditingName, setIsEditingName] = useState(false)
 
@@ -138,89 +136,42 @@ export function EnhancedColorPicker({
 
             {/* Color Picker */}
             <div className="space-y-3 mt-3">
-                    {/* Main Color Picker */}
-                    <div className="relative">
-                        <ColorPicker
-                            color={color}
-                            onChange={onChange}
-                            style={{ width: '100%', height: '140px' }}
-                        />
-                    </div>
+                {/* Main Color Picker */}
+                <div className="relative">
+                    <ColorPicker
+                        color={color}
+                        onChange={onChange}
+                        style={{ width: '100%', height: '140px' }}
+                    />
+                </div>
 
-                    {/* Hue Bar - with accurate hue position based on color */}
-                    <div className="w-full h-3 rounded-md overflow-hidden relative bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-cyan-500 via-blue-500 via-purple-500 to-red-500">
-                        <div
-                            className="absolute top-0 w-1.5 h-full bg-white border border-gray-300 rounded-sm shadow-sm cursor-pointer"
-                            style={{
-                                left: `calc(${(hexToHSL(color).h / 360) * 100}% - 3px)`,
-                            }}
-                        />
-                    </div>
+             
 
-                    {/* Color Input */}
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-2 flex-1">
-                            <button className="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center">
-                                <Trash2 className="h-4 w-4 text-gray-500" />
-                            </button>
-                            <div
-                                className="w-8 h-8 rounded-md border border-gray-200 shadow-sm"
-                                style={{ backgroundColor: color }}
-                            />
-                            <Input
-                                value={formatHexColor(color)}
-                                onChange={handleHexInputChange}
-                                className="flex-1 font-mono text-xs h-7"
-                                placeholder="#000000"
-                            />
-                        </div>
+                {/* Color Input */}
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-1">
                         <button className="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center">
-                            <Edit3 className="h-4 w-4 text-gray-500"                            />
+                            <Trash2 className="h-8 w-8 text-gray-500" />
                         </button>
+                        <div
+                            className="w-8 h-8 rounded-md border border-gray-200 shadow-sm"
+                            style={{ backgroundColor: color }}
+                        />
+                        <Input
+                            value={formatHexColor(color)}
+                            onChange={handleHexInputChange}
+                            className="flex-1 font-mono text-sm h-7"
+                            placeholder="#000000"
+                            
+                        />
                     </div>
+                    <button className="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center">
+                        <Pipette className="h-4 w-4 text-gray-500 h-8 w-8" />
+                    </button>
+                </div>
 
-                    {/* Saved Colors */}
-                    {savedColors.length > 0 && (
-                        <div className="space-y-2">
-                            <h4 className="text-xs font-medium text-gray-700">Saved Colors</h4>
-                            <div className="flex flex-wrap gap-1.5">
-                                {savedColors.map((savedColor, index) => (
-                                    <div key={index} className="relative group">
-                                        <button
-                                            className="w-8 h-8 rounded-md border border-gray-200 shadow-sm hover:ring-1 hover:ring-blue-200 transition-all duration-200"
-                                            style={{ backgroundColor: savedColor }}
-                                            onClick={() => onChange(savedColor)}
-                                            title={savedColor}
-                                        >
-                                            {onDeleteColor && (
-                                                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center">
-                                                    <span className="text-[9px]">×</span>
-                                                </div>
-                                            )}
-                                        </button>
-                                    </div>
-                                ))}
-                                
-                                {onSaveColor && (
-                                    <button
-                                        className="w-8 h-8 rounded-md border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors flex items-center justify-center"
-                                        onClick={() => onSaveColor(color)}
-                                        title="Add current color"
-                                    >
-                                        <Plus className="h-4 w-4 text-gray-400" />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </TabsContent>
 
-                <TabsContent value="gradient" className="space-y-3 mt-3">
-                    <div className="text-center py-4 text-gray-500">
-                        <p className="text-xs">Gradient picker coming soon</p>
-                    </div>
-                </TabsContent>
-            </Tabs>
+            </div>
         </div>
     )
 }
