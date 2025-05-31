@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from "@components/ui/alert"
 import { Button } from "@components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card"
 import { CollapsibleSection } from "@components/ui/collapsible-section"
+import { EnhancedColorPicker } from "@components/ui/enhanced-color-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
 import { Skeleton } from "@components/ui/skeleton"
 import { useToast } from "@components/ui/use-toast"
@@ -14,7 +15,6 @@ import { AlertCircle, ArrowLeft, Check, Palette } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useState, useCallback, useRef } from "react"
 import React from "react"
-import { HexColorPicker } from "react-colorful"
 import type { FC } from "react"
 
 export default function BrandDetailPage() {
@@ -70,7 +70,7 @@ export default function BrandDetailPage() {
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current)
         }
-        
+
         saveTimeoutRef.current = setTimeout(() => {
             if (!selectedColor || !brand) return
 
@@ -273,9 +273,9 @@ export default function BrandDetailPage() {
                                                         paletteIndex: paletteIndex,
                                                         colorIndex: colorIndex
                                                     }
-                                                    
+
                                                     return (
-                                                        <Popover 
+                                                        <Popover
                                                             key={colorIndex}
                                                             open={openPopoverId === popoverId}
                                                             onOpenChange={(isOpen) => handlePopoverOpenChange(popoverId, isOpen, colorData)}
@@ -290,30 +290,26 @@ export default function BrandDetailPage() {
                                                                     <code className="text-xs font-mono text-gray-600 group-hover:text-gray-900 transition-colors">{color}</code>
                                                                 </div>
                                                             </PopoverTrigger>
-                                                            <PopoverContent className="w-auto p-4">
-                                                                <div className="space-y-4">
-                                                                    <h4 className="text-sm font-medium text-gray-900">Edit Color</h4>
-                                                                    {React.createElement(HexColorPicker as any, {
-                                                                        color: tempColor || color,
-                                                                        onChange: (newColor: string) => {
-                                                                            if (selectedColor) {
-                                                                                handleColorChange(newColor);
-                                                                            }
+                                                            <PopoverContent className="w-auto p-0 shadow-lg">
+                                                                <EnhancedColorPicker
+                                                                    color={tempColor || color}
+                                                                    onChange={(newColor: string) => {
+                                                                        if (selectedColor) {
+                                                                            handleColorChange(newColor);
                                                                         }
-                                                                    })}
-                                                                    <div className="flex items-center justify-between pt-2">
-                                                                        <code className="text-xs bg-gray-50 px-3 py-2 rounded-md font-mono">{tempColor || color}</code>
-                                                                        <Button
-                                                                            variant="default"
-                                                                            size="sm"
-                                                                            className="ml-3"
-                                                                            disabled={updateBrandMutation.isPending}
-                                                                            onClick={() => handleColorComplete()}
-                                                                        >
-                                                                            <Check className="h-4 w-4" />
-                                                                        </Button>
-                                                                    </div>
-                                                                </div>
+                                                                    }}
+                                                                    colorName={`Color ${selectedColor?.paletteIndex || 0}-${selectedColor?.colorIndex || 0}`}
+                                                                    savedColors={[
+                                                                        "#624b23", "#ecf3f5", "#dcd6cf", "#645840",
+                                                                        "#f0f8ff", "#e6e6fa"
+                                                                    ]}
+                                                                    onSaveColor={(color) => {
+                                                                        // Handle saving color to palette
+                                                                        console.log("Save color:", color);
+                                                                    }}
+                                                                    className="border-none"
+                                                                />
+
                                                             </PopoverContent>
                                                         </Popover>
                                                     )
@@ -342,7 +338,7 @@ export default function BrandDetailPage() {
                                                     Default Typography
                                                 </div>
                                             )}
-                                            
+
                                             <div className="grid md:grid-cols-2 gap-8">
                                                 <div className="space-y-3">
                                                     <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Heading Font</h4>
@@ -431,8 +427,8 @@ export default function BrandDetailPage() {
                                                 <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide mb-4">Keywords</h4>
                                                 <div className="flex flex-wrap gap-3">
                                                     {brand.brandVoice.keywords.map((keyword, i) => (
-                                                        <span 
-                                                            key={i} 
+                                                        <span
+                                                            key={i}
                                                             className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-800 border border-blue-200 hover:shadow-sm transition-shadow"
                                                         >
                                                             {keyword}
