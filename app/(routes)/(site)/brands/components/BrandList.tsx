@@ -8,13 +8,22 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useBrands } from "@/features/brands/use-brands"
 import { LazyGrid } from "@/components/composite/LazyGrid"
 import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveCard"
-import { SelectionProvider } from "@/lib/context/selection-context"
+import { SelectionProvider, useSelection } from "@/lib/context/selection-context"
 import { SelectionActions } from "@/components/composite/SelectionActions"
 import { useToast } from "@components/ui/use-toast"
 
 export function BrandList() {
+  return (
+    <SelectionProvider>
+      <BrandListContent />
+    </SelectionProvider>
+  )
+}
+
+function BrandListContent() {
   const router = useRouter()
   const { toast } = useToast()
+  const { selectedIds, clearSelection } = useSelection()
 
   // Use the brands hook
   const { brands, isLoading, error, deleteBrand } = useBrands()
@@ -52,8 +61,34 @@ export function BrandList() {
 
   // Handle bulk actions
   const handleDeleteSelected = async () => {
-    console.log("Delete selected brands")
-    return Promise.resolve()
+    if (selectedIds.length === 0) {
+      toast({
+        title: "No brands selected",
+        description: "Please select brands to delete.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    try {
+      // Delete each selected brand
+      for (const brandId of selectedIds) {
+        deleteBrand(brandId)
+      }
+      
+      // Clear selection after initiating deletion
+      clearSelection()
+      
+      // The success toast will be shown by the mutation's onSuccess handler
+      // for each individual brand deletion
+    } catch (error) {
+      console.error("Failed to delete brands:", error)
+      toast({
+        title: "Error", 
+        description: "Failed to delete brands. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
 
   const handleDuplicateSelected = async () => {
@@ -115,55 +150,49 @@ export function BrandList() {
   )
 
   return (
-    <SelectionProvider>
-      <div className="space-y-6">
-        {error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : brands?.length === 0 && !isLoading ? (
-          <div className="py-20 text-center">
-            <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-gray-600 mb-1">No Brands Yet</h3>
-            <p className="text-gray-500 mb-6 max-w-md mx-auto">
-              Create your first brand by uploading documents or manually adding brand elements.
-            </p>
+    <div className="space-y-6">
+      {error ? (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : brands?.length === 0 && !isLoading ? (
+        <div className="py-20 text-center">
+          <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-xl font-medium text-gray-600 mb-1">No Brands Yet</h3>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            Create your first brand by uploading documents or manually adding brand elements.
+          </p>
+          <Button onClick={handleCreateBrand}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Your First Brand
+          </Button>
+        </div>
+      ) : (
+        <>
+          <div className="flex justify-between items-center">
             <Button onClick={handleCreateBrand}>
               <Plus className="mr-2 h-4 w-4" />
-              Create Your First Brand
+              Create Brand
             </Button>
           </div>
-        ) : (
-          <>
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-semibold">Your Brand Kits</h2>
-                <p className="text-gray-600">Manage and organize your brand identities</p>
-              </div>
-              <Button onClick={handleCreateBrand}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Brand
-              </Button>
-            </div>
 
-            <LazyGrid
-              items={brands || []}
-              renderItem={(brand) => renderBrandCard(brand)}
-              loadMore={() => { }} // No pagination for brands yet
-              hasMore={false} // No pagination for brands yet
-              isLoading={isLoading}
-              className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-            />
+          <LazyGrid
+            items={brands || []}
+            renderItem={(brand) => renderBrandCard(brand)}
+            loadMore={() => { }} // No pagination for brands yet
+            hasMore={false} // No pagination for brands yet
+            isLoading={isLoading}
+            className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+          />
 
-            <SelectionActions
-              onDelete={handleDeleteSelected}
-              onDuplicate={handleDuplicateSelected}
-              onMove={handleMoveSelected}
-            />
-          </>
-        )}
-      </div>
-    </SelectionProvider>
+          <SelectionActions
+            onDelete={handleDeleteSelected}
+            onDuplicate={handleDuplicateSelected}
+            onMove={handleMoveSelected}
+          />
+        </>
+      )}
+    </div>
   )
 }
