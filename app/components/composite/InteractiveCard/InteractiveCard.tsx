@@ -17,6 +17,7 @@ interface InteractiveCardProps {
     onClick: () => void;
     onSelect?: (id: string, isSelected: boolean) => void;
     onTitleChange?: (id: string, newTitle: string) => void;
+    children?: React.ReactNode;
 }
 
 export default function InteractiveCard({
@@ -28,6 +29,7 @@ export default function InteractiveCard({
     onClick,
     onSelect,
     onTitleChange,
+    children,
 }: InteractiveCardProps) {
     const { isSelected, toggleSelection } = useSelection();
     const [isHovered, setIsHovered] = useState(false);
@@ -39,24 +41,16 @@ export default function InteractiveCard({
 
     return (
         <Card
-            className="cursor-pointer overflow-hidden group transition-all h-full"
+            className="relative cursor-pointer overflow-hidden group transition-all h-full"
             onClick={handleCardClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <CardMedia 
-                image={image} 
+            <CardMedia
+                image={children ? undefined : image}
                 selected={selected}
             >
-                <SelectionCheckbox 
-                    id={id} 
-                    selected={selected} 
-                    visible={selected || isHovered}
-                    onSelect={(checked) => {
-                        toggleSelection(id);
-                        onSelect?.(id, checked);
-                    }}
-                />
+                {children}
             </CardMedia>
 
             <div className="py-4 px-1">
@@ -70,6 +64,15 @@ export default function InteractiveCard({
                     <span className="text-xs text-gray-500">{subtitleRight}</span>
                 </div>
             </div>
+            <SelectionCheckbox
+                id={id}
+                selected={selected}
+                visible={selected || isHovered}
+                onSelect={(checked) => {
+                    toggleSelection(id);
+                    onSelect?.(id, checked);
+                }}
+            />
         </Card>
     );
 }
