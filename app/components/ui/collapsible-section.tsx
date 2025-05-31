@@ -33,11 +33,7 @@ export function CollapsibleSection({
         />
         <h2 className="text-xl font-bold">{title}</h2>
       </button>
-      {isOpen && (
-        <div className="pl-8 pb-4">
-          {children}
-        </div>
-      )}
+      {isOpen && children}
     </div>
   )
 }

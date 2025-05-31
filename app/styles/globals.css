@@ -65,6 +65,7 @@ body {
     --handle-hover: #8b5cf6;
     
     /* Core color palette */
+    --color-blue-30: #e8f2f9;
     --color-blue-50: #E3F2FD;
     --color-blue-500: #1E88E5;
     --color-blue-700: #1565C0;
@@ -87,6 +88,7 @@ body {
     /* Brand colors (referencing core colors) */
     --color-brand-blue: var(--color-blue-500);
     --color-brand-blue-light: var(--color-blue-50);
+    --color-brand-blue-lighter: var(--color-blue-30);
     --color-brand-blue-dark: var(--color-blue-700);
     --color-brand-teal: var(--color-teal-500);
     --color-brand-teal-light: var(--color-teal-50);

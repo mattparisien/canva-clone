@@ -154,7 +154,7 @@ export function EnhancedColorPicker({
                             <Trash2 className="h-8 w-8 text-gray-500" />
                         </button>
                         <div
-                            className="w-8 h-8 rounded-md border border-gray-200 shadow-sm"
+                            className="w-8 h-8 rounded-full border border-gray-200 shadow-sm"
                             style={{ backgroundColor: color }}
                         />
                         <Input
@@ -171,6 +171,40 @@ export function EnhancedColorPicker({
                 </div>
 
 
+                {/* Saved Colors */}
+                {savedColors.length > 0 && (
+                    <div className="space-y-2 mt-3">
+                        <h4 className="text-xs font-medium text-gray-700">Saved Colors</h4>
+                        <div className="flex flex-wrap gap-1.5">
+                            {savedColors.map((savedColor, index) => (
+                                <div key={index} className="relative group">
+                                    <button
+                                        className="w-8 h-8 rounded-full border border-gray-200 shadow-sm hover:ring-1 hover:ring-blue-200 transition-all duration-200"
+                                        style={{ backgroundColor: savedColor }}
+                                        onClick={() => onChange(savedColor)}
+                                        title={savedColor}
+                                    >
+                                        {onDeleteColor && (
+                                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center">
+                                                <span className="text-[9px]">×</span>
+                                            </div>
+                                        )}
+                                    </button>
+                                </div>
+                            ))}
+                            
+                            {onSaveColor && (
+                                <button
+                                    className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors flex items-center justify-center"
+                                    onClick={() => onSaveColor(color)}
+                                    title="Add current color"
+                                >
+                                    <Plus className="h-4 w-4 text-gray-400" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     )

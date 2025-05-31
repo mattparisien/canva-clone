@@ -2,7 +2,6 @@
 
 import { Alert, AlertDescription } from "@components/ui/alert"
 import { Button } from "@components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@components/ui/card"
 import { CollapsibleSection } from "@components/ui/collapsible-section"
 import { EnhancedColorPicker } from "@components/ui/enhanced-color-picker"
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
@@ -11,11 +10,10 @@ import { useToast } from "@components/ui/use-toast"
 import { brandsAPI } from "@lib/api"
 import { Brand } from "@lib/types/brands"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { AlertCircle, ArrowLeft, Check, Palette } from "lucide-react"
+import { AlertCircle, ArrowLeft, Palette } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { useState, useCallback, useRef } from "react"
-import React from "react"
-import type { FC } from "react"
+import { useCallback, useRef, useState } from "react"
+import { upperFirst } from "lodash"
 
 export default function BrandDetailPage() {
     const params = useParams()
@@ -51,10 +49,10 @@ export default function BrandDetailPage() {
         onMutate: async (updatedData) => {
             // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
             await queryClient.cancelQueries({ queryKey: ['brand', brandId] })
-            
+
             // Save the current brand data in case we need to roll back
             const previousBrand = queryClient.getQueryData(['brand', brandId])
-            
+
             // Perform an optimistic update to the UI
             if (updatedData.colorPalettes && previousBrand) {
                 queryClient.setQueryData(['brand', brandId], (old: any) => {
@@ -64,7 +62,7 @@ export default function BrandDetailPage() {
                     }
                 })
             }
-            
+
             return { previousBrand }
         },
         onSuccess: () => {
@@ -77,7 +75,7 @@ export default function BrandDetailPage() {
             if (context?.previousBrand) {
                 queryClient.setQueryData(['brand', brandId], context.previousBrand)
             }
-            
+
             toast({
                 title: "Error",
                 description: error instanceof Error ? error.message : "Failed to update color",
@@ -117,14 +115,14 @@ export default function BrandDetailPage() {
             // If not a valid hex color, do nothing
             return;
         }
-        
+
         // Immediately update the color in the UI for visual feedback
         setTempColor(color)
-        
+
         // Update the visual representation of the swatch immediately
         if (selectedColor && brand) {
             const { paletteIndex, colorIndex } = selectedColor
-            
+
             // Create a temporary copy of the brand for UI display only
             const updatedBrand = {
                 ...brand,
@@ -138,12 +136,12 @@ export default function BrandDetailPage() {
                     return palette
                 })
             }
-            
+
             // Update the UI immediately without triggering a re-fetch
             // This ensures all components using this query data will be updated
             queryClient.setQueryData(['brand', brandId], updatedBrand)
         }
-        
+
         // Debounce the actual API call to save the change
         debouncedSave(color)
     }
@@ -172,11 +170,11 @@ export default function BrandDetailPage() {
             clearTimeout(saveTimeoutRef.current)
             saveTimeoutRef.current = null
         }
-        
+
         if (tempColor) {
             // Immediately save the color to the database without debouncing
             handleColorSave(tempColor)
-            
+
             // Provide some visual feedback that the color has been applied
             toast({
                 title: "Color applied",
@@ -184,7 +182,7 @@ export default function BrandDetailPage() {
                 duration: 2000 // Short duration for a better user experience
             })
         }
-        
+
         // Close the popover
         setOpenPopoverId(null)
         setTempColor("")
@@ -211,12 +209,12 @@ export default function BrandDetailPage() {
                 clearTimeout(saveTimeoutRef.current)
                 saveTimeoutRef.current = null
             }
-            
+
             // If there's a pending color change, apply it
             if (tempColor && tempColor !== colorData.value) {
                 handleColorSave(tempColor)
             }
-            
+
             // Reset state
             setOpenPopoverId(null)
             setSelectedColor(null)
@@ -298,7 +296,7 @@ export default function BrandDetailPage() {
                                                         {palette.colors.map((color, colorIndex) => (
                                                             <div key={colorIndex} className="flex flex-col items-center gap-2">
                                                                 <div
-                                                                    className="w-12 h-12 rounded-lg border border-gray-200 shadow-sm"
+                                                                    className="w-12 h-12 rounded-full border border-gray-200 shadow-sm"
                                                                     style={{ backgroundColor: color }}
                                                                     title={color}
                                                                 />
@@ -359,9 +357,9 @@ export default function BrandDetailPage() {
                                                             <PopoverTrigger asChild>
                                                                 <div className="group flex flex-col items-center space-y-3 cursor-pointer">
                                                                     <div
-                                                                        className="w-20 h-20 rounded-xl border border-gray-200 shadow-sm cursor-pointer group-hover:ring-2 group-hover:ring-blue-200 group-hover:shadow-md transition-all duration-200"
-                                                                        style={{ 
-                                                                            backgroundColor: openPopoverId === popoverId ? (tempColor || color) : color 
+                                                                        className="w-20 h-20 rounded-full border border-gray-200 shadow-sm cursor-pointer group-hover:ring-2 group-hover:ring-blue-200 group-hover:shadow-md transition-all duration-200"
+                                                                        style={{
+                                                                            backgroundColor: openPopoverId === popoverId ? (tempColor || color) : color
                                                                         }}
                                                                         title={`Click to edit: ${openPopoverId === popoverId ? (tempColor || color) : color}`}
                                                                     />
@@ -386,7 +384,7 @@ export default function BrandDetailPage() {
                                                                     onSaveColor={(color) => {
                                                                         // Immediate local UI update
                                                                         handleColorChange(color);
-                                                                        
+
                                                                         // Show a notification for the saved color
                                                                         toast({
                                                                             title: "Color saved",
@@ -515,9 +513,9 @@ export default function BrandDetailPage() {
                                                     {brand.brandVoice.keywords.map((keyword, i) => (
                                                         <span
                                                             key={i}
-                                                            className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-800 border border-blue-200 hover:shadow-sm transition-shadow"
+                                                            className="inline-flex items-center px-4 py-2 rounded-full text-xs font-medium bg-gradient-to-r bg-brand-blue-lighter text-blue-800"
                                                         >
-                                                            {keyword}
+                                                            {upperFirst(keyword)}
                                                         </span>
                                                     ))}
                                                 </div>

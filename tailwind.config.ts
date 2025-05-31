@@ -30,6 +30,8 @@ const config: Config = {
           blue: {
             DEFAULT: "var(--color-brand-blue)",
             light: "var(--color-brand-blue-light)",
+            lighter: "var(--color-brand-blue-lighter)",
+            lightest: "var(--color-brand-blue-lightest)",
             dark: "var(--color-brand-blue-dark)",
           },
           teal: {
