@@ -71,6 +71,7 @@ export function BrandList() {
     router.push('/brands/new')
   }
 
+  console.log("Brands:", brands)
   // Format date helper
   const formatCreatedAt = (dateString: string) => {
     const date = new Date(dateString)
@@ -80,17 +81,13 @@ export function BrandList() {
     }).format(date)
   }
 
-  
+
 
   // Render individual brand with InteractiveCard
   const renderBrandCard = (brand: Brand) => (
     <InteractiveCard
       key={brand._id}
       id={brand._id}
-      image={{
-        src: "/placeholder.jpg", // TODO: Use actual brand image/logo
-        alt: brand.name,
-      }}
       title={brand.name}
       subtitleLeft={brand.industry || "Brand"}
       subtitleRight={formatCreatedAt(brand.createdAt)}
@@ -98,9 +95,21 @@ export function BrandList() {
       onSelect={handleSelectBrand}
       onTitleChange={handleTitleChange}
     >
-      <div className="absolute bottom-0 left-0 w-full h-2 bg-red-100">
-        {brand.colorPalettes[0].primary}
-        
+      <div className="relative w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col">
+
+
+        {/* Brand accent bar */}
+        {brand.colorPalettes && brand.colorPalettes.length > 0 && brand.colorPalettes[0].colors && brand.colorPalettes[0].colors.length > 0 && (
+          <div className="h-2 absolute bottom-0 left-0 w-full flex">
+            {brand.colorPalettes[0].colors.slice(0, 4).map((color, index) => (
+              <div
+                key={index}
+                className="flex-1"
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </InteractiveCard>
   )
@@ -128,6 +137,10 @@ export function BrandList() {
         ) : (
           <>
             <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-semibold">Your Brand Kits</h2>
+                <p className="text-gray-600">Manage and organize your brand identities</p>
+              </div>
               <Button onClick={handleCreateBrand}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Brand

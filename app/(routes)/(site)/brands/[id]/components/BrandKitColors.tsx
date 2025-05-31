@@ -32,7 +32,7 @@ export default function BrandKitColors({ colorPalettes = [] }: BrandKitColorsPro
       <AccordionItem value="colors" className="border-none">
         <div className="flex items-center justify-between px-6 py-4">
           <AccordionTrigger className="[&>svg]:hidden hover:no-underline">
-            <h2 className="text-xl font-semibold">Colors {colorPalettes.length > 0 && `(${colorPalettes.reduce((acc, palette) => acc + 1 + palette.secondary.length + palette.accent.length, 0)})`}</h2>
+            <h2 className="text-xl font-semibold">Colors {colorPalettes.length > 0 && `(${colorPalettes.reduce((acc, palette) => acc + palette.colors.length, 0)})`}</h2>
           </AccordionTrigger>
           <Button variant="outline" size="sm">
             <Plus className="h-4 w-4 mr-2" />
@@ -47,51 +47,21 @@ export default function BrandKitColors({ colorPalettes = [] }: BrandKitColorsPro
                 <div className="flex justify-between items-center mb-3">
                   <h3 className="text-sm font-medium">
                     {palette.name || `Color palette ${index + 1}`}
-                    {palette.isDefault && <span className="ml-2 text-xs text-gray-500">(Default)</span>}
                   </h3>
                   <Button variant="ghost" size="sm" className="text-xs h-8">Edit</Button>
                 </div>
                 
                 <div className="border rounded-md p-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 items-start">
-                    {/* Primary color */}
-                    {palette.primary && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-2">Primary</p>
-                        {renderColorSwatch(palette.primary)}
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {/* Render all colors in the palette */}
+                    {palette.colors.map((color, colorIndex) => (
+                      <div key={`color-${colorIndex}`}>
+                        {renderColorSwatch(color)}
                       </div>
-                    )}
-                    
-                    {/* Secondary colors */}
-                    {palette.secondary && palette.secondary.length > 0 && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-2">Secondary</p>
-                        <div className="flex flex-wrap gap-4">
-                          {palette.secondary.map((color, i) => (
-                            <div key={`secondary-${i}`}>
-                              {renderColorSwatch(color)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Accent colors */}
-                    {palette.accent && palette.accent.length > 0 && (
-                      <div>
-                        <p className="text-xs text-gray-500 mb-2">Accent</p>
-                        <div className="flex flex-wrap gap-4">
-                          {palette.accent.map((color, i) => (
-                            <div key={`accent-${i}`}>
-                              {renderColorSwatch(color)}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    ))}
 
                     {/* Add new color button */}
-                    <div className="flex items-end">
+                    <div className="flex items-center justify-center">
                       <Button variant="ghost" size="sm" className="rounded-full border-dashed border-2 border-gray-200 w-16 h-16 flex items-center justify-center">
                         <Plus className="h-4 w-4" />
                       </Button>

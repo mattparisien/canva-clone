@@ -1,13 +1,13 @@
 /**
- * Color Palette
+ * Color Palettes - object structure with name and colors
+ * Each palette is an object: { name: "Palette Name", colors: ["#FF0000", "#00FF00", "#0000FF"] }
  */
 export interface ColorPalette {
   name: string;
-  primary: string; // Hex color code
-  secondary: string[]; // Array of hex color codes
-  accent: string[]; // Array of hex color codes
-  isDefault: boolean;
+  colors: string[]; // Array of hex color codes
 }
+
+export type ColorPalettes = ColorPalette[]; // Array of color palette objects
 
 /**
  * Typography Schema
@@ -89,7 +89,7 @@ export interface Brand {
   description?: string;
   tagline?: string;
   industry?: string;
-  colorPalettes: ColorPalette[];
+  colorPalettes: ColorPalettes;
   typography: Typography[];
   logos: Logo[];
   brandVoice: BrandVoice;
