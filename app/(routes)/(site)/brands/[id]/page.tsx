@@ -48,15 +48,36 @@ export default function BrandDetailPage() {
         mutationFn: (updatedBrand: Partial<Brand>) => {
             return brandsAPI.update(brandId, updatedBrand)
         },
-        onSuccess: () => {
-            // Invalidate and refetch brand data
-            queryClient.invalidateQueries({ queryKey: ['brand', brandId] })
-            toast({
-                title: "Color updated",
-                description: "Brand color has been updated successfully",
-            })
+        onMutate: async (updatedData) => {
+            // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+            await queryClient.cancelQueries({ queryKey: ['brand', brandId] })
+            
+            // Save the current brand data in case we need to roll back
+            const previousBrand = queryClient.getQueryData(['brand', brandId])
+            
+            // Perform an optimistic update to the UI
+            if (updatedData.colorPalettes && previousBrand) {
+                queryClient.setQueryData(['brand', brandId], (old: any) => {
+                    return {
+                        ...old,
+                        ...updatedData
+                    }
+                })
+            }
+            
+            return { previousBrand }
         },
-        onError: (error) => {
+        onSuccess: () => {
+            // Only invalidate and refetch if needed
+            // Since we're already updating the UI optimistically, this is a backup
+            queryClient.invalidateQueries({ queryKey: ['brand', brandId] })
+        },
+        onError: (error, _, context) => {
+            // Roll back to the previous state if mutation fails
+            if (context?.previousBrand) {
+                queryClient.setQueryData(['brand', brandId], context.previousBrand)
+            }
+            
             toast({
                 title: "Error",
                 description: error instanceof Error ? error.message : "Failed to update color",
@@ -86,12 +107,44 @@ export default function BrandDetailPage() {
 
             // Update brand with new colors
             updateBrandMutation.mutate({ colorPalettes: updatedColorPalettes })
-        }, 500) // Wait 500ms after user stops changing color
+        }, 200) // Reduced to 200ms for a more responsive feel while still debouncing
     }, [selectedColor, brand, updateBrandMutation])
 
-    // Handle color change (just update temp state, don't save)
+    // Handle color change (update temp state and visual UI immediately, debounce server save)
     const handleColorChange = (color: string) => {
+        // Validate color format
+        if (!color.match(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)) {
+            // If not a valid hex color, do nothing
+            return;
+        }
+        
+        // Immediately update the color in the UI for visual feedback
         setTempColor(color)
+        
+        // Update the visual representation of the swatch immediately
+        if (selectedColor && brand) {
+            const { paletteIndex, colorIndex } = selectedColor
+            
+            // Create a temporary copy of the brand for UI display only
+            const updatedBrand = {
+                ...brand,
+                colorPalettes: brand.colorPalettes.map((palette, i) => {
+                    if (i === paletteIndex) {
+                        return {
+                            ...palette,
+                            colors: palette.colors.map((c, j) => j === colorIndex ? color : c)
+                        }
+                    }
+                    return palette
+                })
+            }
+            
+            // Update the UI immediately without triggering a re-fetch
+            // This ensures all components using this query data will be updated
+            queryClient.setQueryData(['brand', brandId], updatedBrand)
+        }
+        
+        // Debounce the actual API call to save the change
         debouncedSave(color)
     }
 
@@ -117,11 +170,22 @@ export default function BrandDetailPage() {
     const handleColorComplete = () => {
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current)
+            saveTimeoutRef.current = null
         }
+        
         if (tempColor) {
+            // Immediately save the color to the database without debouncing
             handleColorSave(tempColor)
+            
+            // Provide some visual feedback that the color has been applied
+            toast({
+                title: "Color applied",
+                description: "Color has been updated successfully",
+                duration: 2000 // Short duration for a better user experience
+            })
         }
-        // Don't clear selectedColor here, just close the popover
+        
+        // Close the popover
         setOpenPopoverId(null)
         setTempColor("")
     }
@@ -304,12 +368,28 @@ export default function BrandDetailPage() {
                                                                         "#f0f8ff", "#e6e6fa"
                                                                     ]}
                                                                     onSaveColor={(color) => {
-                                                                        // Handle saving color to palette
-                                                                        console.log("Save color:", color);
+                                                                        // Immediate local UI update
+                                                                        handleColorChange(color);
+                                                                        
+                                                                        // Show a notification for the saved color
+                                                                        toast({
+                                                                            title: "Color saved",
+                                                                            description: "Color has been added to saved colors",
+                                                                            duration: 2000
+                                                                        });
                                                                     }}
                                                                     className="border-none"
                                                                 />
-
+                                                                <div className="p-2 border-t border-gray-200">
+                                                                    <button
+                                                                        className="w-full h-8 text-xs flex items-center justify-center gap-1.5 bg-primary text-white rounded-md font-medium hover:bg-primary/90"
+                                                                        disabled={updateBrandMutation.isPending}
+                                                                        onClick={() => handleColorComplete()}
+                                                                    >
+                                                                        <Check className="h-4 w-4" />
+                                                                        Apply Color
+                                                                    </button>
+                                                                </div>
                                                             </PopoverContent>
                                                         </Popover>
                                                     )
