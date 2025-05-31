@@ -196,274 +196,277 @@ export default function BrandDetailPage() {
                     <div className="space-y-6">
                         {/* Overview Section */}
                         <CollapsibleSection title="Overview" defaultOpen={true}>
-                            <div className="space-y-4">
+                            <div className="space-y-8">
                                 {brand.tagline && (
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Tagline</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p className="text-lg italic text-gray-800">{brand.tagline}</p>
-                                        </CardContent>
-                                    </Card>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Tagline</h3>
+                                        <p className="text-2xl italic text-gray-700 leading-relaxed">{brand.tagline}</p>
+                                    </div>
                                 )}
 
                                 {brand.description && (
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>About</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p>{brand.description}</p>
-                                        </CardContent>
-                                    </Card>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-3">About</h3>
+                                        <p className="text-gray-700 leading-relaxed">{brand.description}</p>
+                                    </div>
                                 )}
 
                                 {brand.colorPalettes && brand.colorPalettes.length > 0 && (
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Color Palette</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Color Palettes</h3>
+                                        <div className="space-y-6">
                                             {brand.colorPalettes.map((palette, index) => (
-                                                <div key={index} className="mb-4">
-                                                    <h4 className="font-medium mb-2">{palette.name}</h4>
-                                                    <div className="flex flex-wrap gap-2">
+                                                <div key={index}>
+                                                    <h4 className="text-sm font-medium text-gray-600 mb-3">{palette.name}</h4>
+                                                    <div className="flex flex-wrap gap-3">
                                                         {palette.colors.map((color, colorIndex) => (
-                                                            <div
-                                                                key={colorIndex}
-                                                                className="w-8 h-8 rounded-full border border-gray-200"
-                                                                style={{ backgroundColor: color }}
-                                                                title={color}
-                                                            />
+                                                            <div key={colorIndex} className="flex flex-col items-center gap-2">
+                                                                <div
+                                                                    className="w-12 h-12 rounded-lg border border-gray-200 shadow-sm"
+                                                                    style={{ backgroundColor: color }}
+                                                                    title={color}
+                                                                />
+                                                                <span className="text-xs font-mono text-gray-500">{color}</span>
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 </div>
                                             ))}
-                                        </CardContent>
-                                    </Card>
+                                        </div>
+                                    </div>
                                 )}
 
                                 {brand.typography && brand.typography.length > 0 && (
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Typography</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Typography</h3>
+                                        <div className="space-y-6">
                                             {brand.typography.map((typo, index) => (
-                                                <div key={index}>
-                                                    <p className="text-sm text-gray-500">Heading Font</p>
-                                                    <p className="text-xl mb-2" style={{ fontFamily: typo.headingFont }}>{typo.headingFont}</p>
-                                                    <p className="text-sm text-gray-500">Body Font</p>
-                                                    <p className="mb-2" style={{ fontFamily: typo.bodyFont }}>{typo.bodyFont}</p>
+                                                <div key={index} className="space-y-4">
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-600 mb-2">Heading</p>
+                                                        <p className="text-2xl font-medium" style={{ fontFamily: typo.headingFont }}>{typo.headingFont}</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-600 mb-2">Body</p>
+                                                        <p className="text-base" style={{ fontFamily: typo.bodyFont }}>{typo.bodyFont}</p>
+                                                    </div>
                                                 </div>
                                             ))}
-                                        </CardContent>
-                                    </Card>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </CollapsibleSection>
 
                         {/* Colors Section */}
                         <CollapsibleSection title="Colors" defaultOpen={false}>
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 {brand.colorPalettes && brand.colorPalettes.length > 0 ? (
                                     brand.colorPalettes.map((palette, paletteIndex) => (
-                                        <Card key={paletteIndex}>
-                                            <CardHeader>
-                                                <CardTitle>{palette.name}</CardTitle>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                                    {palette.colors.map((color, colorIndex) => {
-                                                        const popoverId = getColorPickerId(paletteIndex, colorIndex)
-                                                        const colorData = {
-                                                            value: color,
-                                                            paletteIndex: paletteIndex,
-                                                            colorIndex: colorIndex
-                                                        }
-                                                        
-                                                        return (
-                                                            <Popover 
-                                                                key={colorIndex}
-                                                                open={openPopoverId === popoverId}
-                                                                onOpenChange={(isOpen) => handlePopoverOpenChange(popoverId, isOpen, colorData)}
-                                                            >
-                                                                <PopoverTrigger asChild>
-                                                                    <div className="flex flex-col items-center space-y-2 cursor-pointer">
-                                                                        <div
-                                                                            className="w-16 h-16 rounded-md border cursor-pointer hover:ring-2 hover:ring-offset-2 hover:ring-primary transition-all"
-                                                                            style={{ backgroundColor: color }}
-                                                                            title={`Click to change color: ${color}`}
-                                                                        />
-                                                                        <code className="text-xs font-mono">{color}</code>
-                                                                    </div>
-                                                                </PopoverTrigger>
-                                                                <PopoverContent className="w-auto p-3">
-                                                                    <div className="space-y-4">
-                                                                        <p className="text-sm font-medium">Choose a color</p>
-                                                                        {React.createElement(HexColorPicker as any, {
-                                                                            color: tempColor || color,
-                                                                            onChange: (newColor: string) => {
-                                                                                if (selectedColor) {
-                                                                                    handleColorChange(newColor);
-                                                                                }
+                                        <div key={paletteIndex}>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-4">{palette.name}</h3>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                                                {palette.colors.map((color, colorIndex) => {
+                                                    const popoverId = getColorPickerId(paletteIndex, colorIndex)
+                                                    const colorData = {
+                                                        value: color,
+                                                        paletteIndex: paletteIndex,
+                                                        colorIndex: colorIndex
+                                                    }
+                                                    
+                                                    return (
+                                                        <Popover 
+                                                            key={colorIndex}
+                                                            open={openPopoverId === popoverId}
+                                                            onOpenChange={(isOpen) => handlePopoverOpenChange(popoverId, isOpen, colorData)}
+                                                        >
+                                                            <PopoverTrigger asChild>
+                                                                <div className="group flex flex-col items-center space-y-3 cursor-pointer">
+                                                                    <div
+                                                                        className="w-20 h-20 rounded-xl border border-gray-200 shadow-sm cursor-pointer group-hover:ring-2 group-hover:ring-blue-200 group-hover:shadow-md transition-all duration-200"
+                                                                        style={{ backgroundColor: color }}
+                                                                        title={`Click to edit: ${color}`}
+                                                                    />
+                                                                    <code className="text-xs font-mono text-gray-600 group-hover:text-gray-900 transition-colors">{color}</code>
+                                                                </div>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent className="w-auto p-4">
+                                                                <div className="space-y-4">
+                                                                    <h4 className="text-sm font-medium text-gray-900">Edit Color</h4>
+                                                                    {React.createElement(HexColorPicker as any, {
+                                                                        color: tempColor || color,
+                                                                        onChange: (newColor: string) => {
+                                                                            if (selectedColor) {
+                                                                                handleColorChange(newColor);
                                                                             }
-                                                                        })}
-                                                                        <div className="flex items-center justify-between">
-                                                                            <code className="text-xs bg-gray-100 px-2 py-1 rounded">{tempColor || color}</code>
-                                                                            <Button
-                                                                                variant="outline"
-                                                                                size="sm"
-                                                                                className="ml-2"
-                                                                                disabled={updateBrandMutation.isPending}
-                                                                                onClick={() => handleColorComplete()}
-                                                                            >
-                                                                                <Check className="h-4 w-4" />
-                                                                            </Button>
-                                                                        </div>
+                                                                        }
+                                                                    })}
+                                                                    <div className="flex items-center justify-between pt-2">
+                                                                        <code className="text-xs bg-gray-50 px-3 py-2 rounded-md font-mono">{tempColor || color}</code>
+                                                                        <Button
+                                                                            variant="default"
+                                                                            size="sm"
+                                                                            className="ml-3"
+                                                                            disabled={updateBrandMutation.isPending}
+                                                                            onClick={() => handleColorComplete()}
+                                                                        >
+                                                                            <Check className="h-4 w-4" />
+                                                                        </Button>
                                                                     </div>
-                                                                </PopoverContent>
-                                                            </Popover>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                                                </div>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
                                     ))
                                 ) : (
-                                    <Card>
-                                        <CardContent className="py-10 text-center">
-                                            <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                                            <h3 className="text-xl font-medium text-gray-600 mb-1">No Color Palettes</h3>
-                                            <p className="text-gray-500">This brand doesn't have any defined color palettes.</p>
-                                        </CardContent>
-                                    </Card>
+                                    <div className="text-center py-12">
+                                        <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                                        <h3 className="text-lg font-medium text-gray-600 mb-2">No Color Palettes</h3>
+                                        <p className="text-gray-500">This brand doesn't have any defined color palettes.</p>
+                                    </div>
                                 )}
                             </div>
                         </CollapsibleSection>
 
                         {/* Typography Section */}
                         <CollapsibleSection title="Typography" defaultOpen={false}>
-                            <div className="space-y-4">
+                            <div className="space-y-8">
                                 {brand.typography && brand.typography.length > 0 ? (
                                     brand.typography.map((typo, index) => (
-                                        <Card key={index}>
-                                            <CardHeader>
-                                                <CardTitle>Typography Set {index + 1}</CardTitle>
-                                                {typo.isDefault && (
-                                                    <CardDescription>Default Typography</CardDescription>
-                                                )}
-                                            </CardHeader>
-                                            <CardContent className="space-y-6">
-                                                <div>
-                                                    <p className="text-sm font-medium mb-2">Heading Font</p>
-                                                    <div className="space-y-2">
-                                                        <p className="text-3xl" style={{ fontFamily: typo.headingFont }}>
+                                        <div key={index} className="space-y-8">
+                                            {typo.isDefault && (
+                                                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                                    Default Typography
+                                                </div>
+                                            )}
+                                            
+                                            <div className="grid md:grid-cols-2 gap-8">
+                                                <div className="space-y-3">
+                                                    <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Heading Font</h4>
+                                                    <div className="p-6 bg-gray-50 rounded-xl">
+                                                        <p className="text-3xl font-semibold mb-4" style={{ fontFamily: typo.headingFont }}>
                                                             {typo.headingFont}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789</p>
+                                                        <p className="text-sm text-gray-500 font-mono">ABCDEFGHIJKLM</p>
+                                                        <p className="text-sm text-gray-500 font-mono">abcdefghijklm</p>
+                                                        <p className="text-sm text-gray-500 font-mono">0123456789</p>
                                                     </div>
                                                 </div>
 
-                                                <div>
-                                                    <p className="text-sm font-medium mb-2">Body Font</p>
-                                                    <div className="space-y-2">
-                                                        <p className="text-lg" style={{ fontFamily: typo.bodyFont }}>
+                                                <div className="space-y-3">
+                                                    <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Body Font</h4>
+                                                    <div className="p-6 bg-gray-50 rounded-xl">
+                                                        <p className="text-xl font-medium mb-4" style={{ fontFamily: typo.bodyFont }}>
                                                             {typo.bodyFont}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789</p>
+                                                        <p className="text-sm text-gray-500 font-mono">ABCDEFGHIJKLM</p>
+                                                        <p className="text-sm text-gray-500 font-mono">abcdefghijklm</p>
+                                                        <p className="text-sm text-gray-500 font-mono">0123456789</p>
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                {typo.fontPairings && typo.fontPairings.length > 0 && (
-                                                    <div>
-                                                        <p className="text-sm font-medium mb-2">Font Pairings</p>
+                                            {typo.fontPairings && typo.fontPairings.length > 0 && (
+                                                <div className="space-y-4">
+                                                    <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide">Font Pairings</h4>
+                                                    <div className="grid gap-4">
                                                         {typo.fontPairings.map((pair, i) => (
-                                                            <div key={i} className="p-3 border rounded-md mb-2">
-                                                                <p className="text-sm text-gray-500">{pair.name}</p>
-                                                                <p className="text-xl mb-1" style={{ fontFamily: pair.heading }}>
-                                                                    {pair.heading}
-                                                                </p>
-                                                                <p style={{ fontFamily: pair.body }}>
-                                                                    {pair.body}
-                                                                </p>
+                                                            <div key={i} className="p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-100">
+                                                                <div className="space-y-3">
+                                                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{pair.name}</p>
+                                                                    <div className="space-y-2">
+                                                                        <p className="text-2xl font-semibold" style={{ fontFamily: pair.heading }}>
+                                                                            Heading with {pair.heading}
+                                                                        </p>
+                                                                        <p className="text-base leading-relaxed" style={{ fontFamily: pair.body }}>
+                                                                            Body text using {pair.body} font family for optimal readability and visual hierarchy.
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         ))}
                                                     </div>
-                                                )}
-                                            </CardContent>
-                                        </Card>
+                                                </div>
+                                            )}
+                                        </div>
                                     ))
                                 ) : (
-                                    <Card>
-                                        <CardContent className="py-10 text-center">
-                                            <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                                            <h3 className="text-xl font-medium text-gray-600 mb-1">No Typography Defined</h3>
-                                            <p className="text-gray-500">This brand doesn't have any defined typography.</p>
-                                        </CardContent>
-                                    </Card>
+                                    <div className="text-center py-12">
+                                        <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                                        <h3 className="text-lg font-medium text-gray-600 mb-2">No Typography Defined</h3>
+                                        <p className="text-gray-500">This brand doesn't have any defined typography.</p>
+                                    </div>
                                 )}
                             </div>
                         </CollapsibleSection>
 
                         {/* Brand Voice Section */}
                         <CollapsibleSection title="Brand Voice" defaultOpen={false}>
-                            <div className="space-y-4">
+                            <div className="space-y-8">
                                 {brand.brandVoice ? (
-                                    <Card>
-                                        <CardHeader>
-                                            <CardTitle>Brand Voice</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="space-y-6">
+                                    <div className="space-y-8">
+                                        <div className="grid md:grid-cols-2 gap-8">
                                             <div>
-                                                <p className="text-sm font-medium mb-2">Tone</p>
-                                                <p className="text-lg font-medium">{brand.brandVoice.tone}</p>
+                                                <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide mb-3">Tone</h4>
+                                                <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                                                    <p className="text-2xl font-semibold text-gray-900">{brand.brandVoice.tone}</p>
+                                                </div>
                                             </div>
 
                                             {brand.brandVoice.description && (
                                                 <div>
-                                                    <p className="text-sm font-medium mb-2">Description</p>
-                                                    <p>{brand.brandVoice.description}</p>
-                                                </div>
-                                            )}
-
-                                            {brand.brandVoice.keywords && brand.brandVoice.keywords.length > 0 && (
-                                                <div>
-                                                    <p className="text-sm font-medium mb-2">Keywords</p>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {brand.brandVoice.keywords.map((keyword, i) => (
-                                                            <span key={i} className="bg-gray-100 px-3 py-1 rounded-full text-sm">
-                                                                {keyword}
-                                                            </span>
-                                                        ))}
+                                                    <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide mb-3">Description</h4>
+                                                    <div className="p-6 bg-gray-50 rounded-xl">
+                                                        <p className="text-gray-700 leading-relaxed">{brand.brandVoice.description}</p>
                                                     </div>
                                                 </div>
                                             )}
+                                        </div>
 
-                                            {brand.brandVoice.sampleCopy && brand.brandVoice.sampleCopy.length > 0 && (
-                                                <div>
-                                                    <p className="text-sm font-medium mb-2">Sample Copy</p>
-                                                    <div className="space-y-4">
-                                                        {brand.brandVoice.sampleCopy.map((sample, i) => (
-                                                            <div key={i} className="p-3 border rounded-md">
-                                                                <p className="font-medium mb-1">{sample.title}</p>
-                                                                <p className="text-gray-700">{sample.content}</p>
+                                        {brand.brandVoice.keywords && brand.brandVoice.keywords.length > 0 && (
+                                            <div>
+                                                <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide mb-4">Keywords</h4>
+                                                <div className="flex flex-wrap gap-3">
+                                                    {brand.brandVoice.keywords.map((keyword, i) => (
+                                                        <span 
+                                                            key={i} 
+                                                            className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-800 border border-blue-200 hover:shadow-sm transition-shadow"
+                                                        >
+                                                            {keyword}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {brand.brandVoice.sampleCopy && brand.brandVoice.sampleCopy.length > 0 && (
+                                            <div>
+                                                <h4 className="text-sm font-medium text-gray-600 uppercase tracking-wide mb-4">Sample Copy</h4>
+                                                <div className="space-y-4">
+                                                    {brand.brandVoice.sampleCopy.map((sample, i) => (
+                                                        <div key={i} className="p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-100">
+                                                            <div className="space-y-3">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                                    <h5 className="font-semibold text-gray-900">{sample.title}</h5>
+                                                                </div>
+                                                                <p className="text-gray-700 leading-relaxed pl-4 border-l-2 border-blue-200">{sample.content}</p>
                                                             </div>
-                                                        ))}
-                                                    </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
-                                            )}
-                                        </CardContent>
-                                    </Card>
+                                            </div>
+                                        )}
+                                    </div>
                                 ) : (
-                                    <Card>
-                                        <CardContent className="py-10 text-center">
-                                            <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                                            <h3 className="text-xl font-medium text-gray-600 mb-1">No Brand Voice Defined</h3>
-                                            <p className="text-gray-500">This brand doesn't have brand voice details defined.</p>
-                                        </CardContent>
-                                    </Card>
+                                    <div className="text-center py-12">
+                                        <Palette className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                                        <h3 className="text-lg font-medium text-gray-600 mb-2">No Brand Voice Defined</h3>
+                                        <p className="text-gray-500">This brand doesn't have brand voice details defined.</p>
+                                    </div>
                                 )}
                             </div>
                         </CollapsibleSection>
