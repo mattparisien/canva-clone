@@ -39,6 +39,38 @@ export function EnhancedColorPicker({
     const [currentColorName, setCurrentColorName] = useState(colorName)
     const [isEditingName, setIsEditingName] = useState(false)
 
+    // Utility function to convert hex to HSL
+    const hexToHSL = (hex: string): { h: number, s: number, l: number } => {
+        // Remove the # if present
+        hex = hex.replace(/^#/, '');
+        
+        // Parse the hex values to RGB
+        let r = parseInt(hex.slice(0, 2), 16) / 255;
+        let g = parseInt(hex.slice(2, 4), 16) / 255;
+        let b = parseInt(hex.slice(4, 6), 16) / 255;
+        
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h = 0;
+        let s = 0;
+        let l = (max + min) / 2;
+        
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            
+            h /= 6;
+        }
+        
+        return { h: h * 360, s: s * 100, l: l * 100 };
+    };
+
     // Update local state when props change
     useEffect(() => {
         setCurrentColorName(colorName)
@@ -121,22 +153,24 @@ export function EnhancedColorPicker({
                         />
                     </div>
 
-                    {/* Hue Bar - this is already included in HexColorPicker but we'll add our own */}
+                    {/* Hue Bar - with accurate hue position based on color */}
                     <div className="w-full h-3 rounded-md overflow-hidden relative bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-cyan-500 via-blue-500 via-purple-500 to-red-500">
                         <div
                             className="absolute top-0 w-1.5 h-full bg-white border border-gray-300 rounded-sm shadow-sm cursor-pointer"
                             style={{
-                                left: `calc(${(parseInt(color.slice(1, 3), 16) / 255) * 100}% - 3px)`,
+                                left: `calc(${(hexToHSL(color).h / 360) * 100}% - 3px)`,
                             }}
                         />
                     </div>
 
                     {/* Color Input */}
-                    <div className="flex items-center gap-1.5">
-                        <div className="flex items-center gap-1.5 flex-1">
-                            <Trash2 className="h-3 w-3 text-gray-400" />
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-1">
+                            <button className="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center">
+                                <Trash2 className="h-4 w-4 text-gray-500" />
+                            </button>
                             <div
-                                className="w-6 h-6 rounded-md border border-gray-200 shadow-sm"
+                                className="w-8 h-8 rounded-md border border-gray-200 shadow-sm"
                                 style={{ backgroundColor: color }}
                             />
                             <Input
@@ -146,10 +180,45 @@ export function EnhancedColorPicker({
                                 placeholder="#000000"
                             />
                         </div>
-                        <Edit3 className="h-3 w-3 text-gray-400" />
+                        <button className="w-6 h-6 rounded hover:bg-gray-100 flex items-center justify-center">
+                            <Edit3 className="h-4 w-4 text-gray-500"                            />
+                        </button>
                     </div>
 
-           
+                    {/* Saved Colors */}
+                    {savedColors.length > 0 && (
+                        <div className="space-y-2">
+                            <h4 className="text-xs font-medium text-gray-700">Saved Colors</h4>
+                            <div className="flex flex-wrap gap-1.5">
+                                {savedColors.map((savedColor, index) => (
+                                    <div key={index} className="relative group">
+                                        <button
+                                            className="w-8 h-8 rounded-md border border-gray-200 shadow-sm hover:ring-1 hover:ring-blue-200 transition-all duration-200"
+                                            style={{ backgroundColor: savedColor }}
+                                            onClick={() => onChange(savedColor)}
+                                            title={savedColor}
+                                        >
+                                            {onDeleteColor && (
+                                                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center">
+                                                    <span className="text-[9px]">×</span>
+                                                </div>
+                                            )}
+                                        </button>
+                                    </div>
+                                ))}
+                                
+                                {onSaveColor && (
+                                    <button
+                                        className="w-8 h-8 rounded-md border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors flex items-center justify-center"
+                                        onClick={() => onSaveColor(color)}
+                                        title="Add current color"
+                                    >
+                                        <Plus className="h-4 w-4 text-gray-400" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </TabsContent>
 
                 <TabsContent value="gradient" className="space-y-3 mt-3">
