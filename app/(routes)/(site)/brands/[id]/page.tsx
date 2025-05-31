@@ -206,6 +206,18 @@ export default function BrandDetailPage() {
             setSelectedColor(colorData)
             setTempColor(colorData.value)
         } else {
+            // When closing, automatically apply any color changes
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current)
+                saveTimeoutRef.current = null
+            }
+            
+            // If there's a pending color change, apply it
+            if (tempColor && tempColor !== colorData.value) {
+                handleColorSave(tempColor)
+            }
+            
+            // Reset state
             setOpenPopoverId(null)
             setSelectedColor(null)
             setTempColor("")
@@ -348,10 +360,14 @@ export default function BrandDetailPage() {
                                                                 <div className="group flex flex-col items-center space-y-3 cursor-pointer">
                                                                     <div
                                                                         className="w-20 h-20 rounded-xl border border-gray-200 shadow-sm cursor-pointer group-hover:ring-2 group-hover:ring-blue-200 group-hover:shadow-md transition-all duration-200"
-                                                                        style={{ backgroundColor: color }}
-                                                                        title={`Click to edit: ${color}`}
+                                                                        style={{ 
+                                                                            backgroundColor: openPopoverId === popoverId ? (tempColor || color) : color 
+                                                                        }}
+                                                                        title={`Click to edit: ${openPopoverId === popoverId ? (tempColor || color) : color}`}
                                                                     />
-                                                                    <code className="text-xs font-mono text-gray-600 group-hover:text-gray-900 transition-colors">{color}</code>
+                                                                    <code className="text-xs font-mono text-gray-600 group-hover:text-gray-900 transition-colors">
+                                                                        {openPopoverId === popoverId ? (tempColor || color) : color}
+                                                                    </code>
                                                                 </div>
                                                             </PopoverTrigger>
                                                             <PopoverContent className="w-auto p-0 shadow-lg">
@@ -380,16 +396,6 @@ export default function BrandDetailPage() {
                                                                     }}
                                                                     className="border-none"
                                                                 />
-                                                                <div className="p-2 border-t border-gray-200">
-                                                                    <button
-                                                                        className="w-full h-8 text-xs flex items-center justify-center gap-1.5 bg-primary text-white rounded-md font-medium hover:bg-primary/90"
-                                                                        disabled={updateBrandMutation.isPending}
-                                                                        onClick={() => handleColorComplete()}
-                                                                    >
-                                                                        <Check className="h-4 w-4" />
-                                                                        Apply Color
-                                                                    </button>
-                                                                </div>
                                                             </PopoverContent>
                                                         </Popover>
                                                     )

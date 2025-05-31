@@ -136,14 +136,8 @@ export function EnhancedColorPicker({
                 )}
             </div>
 
-            {/* Solid/Gradient Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-gray-100">
-                    <TabsTrigger value="solid" className="text-xs py-1">Solid color</TabsTrigger>
-                    <TabsTrigger value="gradient" className="text-xs py-1">Gradient</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="solid" className="space-y-3 mt-3">
+            {/* Color Picker */}
+            <div className="space-y-3 mt-3">
                     {/* Main Color Picker */}
                     <div className="relative">
                         <ColorPicker
