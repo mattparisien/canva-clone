@@ -2,7 +2,9 @@ import { Element } from "@/lib/types/canvas.types";
 import { memo, useCallback, useEffect, useRef } from "react";
 import classNames from "classnames";
 import useCanvasStore from "@/lib/stores/useCanvasStore";
-import { useCanvasElementInteraction, useCanvasElementResize } from "@/(routes)/editor/hooks";
+import useEditorStore from "@/lib/stores/useEditorStore";
+import { calculateViewportRect } from "@/lib/utils/canvas-utils";
+import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "@/(routes)/editor/hooks";
 
 interface ElementControlsProps {
     element: Element;
@@ -43,12 +45,22 @@ const ElementControlsRefactored = memo(({
         getHandleBg,
         setHandleHoverState,
     } = useCanvasElementInteraction(elementRef)
-    const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize()
+    const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize();
+    const measurementHook = useTextMeasurement();
 
 
     // Handle mouse down to start drag
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        if (!isEditMode || element.locked) return;
+        // Don't initiate drag if the element is locked, edit mode is off,
+        // or if we're already resizing (to prevent drag during resize)
+        if (!isEditMode || element.locked || isResizing) return;
+        
+        // Check if the click target is a handle - this helps prevent conflict between drag and resize
+        // We could also check for specific classes or data attributes on resize handles
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('resize-handle')) {
+            return; // Don't start dragging if we clicked on a resize handle
+        }
 
         // Use the hook's startDrag function
         startDrag(
@@ -58,31 +70,82 @@ const ElementControlsRefactored = memo(({
             selectElement,
             clearNewElementFlag
         );
-    }, [element, isEditMode, startDrag, selectElement, clearNewElementFlag]);
+    }, [element, isEditMode, startDrag, selectElement, clearNewElementFlag, isResizing]);
 
-    // Handle drag movement
+    // Use snapping hook at the component level to avoid hook rule violations
+    const snapping = useSnapping();
+
+    // Handle drag movement with improved positioning and snapping
     useEffect(() => {
-        if (!isDragging) return;
+        if (!isDragging || isResizing) return; // Don't run drag logic if resizing is active
 
-        const handleMouseMove = (e: MouseEvent) => {
+        const canvasRef = { current: document.querySelector('.canvas-container') as HTMLDivElement };
+        const editor = useEditorStore.getState();
+        const currentPageId = editor.currentPageId;
+        const currentPage = editor.pages.find(page => page.id === currentPageId);
+        const allElements = currentPage ? currentPage.elements : [];
+        const canvasWidth = currentPage ? currentPage.canvasSize.width : 800;
+        const canvasHeight = currentPage ? currentPage.canvasSize.height : 600;
+        
+        let animationFrameId: number | null = null;
+        let lastEvent: MouseEvent | null = null;
+        
+        const processMove = () => {
+            if (!lastEvent) return;
+            
             // Calculate delta movement adjusted for scale
-            const deltaX = (e.clientX - dragStart.x) / scale;
-            const deltaY = (e.clientY - dragStart.y) / scale;
+            const deltaX = (lastEvent.clientX - dragStart.x) / scale;
+            const deltaY = (lastEvent.clientY - dragStart.y) / scale;
 
             // Calculate new position relative to canvas
-            const newX = element.x + deltaX;
-            const newY = element.y + deltaY;
+            let newX = element.x + deltaX;
+            let newY = element.y + deltaY;
+            
+            // Get snapped position with alignment guides
+            const { x: snappedX, y: snappedY, alignments } = snapping.getSnappedPosition(
+                element,
+                newX,
+                newY,
+                allElements.filter(el => el.id !== element.id),
+                canvasWidth,
+                canvasHeight,
+                true, // isDragging
+                true  // isSelected
+            );
+            
+            // Apply snapped coordinates if available
+            newX = snappedX;
+            newY = snappedY;
 
             // Update element position in canvas store
             updateElement(element.id, { x: newX, y: newY });
 
             // Update drag start for next movement
-            setDragStart({ x: e.clientX, y: e.clientY });
+            setDragStart({ x: lastEvent.clientX, y: lastEvent.clientY });
+            
+            // Reset for next frame
+            lastEvent = null;
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            lastEvent = e;
+            
+            if (animationFrameId === null) {
+                animationFrameId = requestAnimationFrame(() => {
+                    processMove();
+                    animationFrameId = null;
+                });
+            }
         };
 
         const handleMouseUp = () => {
             // Use the hook's endDrag function
             endDrag(() => { }); // onDragEnd callback
+            
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
         };
 
         document.addEventListener('mousemove', handleMouseMove);
@@ -91,8 +154,128 @@ const ElementControlsRefactored = memo(({
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
+            
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+            }
         };
     }, [isDragging, dragStart, element, scale, updateElement, setDragStart, endDrag]);
+
+    // Handle resizing
+    useEffect(() => {
+        if (!isResizing || isDragging) return; // Don't run resize logic if dragging is active
+
+        const editor = useEditorStore.getState();
+        const currentPageId = editor.currentPageId;
+        const currentPage = editor.pages.find(page => page.id === currentPageId);
+        const allElements = currentPage ? currentPage.elements : [];
+        const canvasWidth = currentPage ? currentPage.canvasSize.width : 800;
+        const canvasHeight = currentPage ? currentPage.canvasSize.height : 600;
+        
+        let animationFrameId: number | null = null;
+        let lastEvent: MouseEvent | null = null;
+
+        // Helper function to update element with rect calculation
+        const updateElementWithRect = (updates: Partial<Element>) => {
+            const canvasRef = { current: document.querySelector('.canvas-container') as HTMLDivElement };
+            const newRect = calculateViewportRect(
+                { ...element, ...updates },
+                canvasRef,
+                scale
+            );
+
+            updateElement(element.id, {
+                ...updates,
+                rect: newRect
+            });
+        };
+
+        const processResize = () => {
+            if (!lastEvent) return;
+
+            // Calculate new dimensions and position
+            const resizeResult = calculateResize(
+                element,
+                lastEvent.clientX,
+                lastEvent.clientY,
+                scale,
+                isAltKeyPressed, // pass the alt key state
+                allElements,
+                canvasWidth,
+                canvasHeight
+            );
+
+            const {
+                width: newWidth,
+                height: newHeight,
+                x: newX,
+                y: newY,
+                fontSize: newFontSize,
+                widthChanged,
+            } = resizeResult;
+
+            // Update element with new dimensions, position and font size
+            updateElementWithRect({
+                width: newWidth,
+                height: newHeight,
+                x: newX,
+                y: newY,
+                ...(element.type === "text" ? { fontSize: newFontSize } : {}),
+            });
+
+            // If resizing a text element horizontally, measure and update height immediately
+            if (element.type === "text" && widthChanged) {
+                const measuredHeight = measurementHook.measureElementHeight(element);
+
+                if (measuredHeight && measuredHeight !== newHeight) {
+                    updateElementWithRect({ height: measuredHeight });
+                }
+            }
+
+            lastEvent = null;
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            lastEvent = e;
+
+            if (animationFrameId === null) {
+                animationFrameId = requestAnimationFrame(() => {
+                    processResize();
+                    animationFrameId = null;
+                });
+            }
+        };
+
+        const handleMouseUp = () => {
+            if (isResizing) {
+                endResize();
+                selectElement(element.id, false);
+                setJustFinishedResizing(true);
+                
+                // Reset the flag after a short delay
+                setTimeout(() => {
+                    setJustFinishedResizing(false);
+                }, 200);
+            }
+
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+        };
+
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+
+        return () => {
+            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("mouseup", handleMouseUp);
+
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+            }
+        };
+    }, [isResizing, element, scale, updateElement, calculateResize, endResize, selectElement, isAltKeyPressed, setJustFinishedResizing]);
 
     if (!element || !element.rect) {
         return null;
@@ -123,7 +306,11 @@ const ElementControlsRefactored = memo(({
                 element={element}
                 resizeDirection={resizeDirection}
                 handleResizeStart={(e: React.MouseEvent, direction: string) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
+                    // Prevent event propagation to stop triggering drag events when starting resize
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    // Start resize operation
                     startResize(element, direction, e.clientX, e.clientY);
                 }}
                 getHandleBg={getHandleBg}
@@ -179,7 +366,7 @@ const Handles = memo(({
         {/* Top-left corner handle */}
         {(!isResizing || resizeDirection === "nw") && (
             <div
-                className="absolute cursor-nwse-resize"
+                className="absolute cursor-nwse-resize resize-handle"
                 style={{
                     width: `${handleSize}px`,
                     height: `${handleSize}px`,
@@ -201,7 +388,7 @@ const Handles = memo(({
         {/* Top handle - only for shape elements */}
         {showTopBottomHandles && !isTooSmallForAllHandles && (!isResizing || resizeDirection === "n") && (
             <div
-                className="absolute cursor-ns-resize"
+                className="absolute cursor-ns-resize resize-handle"
                 style={{
                     width: `${handleSize * 2.2}px`,
                     height: `${handleSize * 0.7}px`,
@@ -226,7 +413,7 @@ const Handles = memo(({
                 {/* Northeast corner handle */}
                 {(!isResizing || resizeDirection === "ne") && (
                     <div
-                        className="absolute cursor-nesw-resize"
+                        className="absolute cursor-nesw-resize resize-handle"
                         style={{
                             width: `${handleSize}px`,
                             height: `${handleSize}px`,
@@ -248,7 +435,7 @@ const Handles = memo(({
                 {/* Southwest corner handle */}
                 {(!isResizing || resizeDirection === "sw") && (
                     <div
-                        className="absolute cursor-nesw-resize"
+                        className="absolute cursor-nesw-resize resize-handle"
                         style={{
                             width: `${handleSize}px`,
                             height: `${handleSize}px`,
@@ -272,7 +459,7 @@ const Handles = memo(({
         {/* Southeast corner handle */}
         {(!isResizing || resizeDirection === "se") && (
             <div
-                className="absolute cursor-nwse-resize"
+                className="absolute cursor-nwse-resize resize-handle"
                 style={{
                     width: `${handleSize}px`,
                     height: `${handleSize}px`,
@@ -294,7 +481,7 @@ const Handles = memo(({
         {/* Bottom handle - only for shape elements */}
         {showTopBottomHandles && !isTooSmallForAllHandles && (!isResizing || resizeDirection === "s") && (
             <div
-                className="absolute cursor-ns-resize"
+                className="absolute cursor-ns-resize resize-handle"
                 style={{
                     width: `${handleSize * 2.2}px`,
                     height: `${handleSize * 0.7}px`,
@@ -316,7 +503,7 @@ const Handles = memo(({
         {/* Right handle with enhanced styling */}
         {(!isResizing || resizeDirection === "e") && (
             <div
-                className="absolute cursor-ew-resize"
+                className="absolute cursor-ew-resize resize-handle"
                 style={{
                     width: `${handleSize * 0.7}px`,
                     height: `${Math.min(handleSize * 2.2, element.height * 0.6)}px`,
@@ -338,7 +525,7 @@ const Handles = memo(({
         {/* Left handle with enhanced styling */}
         {!isTooSmallForAllHandles && (!isResizing || resizeDirection === "w") && (
             <div
-                className="absolute cursor-ew-resize"
+                className="absolute cursor-ew-resize resize-handle"
                 style={{
                     width: `${handleSize * 0.7}px`,
                     height: `${Math.min(handleSize * 2.2, element.height * 0.6)}px`,
