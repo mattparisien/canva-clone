@@ -1,15 +1,14 @@
 "use client"
 
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 
 import useCanvasStore from "@lib/stores/useCanvasStore";
 import { Element as EditorCanvasElement } from "@lib/types/canvas.types"; // Change Element import to CanvasElement
+import { calculateViewportRect } from "@lib/utils/canvas-utils";
 import classNames from "classnames";
 import { useCallback, useEffect, useRef } from "react";
-import { useCanvasElementResize, useSnapping, useTextMeasurement } from "../../hooks";
-import { ElementControls } from "./controls/ElementControls";
+import { useCanvasElementResize, useTextMeasurement } from "../../hooks";
 import ElementRenderer from "./renderers/ElementRenderer";
-import { calculateViewportRect } from "@lib/utils/canvas-utils";
 
 
 interface CanvasElementProps {
@@ -50,7 +49,7 @@ export function CanvasElement({
   const selectedElementIds = useCanvasStore(state => state.selectedElementIds)
   const showElementActionBar = useCanvasStore(state => state.showElementActionBar)
   const hideElementActionBar = useCanvasStore(state => state.hideElementActionBar)
-  
+
   // Element ref and text editor key for rerendering
   const elementRef = useRef<HTMLDivElement>(null)
   const [textEditorKey, setTextEditorKey] = useState(0)
@@ -67,7 +66,7 @@ export function CanvasElement({
       canvasRef,
       scale
     );
-    
+
     updateElement(element.id, {
       ...updates,
       rect: newRect
@@ -77,7 +76,7 @@ export function CanvasElement({
   // Simple click handler for selection only
   const handleClick = useCallback((e: React.MouseEvent) => {
     if (!isEditMode) return;
-    
+
     e.stopPropagation();
     selectElement(element.id, e.shiftKey);
   }, [element.id, isEditMode, selectElement]);
@@ -262,13 +261,13 @@ export function CanvasElement({
   // Update viewport rect when canvas position/scale changes
   useEffect(() => {
     const newRect = calculateViewportRect(element, canvasRef, scale);
-    
+
     // Only update if rect has actually changed to avoid unnecessary re-renders
-    if (!element.rect || 
-        element.rect.x !== newRect.x || 
-        element.rect.y !== newRect.y || 
-        element.rect.width !== newRect.width || 
-        element.rect.height !== newRect.height) {
+    if (!element.rect ||
+      element.rect.x !== newRect.x ||
+      element.rect.y !== newRect.y ||
+      element.rect.width !== newRect.width ||
+      element.rect.height !== newRect.height) {
       updateElement(element.id, { rect: newRect });
     }
   }, [element.x, element.y, element.width, element.height, scale, canvasRef, updateElement]);
@@ -326,23 +325,6 @@ export function CanvasElement({
           handleTextAlignChange={handleTextAlignChange}
           isEditMode={isEditMode}
         />
-{/* 
-        {isSelected && isEditMode && (
-          <ElementControls
-            element={element}
-            scale={scale}
-            isResizing={isResizing}
-            resizeDirection={resizeDirection as string}
-            handleResizeStart={handleResizeStart}
-            getHandleBg={getHandleBg}
-            setHandleHoverState={setHandleHoverState}
-            leftBorderHover={leftBorderHover}
-            rightBorderHover={rightBorderHover}
-            setLeftBorderHover={setLeftBorderHover}
-            setRightBorderHover={setRightBorderHover}
-            isDragging={isDragging}
-          />
-        )} */}
       </div>
     </>
   )
