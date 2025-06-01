@@ -115,7 +115,10 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
     // If in view mode, do nothing
     if (!isEditMode) return;
 
+    // Only handle clicks directly on the canvas background, not on canvas elements
     if (e.target === canvasRef.current) {
+      // Don't prevent default behavior to allow event to bubble up
+      
       // Toggle canvas selection if it's already selected
       if (isCanvasSelected) {
         selectCanvas(false);

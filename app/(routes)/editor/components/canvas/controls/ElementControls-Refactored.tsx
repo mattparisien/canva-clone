@@ -48,6 +48,80 @@ const ElementControlsRefactored = memo(({
     const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize();
     const measurementHook = useTextMeasurement();
 
+    // Helper function to recalculate and update element position
+    const updateElementRect = useCallback(() => {
+        const canvasRef = { current: document.querySelector('.canvas-container') as HTMLDivElement };
+        if (!canvasRef.current || !element || !element.rect) return;
+        
+        const newRect = calculateViewportRect(element, canvasRef, scale);
+        
+        // Only update if the rect has actually changed
+        if (
+            !element.rect ||
+            Math.abs(element.rect.x - newRect.x) > 1 ||
+            Math.abs(element.rect.y - newRect.y) > 1 ||
+            Math.abs(element.rect.width - newRect.width) > 1 ||
+            Math.abs(element.rect.height - newRect.height) > 1
+        ) {
+            updateElement(element.id, { rect: newRect });
+        }
+    }, [element, scale, updateElement]);
+
+    // Update element rect on window resize, scale change, or element position change
+    useEffect(() => {
+        // Update immediately on mount and when dependencies change
+        updateElementRect();
+
+        // Add resize event listener with debounce to avoid excessive updates
+        let resizeTimer: NodeJS.Timeout;
+        const handleResize = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                // Just use our current element, no need to fetch from store
+                updateElementRect();
+            }, 50); // Use a shorter timeout for more responsive updates
+        };
+        
+        // Directly handle window resize events
+        window.addEventListener('resize', handleResize);
+        
+        // Using a ResizeObserver for more reliable resize detection
+        const resizeObserver = new ResizeObserver(handleResize);
+        const canvasContainer = document.querySelector('.canvas-container');
+        if (canvasContainer) {
+            resizeObserver.observe(canvasContainer);
+            
+            // Also listen for scroll events on the parent canvas container 
+            // and any containing scrollable elements up to 3 levels up
+            canvasContainer.addEventListener('scroll', handleResize);
+            canvasContainer.parentElement?.addEventListener('scroll', handleResize);
+            canvasContainer.parentElement?.parentElement?.addEventListener('scroll', handleResize);
+        }
+        
+        // Also listen for zoom changes which might be triggered by controls outside this component
+        const handleWheel = (e: WheelEvent) => {
+            if (e.ctrlKey || e.metaKey) {
+                handleResize();
+            }
+        };
+        
+        document.addEventListener('wheel', handleWheel);
+        
+        // Clean up
+        return () => {
+            clearTimeout(resizeTimer);
+            window.removeEventListener('resize', handleResize);
+            
+            if (canvasContainer) {
+                resizeObserver.disconnect();
+                canvasContainer.removeEventListener('scroll', handleResize);
+                canvasContainer.parentElement?.removeEventListener('scroll', handleResize);
+                canvasContainer.parentElement?.parentElement?.removeEventListener('scroll', handleResize);
+            }
+            
+            document.removeEventListener('wheel', handleWheel);
+        };
+    }, [element?.id, scale, updateElementRect]);
 
     // Handle mouse down to start drag
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -294,9 +368,14 @@ const ElementControlsRefactored = memo(({
                 height: element.height * scale,
                 cursor: isEditMode && !element.locked ? (isDragging ? "grabbing" : "grab") : "default",
                 zIndex: 99999,
-                pointerEvents: 'auto'
+                pointerEvents: 'auto',
+                transform: 'translate3d(0, 0, 0)' // Force hardware acceleration for smoother rendering
             }}
-            onClick={(e) => handleClick(e, element)}
+            onClick={(e) => {
+                // Stop propagation to prevent conflicting with canvas click handler
+                e.stopPropagation();
+                handleClick(e, element);
+            }}
             onMouseEnter={() => handleMouseEnter(element.id, isEditMode)}
             onMouseLeave={() => handleMouseLeave()}
             onMouseDown={handleMouseDown}

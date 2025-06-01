@@ -280,22 +280,31 @@ export default function Editor() {
 
     useEffect(() => {
         const handleOutsideClick = (e: globalThis.MouseEvent) => {
+            console.log('called!')
             // Only process if we're in edit mode
             if (!isEditMode) return;
 
-            // Check if click is outside canvas
-            if (canvasRef.current && !canvasRef.current.contains(e.target as Node) &&
-                elementPropertyBarRef.current && !elementPropertyBarRef.current?.contains(e.target as Node)) {
-                {
-                    // Clear element selection
-                    if (selectedElementIds.length > 0 || selectedElement !== null) {
-                        selectElement(null);
-                    }
+            // Check if click is outside canvas, element property bar, and element action bar
+            const isClickOnCanvas = canvasRef.current?.contains(e.target as Node);
+            const isClickOnPropertyBar = elementPropertyBarRef.current?.contains(e.target as Node);
+            const isClickOnActionBar = elementActionBarRef.current?.contains(e.target as Node);
+            
+            // Check if the click target is a resize handle or part of an element's controls
+            const target = e.target as HTMLElement;
+            const isClickOnResizeHandle = target.classList.contains('resize-handle');
+            
+            // If click is outside all relevant areas and not on a resize handle
+            if (!isClickOnCanvas && !isClickOnPropertyBar && !isClickOnActionBar && !isClickOnResizeHandle) {
+                console.log('Outside click detected, deselecting elements');
+                
+                // Clear element selection
+                if (selectedElementIds.length > 0 || selectedElement !== null) {
+                    selectElement(null);
+                }
 
-                    // Also clear canvas selection if needed
-                    if (isCanvasSelected) {
-                        selectCanvas(false);
-                    }
+                // Also clear canvas selection if needed
+                if (isCanvasSelected) {
+                    selectCanvas(false);
                 }
             }
         }
@@ -303,7 +312,11 @@ export default function Editor() {
         // Add click event listener to the document
         document.addEventListener("mousedown", handleOutsideClick);
 
-    }, []);
+        // Clean up on unmount or when dependencies change
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+        };
+    }, [isEditMode, selectedElementIds, selectedElement, isCanvasSelected, selectElement, selectCanvas, canvasRef, elementPropertyBarRef, elementActionBarRef]);
 
     return (
         <div

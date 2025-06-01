@@ -121,6 +121,7 @@ export const calculateViewportRect = (
   const canvasRect = canvasRef.current.getBoundingClientRect();
   
   // Calculate element position relative to viewport
+  // Consider any scroll offset as well
   const viewportX = canvasRect.left + (element.x * scale);
   const viewportY = canvasRect.top + (element.y * scale);
   const viewportWidth = element.width * scale;

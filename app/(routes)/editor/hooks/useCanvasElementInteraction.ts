@@ -124,6 +124,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
    * Handle selection on click
    */
   const handleClick = useCallback((e: React.MouseEvent, element: CanvasElement, onElementSelect?: (id: string, addToSelection: boolean) => void) => {
+    // Always stop propagation to prevent canvas click handler from running
     e.stopPropagation();
     
     // Check if shift key is pressed for multi-selection
@@ -134,24 +135,8 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     setIsSelected(true);
   }, []);
 
-  /**
-   * Handle outside clicks to deselect
-   */
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (elementRef?.current && !elementRef.current.contains(e.target as Node)) {
-        setIsSelected(false);
-      }
-    };
-
-    if (isSelected) {
-      document.addEventListener('click', handleOutsideClick);
-    }
-
-    return () => {
-      document.removeEventListener('click', handleOutsideClick);
-    };
-  }, [isSelected, elementRef]);
+  // We've removed the outside click handler from here
+  // as it's now handled at the Editor component level
 
   // Track Alt/Option key state
   useEffect(() => {
