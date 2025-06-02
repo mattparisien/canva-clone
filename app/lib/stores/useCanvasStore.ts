@@ -313,6 +313,21 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       };
     });
   },
+  
+  deselectElement: (id: string) => {
+    const state = get();
+    const selectedIds = state.selectedElementIds;
+
+    if (!selectedIds.includes(id)) return;
+
+    // Remove the element from selection
+    const newSelectedIds = selectedIds.filter(elId => elId !== id);
+
+
+    set({
+      selectedElementIds: newSelectedIds,
+    });
+  },
 
   // Select multiple elements at once
   selectMultipleElements: (ids) => {
@@ -654,6 +669,7 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
 
     return scale;
   },
+
   toggleCanvasSelection: () => {
     set(state => ({
       isCanvasSelected: !state.isCanvasSelected

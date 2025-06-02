@@ -111,6 +111,7 @@ export interface CanvasContextType {
   deleteElement: (id: string) => void
   deleteSelectedElements: () => void
   selectElement: (id: string | null, addToSelection?: boolean) => void
+  deselectElement: (id: string) => void
   selectMultipleElements: (ids: string[]) => void
   selectCanvas: (select: boolean) => void
   clearSelection: () => void

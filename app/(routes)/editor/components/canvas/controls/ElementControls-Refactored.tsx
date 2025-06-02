@@ -1,10 +1,25 @@
 import { Element } from "@/lib/types/canvas.types";
-import { memo, useCallback, useEffect, useRef } from "react";
+import { memo, useCallback, useEffect, useRef, forwardRef } from "react";
 import classNames from "classnames";
 import useCanvasStore from "@/lib/stores/useCanvasStore";
 import useEditorStore from "@/lib/stores/useEditorStore";
 import { calculateViewportRect } from "@/lib/utils/canvas-utils";
 import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "@/(routes)/editor/hooks";
+
+// Utility function to merge refs
+function mergeRefs<T = any>(
+    ...refs: Array<React.MutableRefObject<T> | React.LegacyRef<T> | undefined | null>
+): React.RefCallback<T> {
+    return (value) => {
+        refs.forEach((ref) => {
+            if (typeof ref === 'function') {
+                ref(value);
+            } else if (ref != null) {
+                (ref as React.MutableRefObject<T | null>).current = value;
+            }
+        });
+    };
+}
 
 interface ElementControlsProps {
     element: Element;
@@ -12,11 +27,11 @@ interface ElementControlsProps {
     isEditMode: boolean;
 }
 
-const ElementControlsRefactored = memo(({
+const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
     element,
     scale = 1,
     isEditMode
-}: ElementControlsProps) => {
+}, ref) => {
     const elementRef = useRef<HTMLDivElement>(null);
 
     // Canvas store methods
@@ -37,7 +52,6 @@ const ElementControlsRefactored = memo(({
         setDragStart,
         startDrag,
         endDrag,
-        isSelected,
         handleMouseEnter,
         handleMouseLeave,
         handleClick,
@@ -46,15 +60,17 @@ const ElementControlsRefactored = memo(({
         setHandleHoverState,
     } = useCanvasElementInteraction(elementRef)
     const { isResizing, resizeDirection, startResize, endResize, calculateResize } = useCanvasElementResize();
+    const isSelected = useCanvasStore(state => state.isElementSelected(element.id));
     const measurementHook = useTextMeasurement();
+
 
     // Helper function to recalculate and update element position
     const updateElementRect = useCallback(() => {
         const canvasRef = { current: document.querySelector('.canvas-container') as HTMLDivElement };
         if (!canvasRef.current || !element || !element.rect) return;
-        
+
         const newRect = calculateViewportRect(element, canvasRef, scale);
-        
+
         // Only update if the rect has actually changed
         if (
             !element.rect ||
@@ -81,44 +97,44 @@ const ElementControlsRefactored = memo(({
                 updateElementRect();
             }, 50); // Use a shorter timeout for more responsive updates
         };
-        
+
         // Directly handle window resize events
         window.addEventListener('resize', handleResize);
-        
+
         // Using a ResizeObserver for more reliable resize detection
         const resizeObserver = new ResizeObserver(handleResize);
         const canvasContainer = document.querySelector('.canvas-container');
         if (canvasContainer) {
             resizeObserver.observe(canvasContainer);
-            
+
             // Also listen for scroll events on the parent canvas container 
             // and any containing scrollable elements up to 3 levels up
             canvasContainer.addEventListener('scroll', handleResize);
             canvasContainer.parentElement?.addEventListener('scroll', handleResize);
             canvasContainer.parentElement?.parentElement?.addEventListener('scroll', handleResize);
         }
-        
+
         // Also listen for zoom changes which might be triggered by controls outside this component
         const handleWheel = (e: WheelEvent) => {
             if (e.ctrlKey || e.metaKey) {
                 handleResize();
             }
         };
-        
+
         document.addEventListener('wheel', handleWheel);
-        
+
         // Clean up
         return () => {
             clearTimeout(resizeTimer);
             window.removeEventListener('resize', handleResize);
-            
+
             if (canvasContainer) {
                 resizeObserver.disconnect();
                 canvasContainer.removeEventListener('scroll', handleResize);
                 canvasContainer.parentElement?.removeEventListener('scroll', handleResize);
                 canvasContainer.parentElement?.parentElement?.removeEventListener('scroll', handleResize);
             }
-            
+
             document.removeEventListener('wheel', handleWheel);
         };
     }, [element?.id, scale, updateElementRect]);
@@ -128,7 +144,7 @@ const ElementControlsRefactored = memo(({
         // Don't initiate drag if the element is locked, edit mode is off,
         // or if we're already resizing (to prevent drag during resize)
         if (!isEditMode || element.locked || isResizing) return;
-        
+
         // Check if the click target is a handle - this helps prevent conflict between drag and resize
         // We could also check for specific classes or data attributes on resize handles
         const target = e.target as HTMLElement;
@@ -160,13 +176,13 @@ const ElementControlsRefactored = memo(({
         const allElements = currentPage ? currentPage.elements : [];
         const canvasWidth = currentPage ? currentPage.canvasSize.width : 800;
         const canvasHeight = currentPage ? currentPage.canvasSize.height : 600;
-        
+
         let animationFrameId: number | null = null;
         let lastEvent: MouseEvent | null = null;
-        
+
         const processMove = () => {
             if (!lastEvent) return;
-            
+
             // Calculate delta movement adjusted for scale
             const deltaX = (lastEvent.clientX - dragStart.x) / scale;
             const deltaY = (lastEvent.clientY - dragStart.y) / scale;
@@ -174,7 +190,7 @@ const ElementControlsRefactored = memo(({
             // Calculate new position relative to canvas
             let newX = element.x + deltaX;
             let newY = element.y + deltaY;
-            
+
             // Get snapped position with alignment guides
             const { x: snappedX, y: snappedY, alignments } = snapping.getSnappedPosition(
                 element,
@@ -186,7 +202,7 @@ const ElementControlsRefactored = memo(({
                 true, // isDragging
                 true  // isSelected
             );
-            
+
             // Apply snapped coordinates if available
             newX = snappedX;
             newY = snappedY;
@@ -196,14 +212,14 @@ const ElementControlsRefactored = memo(({
 
             // Update drag start for next movement
             setDragStart({ x: lastEvent.clientX, y: lastEvent.clientY });
-            
+
             // Reset for next frame
             lastEvent = null;
         };
 
         const handleMouseMove = (e: MouseEvent) => {
             lastEvent = e;
-            
+
             if (animationFrameId === null) {
                 animationFrameId = requestAnimationFrame(() => {
                     processMove();
@@ -215,7 +231,7 @@ const ElementControlsRefactored = memo(({
         const handleMouseUp = () => {
             // Use the hook's endDrag function
             endDrag(() => { }); // onDragEnd callback
-            
+
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
                 animationFrameId = null;
@@ -228,7 +244,7 @@ const ElementControlsRefactored = memo(({
         return () => {
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
-            
+
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
             }
@@ -245,7 +261,7 @@ const ElementControlsRefactored = memo(({
         const allElements = currentPage ? currentPage.elements : [];
         const canvasWidth = currentPage ? currentPage.canvasSize.width : 800;
         const canvasHeight = currentPage ? currentPage.canvasSize.height : 600;
-        
+
         let animationFrameId: number | null = null;
         let lastEvent: MouseEvent | null = null;
 
@@ -325,7 +341,7 @@ const ElementControlsRefactored = memo(({
                 endResize();
                 selectElement(element.id, false);
                 setJustFinishedResizing(true);
-                
+
                 // Reset the flag after a short delay
                 setTimeout(() => {
                     setJustFinishedResizing(false);
@@ -357,7 +373,7 @@ const ElementControlsRefactored = memo(({
 
     return (
         <div
-            ref={elementRef}
+            ref={mergeRefs(elementRef, ref)}
             className={classNames("", {
                 "is-highlighted relative": isSelected || isHovering
             })} style={{
@@ -380,7 +396,7 @@ const ElementControlsRefactored = memo(({
             onMouseLeave={() => handleMouseLeave()}
             onMouseDown={handleMouseDown}
         >
-            <Handles
+            {isSelected && !isDragging && <Handles
                 isResizing={isResizing}
                 element={element}
                 resizeDirection={resizeDirection}
@@ -388,7 +404,7 @@ const ElementControlsRefactored = memo(({
                     // Prevent event propagation to stop triggering drag events when starting resize
                     e.stopPropagation();
                     e.preventDefault();
-                    
+
                     // Start resize operation
                     startResize(element, direction, e.clientX, e.clientY);
                 }}
@@ -399,9 +415,10 @@ const ElementControlsRefactored = memo(({
                 setLeftBorderHover={setLeftBorderHover}
                 setRightBorderHover={setRightBorderHover}
                 isDragging={isDragging}
-            /></div>
+            />}
+        </div>
     );
-});
+}));
 
 interface HandlesProps {
     element: Element;
@@ -423,18 +440,18 @@ const Handles = memo(({
     resizeDirection,
     handleResizeStart,
     getHandleBg = () => "#ffffff",
-    setHandleHoverState = () => {},
+    setHandleHoverState = () => { },
     leftBorderHover = false,
     rightBorderHover = false,
-    setLeftBorderHover = () => {},
-    setRightBorderHover = () => {},
+    setLeftBorderHover = () => { },
+    setRightBorderHover = () => { },
     isDragging,
 }: HandlesProps) => {
 
     const handleSize = 18; // Size of the resize handles
     const showTopBottomHandles = element.type !== "text"
     const isTooSmallForAllHandles = false;
-    
+
     // Helper function to get the background color with null-safety
     const getHandleBackground = (direction: string) => {
         const baseBg = getHandleBg(direction, resizeDirection || "", isResizing);

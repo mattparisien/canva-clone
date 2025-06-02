@@ -1,4 +1,5 @@
 import { type ClassValue, clsx } from "clsx"
+import { RefObject } from "react"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -35,14 +36,14 @@ export function formatDateAsString(dateString: string) {
 export function getRelativeTime(date: Date | string): string {
   const inputDate = date instanceof Date ? date : new Date(date);
   const now = new Date();
-  
+
   // Reset time part for accurate day comparison
   const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const inputDateOnly = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
-  
+
   const differenceInTime = todayDate.getTime() - inputDateOnly.getTime();
   const differenceInDays = Math.floor(differenceInTime / (1000 * 3600 * 24));
-  
+
   if (differenceInDays === 0) {
     return "today";
   } else if (differenceInDays === 1) {
@@ -58,5 +59,23 @@ export function getRelativeTime(date: Date | string): string {
   } else {
     const years = Math.floor(differenceInDays / 365);
     return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+  }
+}
+
+export function addToRefArray<T>(item: T, refArray: T[]): void {
+  if (!refArray.includes(item)) {
+    refArray.push(item);
+  }
+}
+
+export function addToRefArrayOfObjects<T extends Record<string, any>>(
+  item: { id: string; node: HTMLElement } & T,
+  refArray: Array<{ id: string; node: HTMLElement } & T>
+): void {
+  const existingIndex = refArray.findIndex(obj => obj.id === item.id);
+  if (existingIndex === -1) {
+    refArray.push(item);
+  } else {
+    refArray[existingIndex] = item; // Update existing item
   }
 }

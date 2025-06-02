@@ -4,13 +4,14 @@ import { ElementPropertyBar } from "@/(routes)/editor/components/ElementProperty
 import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor";
 import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore";
 import useEditorStore from "@lib/stores/useEditorStore";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { MutableRefObject, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import useElementActionBar from "../hooks/useElementActionBar";
 import BottomBar from "./BottomBar";
 import Canvas from "./canvas/Canvas";
 import ElementControlsRefactored from "./canvas/controls/ElementControls-Refactored";
 import { ElementActionBar } from "./canvas/ElementActionBar";
 import PageNavigation from "./PageNavigation";
+import { addToRefArray, addToRefArrayOfObjects } from "@/lib/utils/utils";
 
 
 /**
@@ -23,6 +24,9 @@ export default function Editor() {
     const canvasRef = useRef<HTMLDivElement>(null);
     const elementPropertyBarRef = useRef<HTMLDivElement>(null);
     const elementActionBarRef = useRef<HTMLDivElement>(null);
+    const elementRefs = useRef<Array<{ id: string; node: HTMLDivElement }>>([]);
+
+
 
     const [zoom, setZoom] = useState(30) // 25 – 200 %
     const [isFullscreen, setIsFullscreen] = useState(false)
@@ -48,6 +52,7 @@ export default function Editor() {
     const clearSelection = useCanvasStore(state => state.clearSelection)
     const deleteSelectedElements = useCanvasStore(state => state.deleteSelectedElements)
     const selectElement = useCanvasStore(state => state.selectElement)
+    const deselectElement = useCanvasStore(state => state.deselectElement);
     const selectCanvas = useCanvasStore(state => state.selectCanvas);
     const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected);
 
@@ -280,7 +285,6 @@ export default function Editor() {
 
     useEffect(() => {
         const handleOutsideClick = (e: globalThis.MouseEvent) => {
-            console.log('called!')
             // Only process if we're in edit mode
             if (!isEditMode) return;
 
@@ -288,15 +292,19 @@ export default function Editor() {
             const isClickOnCanvas = canvasRef.current?.contains(e.target as Node);
             const isClickOnPropertyBar = elementPropertyBarRef.current?.contains(e.target as Node);
             const isClickOnActionBar = elementActionBarRef.current?.contains(e.target as Node);
-            
+
+
             // Check if the click target is a resize handle or part of an element's controls
             const target = e.target as HTMLElement;
             const isClickOnResizeHandle = target.classList.contains('resize-handle');
-            
+
             // If click is outside all relevant areas and not on a resize handle
             if (!isClickOnCanvas && !isClickOnPropertyBar && !isClickOnActionBar && !isClickOnResizeHandle) {
-                console.log('Outside click detected, deselecting elements');
-                
+
+                elementRefs.current.forEach(ref => {
+                    deselectElement(ref.id);
+                })
+
                 // Clear element selection
                 if (selectedElementIds.length > 0 || selectedElement !== null) {
                     selectElement(null);
@@ -395,6 +403,12 @@ export default function Editor() {
                         element={element}
                         scale={zoom / 100}
                         isEditMode={isEditMode}
+                        ref={(el: HTMLDivElement | null) => {
+                            if (el) addToRefArrayOfObjects({
+                                id: element.id,
+                                node: el
+                            }, elementRefs.current);
+                        }}
                     />
                 ))}
 
