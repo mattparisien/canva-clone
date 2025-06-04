@@ -72,6 +72,7 @@ interface ElementPropertyBarProps {
   onFontFamilyChange: (family: string) => void
   onTextAlignChange: (align: TextAlignment) => void
   onFormatChange?: (format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => void
+  onTextColorChange?: (color: string) => void
   onPositionChange?: (position: { x?: number; y?: number }) => void
   isHovering: boolean
   elementId: string | null
@@ -84,6 +85,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   onFontFamilyChange,
   onTextAlignChange,
   onFormatChange,
+  onTextColorChange,
   onPositionChange,
   elementId,
   canvasWidth,

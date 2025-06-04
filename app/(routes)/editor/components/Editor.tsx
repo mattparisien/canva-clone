@@ -4,6 +4,7 @@ import { ElementPropertyBar } from "@/(routes)/editor/components/ElementProperty
 import { addToRefArrayOfObjects } from "@/lib/utils/utils";
 import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor";
 import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore";
+import { useCanvas } from "@lib/context/canvas-context";
 import useEditorStore from "@lib/stores/useEditorStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useElementActionBar from "../hooks/useElementActionBar";
@@ -55,6 +56,9 @@ export default function Editor() {
     const deselectElement = useCanvasStore(state => state.deselectElement);
     const selectCanvas = useCanvasStore(state => state.selectCanvas);
     const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected);
+
+    // Canvas context functions
+    const { handleTextColorChange } = useCanvas();
 
     // Hooks
     const { position, placement } = useElementActionBar(selectedElement, elementActionBarRef, elementPropertyBarRef);
@@ -374,6 +378,7 @@ export default function Editor() {
                         onFontFamilyChange={handleFontFamilyChange}
                         onTextAlignChange={handleTextAlignChange}
                         onFormatChange={handleFormatChange}
+                        onTextColorChange={handleTextColorChange}
                         onPositionChange={handlePositionChange}
                         isHovering={false}
                         elementId={selectedElement?.id || null}

@@ -24,6 +24,7 @@ export interface Element {
   fontSize?: number
   fontFamily?: string
   textAlign?: "left" | "center" | "right" | "justify"
+  textColor?: string // Text color for text elements
   isNew?: boolean // Track if element was just created
   isBold?: boolean // Bold formatting
   isItalic?: boolean // Italic formatting
@@ -129,5 +130,8 @@ export interface CanvasContextType {
 
   // Utility
   isElementSelected: (id: string) => boolean,
+  
+  // Text styling
+  handleTextColorChange: (color: string) => void
 
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import EditorNavbar from "@/components/layout/navbar"
-import { CanvasProvider } from "@lib/context/canvas-context"
+import { CanvasProvider, useCanvas } from "@lib/context/canvas-context"
 import { EditorProvider } from "@lib/context/editor-context"
 import * as Popover from "@radix-ui/react-popover"
 import EditorSidebar from "./components/Sidebar"
@@ -29,6 +29,7 @@ export default function EditorLayout({
 function EditorLayoutContent({ children }: { children: React.ReactNode }) {
     const isPopoverOpen = useEditorStore((state) => state.popover.isOpen);
     const closePopover = useEditorStore((state) => state.closePopover);
+    const { handleTextColorChange } = useCanvas();
 
     return (
         <Popover.Root 
@@ -43,7 +44,7 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
                 <Popover.Anchor>
                     <EditorNavbar />
                 </Popover.Anchor>
-                <EditorSidebar />
+                <EditorSidebar onTextColorChange={handleTextColorChange} />
                 {children}
             </div>
         </Popover.Root>

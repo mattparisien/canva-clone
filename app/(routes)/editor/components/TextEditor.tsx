@@ -44,6 +44,8 @@ interface TextEditorProps {
   isItalic?: boolean;
   isUnderlined?: boolean;
   isStrikethrough?: boolean;
+  /** Text color */
+  textColor?: string;
   /** Edit mode flag */
   isEditMode?: boolean;
 }
@@ -67,6 +69,7 @@ export function TextEditor({
   isItalic = false,
   isUnderlined = false,
   isStrikethrough = false,
+  textColor = "#000000",
   onTextAlignChange,
   isEditMode = true, // Default to edit mode if not provided
 }: TextEditorProps) {
@@ -179,7 +182,7 @@ export function TextEditor({
     editorRef.current.style.height = "auto";
     const newHeight = editorRef.current.scrollHeight;
     onHeightChange(newHeight);
-  }, [localContent, fontSize, fontFamily, textAlign, isBold, isItalic, isUnderlined, isStrikethrough]);
+  }, [localContent, fontSize, fontFamily, textAlign, isBold, isItalic, isUnderlined, isStrikethrough, textColor]);
 
   /* ----------------------------------------------------------------
      Common style object shared by read-only and edit states
@@ -200,6 +203,7 @@ export function TextEditor({
     fontWeight: isBold ? "bold" : "normal",
     fontStyle: isItalic ? "italic" : "normal",
     textDecoration: `${isUnderlined ? "underline" : ""} ${isStrikethrough ? "line-through" : ""}`.trim() || "none",
+    color: textColor,
   };
 
   // Styles for the editor
@@ -214,6 +218,7 @@ export function TextEditor({
     fontStyle: isItalic ? "italic" : "normal",
     textDecoration: `${isUnderlined ? "underline" : ""} ${isStrikethrough ? "line-through" : ""}`.trim() || "none",
     textAlign,
+    color: textColor,
     padding: "4px", // Add padding to match the measuring function
     wordBreak: "break-word",
     whiteSpace: "pre-wrap",

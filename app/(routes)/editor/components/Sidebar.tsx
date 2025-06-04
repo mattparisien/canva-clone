@@ -9,8 +9,11 @@ import { ArrowRight, ChevronRight, Circle, Search } from "lucide-react";
 import { useCallback } from "react";
 import { SidebarPopover } from "./SidebarPopover";
 
+interface EditorSidebarProps {
+    onTextColorChange?: (color: string) => void;
+}
 
-const EditorSidebar = (props: any) => {
+const EditorSidebar = ({ onTextColorChange }: EditorSidebarProps) => {
     const openPopover = useEditorStore((state) => state.openPopover);
     const activeItemId = useEditorStore((state) => state.popover.activeItemId);
     const canvasSize = useCurrentCanvasSize();
@@ -305,7 +308,9 @@ const EditorSidebar = (props: any) => {
                                     className="w-8 h-8 rounded border border-gray-200 hover:scale-110 transition-transform"
                                     style={{ backgroundColor: color }}
                                     onClick={() => {
-                                       
+                                        if (onTextColorChange) {
+                                            onTextColorChange(color);
+                                        }
                                     }}
                                 />
                             ))}
@@ -319,13 +324,22 @@ const EditorSidebar = (props: any) => {
                                     type="color"
                                     className="w-12 h-8 rounded border border-gray-200"
                                     onChange={(e) => {
-                                        console.log('Custom color:', e.target.value);
+                                        if (onTextColorChange) {
+                                            onTextColorChange(e.target.value);
+                                        }
                                     }}
                                 />
                                 <input
                                     type="text"
                                     placeholder="#000000"
                                     className="flex-1 px-3 py-1 border border-gray-200 rounded text-sm"
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Validate hex color format
+                                        if (/^#[0-9A-F]{6}$/i.test(value) && onTextColorChange) {
+                                            onTextColorChange(value);
+                                        }
+                                    }}
                                 />
                             </div>
                         </div>
@@ -340,7 +354,7 @@ const EditorSidebar = (props: any) => {
                 <p className="mt-2 text-gray-600">This panel is still under development.</p>
             </div>
         );
-    }, [activeItemId, handleAddShape]);
+    }, [activeItemId, handleAddShape, onTextColorChange]);
 
     return (
         <>

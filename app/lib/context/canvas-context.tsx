@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, ReactNode } from "react"
+import { createContext, useContext, ReactNode, useCallback } from "react"
 import { CanvasContextType, Element } from "../types/canvas.types"
 import useCanvasStore, {
   useCurrentPageElements,
@@ -18,6 +18,13 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
   const elements = useCurrentPageElements();
   const canvasSize = useCurrentCanvasSize();
   
+  // Text color change handler
+  const handleTextColorChange = useCallback((color: string) => {
+    if (store.selectedElement && store.selectedElement.type === "text") {
+      store.updateElement(store.selectedElement.id, { textColor: color });
+    }
+  }, [store.selectedElement, store.updateElement]);
+  
   // Create the context value
   const contextValue: CanvasContextType = {
     // Canvas elements and properties
@@ -27,6 +34,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     isCanvasSelected: store.isCanvasSelected,
     canvasSize,
     isLoaded: store.isLoaded,
+    elementActionBar: store.elementActionBar,
     
     // Element manipulation
     addElement: store.addElement,
@@ -35,6 +43,7 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     deleteElement: store.deleteElement,
     deleteSelectedElements: store.deleteSelectedElements,
     selectElement: store.selectElement,
+    deselectElement: store.deselectElement,
     selectMultipleElements: store.selectMultipleElements,
     selectCanvas: store.selectCanvas,
     clearSelection: store.clearSelection,
@@ -52,6 +61,9 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     
     // Utility
     isElementSelected: store.isElementSelected,
+    
+    // Text styling
+    handleTextColorChange,
   };
 
   return (

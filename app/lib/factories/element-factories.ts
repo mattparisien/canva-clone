@@ -38,6 +38,7 @@ export function createTextElement(
     isItalic?: boolean
     isUnderlined?: boolean
     isStrikethrough?: boolean
+    textColor?: string
   } = {},
   canvasWidth: number,
   canvasHeight: number
@@ -70,6 +71,7 @@ export function createTextElement(
     isItalic: options.isItalic || false,
     isUnderlined: options.isUnderlined || false,
     isStrikethrough: options.isStrikethrough || false,
+    textColor: options.textColor || "#000000",
   }
 }
 

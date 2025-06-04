@@ -45,6 +45,7 @@ export const TextElement = ({
       isItalic={element.isItalic}
       isUnderlined={element.isUnderlined}
       isStrikethrough={element.isStrikethrough}
+      textColor={element.textColor}
       isEditMode={isEditMode}
     />
   </div>
