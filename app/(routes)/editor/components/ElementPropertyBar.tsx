@@ -237,8 +237,6 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
 
   const handleTextColorButtonClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('hi!')
-    // Open color picker or perform text color action
     openPopover("text-color");
   }, [openPopover]);
 
