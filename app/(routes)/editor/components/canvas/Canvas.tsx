@@ -31,7 +31,6 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   const selectElement = useCanvasStore(state => state.selectElement)
   const selectCanvas = useCanvasStore(state => state.selectCanvas)
   const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected)
-  const togggleCanvasSelection = useCanvasStore(state => state.toggleCanvasSelection)
   const selectedElement = useCanvasStore(state => state.selectedElement)
   const isLoaded = useCanvasStore(state => state.isLoaded)
   const updateMultipleElements = useCanvasStore(state => state.updateMultipleElements)
@@ -215,35 +214,6 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
     setIsCanvasHovering(false)
     setIsHoveringChild(false)
   }, [])
-
-  // Handle clicks outside the canvas to clear element selection
-  // useEffect(() => {
-  //   const handleOutsideClick = (e: globalThis.MouseEvent) => {
-  //     // Only process if we're in edit mode
-  //     if (!isEditMode) return;
-      
-  //     // Check if click is outside canvas
-  //     if (canvasRef.current && !canvasRef.current.contains(e.target as Node)) {
-  //       // Clear element selection
-  //       if (selectedElementIds.length > 0 || selectedElement !== null) {
-  //         selectElement(null);
-  //       }
-        
-  //       // Also clear canvas selection if needed
-  //       if (isCanvasSelected) {
-  //         selectCanvas(false);
-  //       }
-  //     }
-  //   };
-
-  //   // Add the event listener
-  //   document.addEventListener("click", handleOutsideClick);
-
-  //   // Clean up the event listener
-  //   return () => {
-  //     document.removeEventListener("click", handleOutsideClick);
-  //   };
-  // }, [selectElement, selectCanvas, selectedElementIds, selectedElement, isCanvasSelected, isEditMode]);
 
   const isBorderActive = (isCanvasSelected && isEditMode) || isCanvasHovering && isEditMode;
 

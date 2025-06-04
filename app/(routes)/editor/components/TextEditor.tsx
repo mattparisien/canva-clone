@@ -157,23 +157,6 @@ export function TextEditor({
   }, [isEditing]);
 
   /* ----------------------------------------------------------------
-     Exit editing when clicking outside the editor
-     ---------------------------------------------------------------- */
-  useEffect(() => {
-    if (!isEditing) return;
-
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (editorRef.current && !editorRef.current.contains(e.target as Node)) {
-        setIsEditing(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [isEditing]);
-
-
-  /* ----------------------------------------------------------------
      Recalculate and report height on content or width change
      ---------------------------------------------------------------- */
   useLayoutEffect(() => {

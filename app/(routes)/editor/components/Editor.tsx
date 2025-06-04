@@ -287,49 +287,40 @@ export default function Editor() {
         };
     }, [canvasSize.width, canvasSize.height]);
 
-    useEffect(() => {
+     useEffect(() => {
         const handleOutsideClick = (e: globalThis.MouseEvent) => {
             // Only process if we're in edit mode
             if (!isEditMode) return;
 
-            // Check if click is outside canvas, element property bar, and element action bar
-            const isClickOnCanvas = canvasRef.current?.contains(e.target as Node);
-            const isClickOnPropertyBar = elementPropertyBarRef.current?.contains(e.target as Node);
-            const isClickOnActionBar = elementActionBarRef.current?.contains(e.target as Node);
-
-
-            // Check if the click target is a resize handle or part of an element's controls
+        
             const target = e.target as HTMLElement;
-            const isClickOnResizeHandle = target.classList.contains('resize-handle');
+            
+            // Use data attributes to identify clickable areas
+            const isClickOnInteractiveElement = target.closest('[data-editor-interactive]');
 
-            // If click is outside all relevant areas and not on a resize handle
-            if (!isClickOnCanvas && !isClickOnPropertyBar && !isClickOnActionBar && !isClickOnResizeHandle) {
-
-                elementRefs.current.forEach(ref => {
-                    deselectElement(ref.id);
-                })
-
-                // Clear element selection
-                if (selectedElementIds.length > 0 || selectedElement !== null) {
-                    selectElement(null);
-                }
-
-                // Also clear canvas selection if needed
-                if (isCanvasSelected) {
-                    selectCanvas(false);
-                }
+            console.log(isClickOnInteractiveElement, ',')
+            // If click is on an interactive element, don't clear selection
+            if (isClickOnInteractiveElement) {
+                return;
             }
-        }
-
-        // Add click event listener to the document
-        document.addEventListener("mousedown", handleOutsideClick);
-
-        // Clean up on unmount or when dependencies change
-        return () => {
-            document.removeEventListener("mousedown", handleOutsideClick);
+    
+            // Clear selections
+            elementRefs.current.forEach(ref => {
+                deselectElement(ref.id);
+            });
+    
+            if (selectedElementIds.length > 0 || selectedElement !== null) {
+                selectElement(null);
+            }
+    
+            if (isCanvasSelected) {
+                selectCanvas(false);
+            }
         };
-    }, [isEditMode, selectedElementIds, selectedElement, isCanvasSelected, selectElement, selectCanvas, canvasRef, elementPropertyBarRef, elementActionBarRef]);
-
+    
+        window.addEventListener("mousedown", handleOutsideClick);
+        return () => window.removeEventListener("mousedown", handleOutsideClick);
+    }, [isEditMode, selectedElementIds, selectedElement, isCanvasSelected, selectElement, selectCanvas]);
     return (
         <div
             className="flex flex-1 overflow-hidden flex-col relative bg-editor pl-sidebar"

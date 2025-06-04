@@ -262,6 +262,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
       onMouseEnter={handleToolbarMouseEnter}
       onMouseLeave={handleToolbarMouseLeave}
       onClick={handleToolbarClick}
+      data-editor-interactive="true"
     >
       {/* Font Family Dropdown */}
       <div className="relative">

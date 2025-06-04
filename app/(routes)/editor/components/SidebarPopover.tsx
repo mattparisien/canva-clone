@@ -67,14 +67,15 @@ export const SidebarPopover: React.FC<SidebarPopoverProps> = ({
         paddingLeft: leftOffset,
         paddingTop: topOffset,
       }}
+      data-editor-interactive="true"
     >
-      <div 
+      <div
         className={`
           border border-neutral-200 shadow-xl rounded-xl bg-white
           ${scrollable ? 'overflow-y-scroll' : 'overflow-hidden'}
           ${className}
         `}
-        style={{ 
+        style={{
           width: typeof width === 'number' ? `${width}px` : width,
           height: height,
           padding: contentPadding
