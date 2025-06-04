@@ -27,6 +27,44 @@ import {
 } from "lucide-react"
 import { useEffect, useRef, useState, forwardRef, ForwardRefRenderFunction } from "react"
 
+// Common button style classes
+const BUTTON_BASE_CLASSES = "text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition"
+const BUTTON_ICON_CLASSES = "p-1.5"
+const BUTTON_ACTIVE_CLASSES = "bg-brand-blue-light text-brand-blue"
+const BUTTON_ROUNDED_XL = "rounded-xl"
+const BUTTON_ROUNDED_LG = "rounded-lg"
+
+// Reusable components
+interface ToolbarButtonProps {
+  onClick: (e: React.MouseEvent) => void
+  isActive?: boolean
+  children: React.ReactNode
+  className?: string
+  title?: string
+  rounded?: 'xl' | 'lg'
+}
+
+const ToolbarButton = ({ onClick, isActive, children, className = "", title, rounded = 'xl' }: ToolbarButtonProps) => {
+  const roundedClass = rounded === 'xl' ? BUTTON_ROUNDED_XL : BUTTON_ROUNDED_LG
+  return (
+    <button
+      className={cn(
+        BUTTON_BASE_CLASSES,
+        BUTTON_ICON_CLASSES,
+        roundedClass,
+        isActive && BUTTON_ACTIVE_CLASSES,
+        className
+      )}
+      onClick={onClick}
+      title={title}
+    >
+      {children}
+    </button>
+  )
+}
+
+const Divider = () => <div className="h-5 w-px bg-gray-200 mx-1"></div>
+
 interface ElementPropertyBarProps {
   selectedElement: Element | null
   onFontSizeChange: (size: number) => void
@@ -117,42 +155,40 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
     onTextAlignChange(align)
   }
 
-  // Handle text formatting changes
-  const handleBoldChange = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newValue = !isBold
-    setIsBold(newValue)
-    if (onFormatChange) {
-      onFormatChange({ bold: newValue })
-    }
-  }
-
-  const handleItalicChange = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newValue = !isItalic
-    setIsItalic(newValue)
-    if (onFormatChange) {
-      onFormatChange({ italic: newValue })
-    }
-  }
-
-  const handleUnderlineChange = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newValue = !isUnderlined
-    setIsUnderlined(newValue)
-    if (onFormatChange) {
-      onFormatChange({ underline: newValue })
-    }
-  }
-
-  const handleStrikethroughChange = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const newValue = !isStrikethrough
-    setIsStrikethrough(newValue)
-    if (onFormatChange) {
-      onFormatChange({ strikethrough: newValue })
-    }
-  }
+  // Handle text formatting changes - DRY approach with unified handler
+  const handleFormatChange = (formatType: 'bold' | 'italic' | 'underline' | 'strikethrough') => 
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      const currentValue = {
+        bold: isBold,
+        italic: isItalic,
+        underline: isUnderlined,
+        strikethrough: isStrikethrough
+      }[formatType];
+      
+      const newValue = !currentValue;
+      
+      // Update local state
+      switch (formatType) {
+        case 'bold':
+          setIsBold(newValue);
+          break;
+        case 'italic':
+          setIsItalic(newValue);
+          break;
+        case 'underline':
+          setIsUnderlined(newValue);
+          break;
+        case 'strikethrough':
+          setIsStrikethrough(newValue);
+          break;
+      }
+      
+      // Call parent handler
+      if (onFormatChange) {
+        onFormatChange({ [formatType]: newValue });
+      }
+    };
 
   // Handle horizontal positioning changes
   const handleAlignStart = (e: React.MouseEvent) => {
@@ -257,7 +293,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
               handleFontSizeChange(fontSize - 1);
             }}
           >
-            <Minus className="h-3.5 w-3.5" />
+            <Minus className="h-4 w-4" />
           </button>
 
           <input
@@ -278,102 +314,84 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
               handleFontSizeChange(fontSize + 1);
             }}
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      <div className="h-5 w-px bg-gray-200 mx-1"></div>
+      {/* Text Color with Hue Bar */}
+      <ToolbarButton onClick={(e) => e.stopPropagation()} title="Text Color">
+        <Type className="h-4 w-4 mx-auto" />
+        <div className="w-6 h-[6px] bg-center bg-repeat bg-contain rounded-sm border-[0.8px] border-neutral-400" style={{
+          backgroundImage: `url(hue-bar.png)`
+        }}></div>
+      </ToolbarButton>
 
-      {/* Text Color (placeholder) */}
-      <button 
-        className="rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Type className="h-3.5 w-3.5" />
-      </button>
-
-      <div className="h-5 w-px bg-gray-200 mx-1"></div>
+      <Divider />
 
       {/* Text Formatting */}
       <div className="flex items-center">
-        <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
-            isBold && "bg-brand-blue-light text-brand-blue")}
-          onClick={handleBoldChange}
-        >
-          <Bold className="h-3.5 w-3.5" />
-        </button>
-        <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
-            isItalic && "bg-brand-blue-light text-brand-blue")}
-          onClick={handleItalicChange}
-        >
-          <Italic className="h-3.5 w-3.5" />
-        </button>
-        <button
-          className={cn("rounded-xl p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
-            isUnderlined && "bg-brand-blue-light text-brand-blue")}
-          onClick={handleUnderlineChange}
-        >
-          <Underline className="h-3.5 w-3.5" />
-        </button>
-        <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
-            isStrikethrough && "bg-brand-blue-light text-brand-blue")}
-          onClick={handleStrikethroughChange}
-        >
-          <Strikethrough className="h-3.5 w-3.5" />
-        </button>
+        <ToolbarButton onClick={handleFormatChange('bold')} isActive={isBold}>
+          <Bold className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton onClick={handleFormatChange('italic')} isActive={isItalic}>
+          <Italic className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton onClick={handleFormatChange('underline')} isActive={isUnderlined}>
+          <Underline className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton onClick={handleFormatChange('strikethrough')} isActive={isStrikethrough} rounded="lg">
+          <Strikethrough className="h-4 w-4" />
+        </ToolbarButton>
       </div>
 
-      <div className="h-5 w-px bg-gray-200 mx-1"></div>
+      <Divider />
 
       {/* Text Alignment */}
       <div className="flex items-center">
-        <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
-            textAlign === "left" && "bg-brand-blue-light text-brand-blue")}
+        <ToolbarButton 
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("left");
           }}
+          isActive={textAlign === "left"}
+          rounded="lg"
         >
-          <AlignLeft className="h-3.5 w-3.5" />
-        </button>
-        <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
-            textAlign === "center" && "bg-brand-blue-light text-brand-blue")}
+          <AlignLeft className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton 
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("center");
           }}
+          isActive={textAlign === "center"}
+          rounded="lg"
         >
-          <AlignCenter className="h-3.5 w-3.5" />
-        </button>
-        <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
-            textAlign === "right" && "bg-brand-blue-light text-brand-blue")}
+          <AlignCenter className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton 
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("right");
           }}
+          isActive={textAlign === "right"}
+          rounded="lg"
         >
-          <AlignRight className="h-3.5 w-3.5" />
-        </button>
-        <button
-          className={cn("rounded-lg p-1.5 text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition",
-            textAlign === "justify" && "bg-brand-blue-light text-brand-blue")}
+          <AlignRight className="h-4 w-4" />
+        </ToolbarButton>
+        <ToolbarButton 
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("justify");
           }}
+          isActive={textAlign === "justify"}
+          rounded="lg"
         >
-          <AlignJustify className="h-3.5 w-3.5" />
-        </button>
+          <AlignJustify className="h-4 w-4" />
+        </ToolbarButton>
       </div>
 
-      <div className="h-5 w-px bg-gray-200 mx-1"></div>
+      <Divider />
 
       {/* Effects and Position */}
       <div className="flex items-center">
