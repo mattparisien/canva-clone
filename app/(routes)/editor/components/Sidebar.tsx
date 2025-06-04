@@ -2,17 +2,15 @@ import { NavigationSidebar } from "@/components/layout/navigation-sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation";
-import useEditorStore from "@/lib/stores/useEditorStore";
+import { createArrowElement, createCircleElement, createLineElement, createRectangleElement } from "@/lib/factories/element-factories";
 import useCanvasStore, { useCurrentCanvasSize } from "@/lib/stores/useCanvasStore";
-import { createRectangleElement, createCircleElement, createLineElement, createArrowElement } from "@/lib/factories/element-factories";
-import * as Popover from "@radix-ui/react-popover";
-import { ChevronRight, Search, Square, Circle, ArrowRight } from "lucide-react";
-import { useCallback, useRef } from "react";
+import useEditorStore from "@/lib/stores/useEditorStore";
+import { ArrowRight, ChevronRight, Circle, Search } from "lucide-react";
+import { useCallback } from "react";
+import { SidebarPopover } from "./SidebarPopover";
 
 
 const EditorSidebar = (props: any) => {
-
-    const popoverRef = useRef<HTMLDivElement>(null);
     const openPopover = useEditorStore((state) => state.openPopover);
     const activeItemId = useEditorStore((state) => state.popover.activeItemId);
     const canvasSize = useCurrentCanvasSize();
@@ -58,6 +56,7 @@ const EditorSidebar = (props: any) => {
 
     // Render appropriate content based on active item
     const renderPopoverContent = useCallback(() => {
+        console.log('yellow')
         if (activeItemId === "elements") {
             return (
                 <div className="flex flex-col p-6">
@@ -75,8 +74,8 @@ const EditorSidebar = (props: any) => {
 
                     {/* Element type buttons */}
                     <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap flex items-center gap-2"
                             onClick={() => handleAddShape("arrow")}
                         >
@@ -86,8 +85,8 @@ const EditorSidebar = (props: any) => {
                         <Button variant="outline" className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap">
                             Frame
                         </Button>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap flex items-center gap-2"
                             onClick={() => handleAddShape("line")}
                         >
@@ -97,8 +96,8 @@ const EditorSidebar = (props: any) => {
                         <Button variant="outline" className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap">
                             Table
                         </Button>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className="rounded-full bg-white border-gray-200 h-12 px-6 whitespace-nowrap flex items-center gap-2"
                             onClick={() => handleAddShape("circle")}
                         >
@@ -121,21 +120,21 @@ const EditorSidebar = (props: any) => {
                         </div>
                         <div className="flex gap-4 overflow-x-auto pb-2">
                             {/* Square */}
-                            <div 
+                            <div
                                 className="w-[80px] h-[80px] bg-black flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => handleAddShape("rectangle")}
                                 title="Add Rectangle"
                             ></div>
 
                             {/* Rounded square */}
-                            <div 
+                            <div
                                 className="w-[80px] h-[80px] bg-black rounded-xl flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => handleAddShape("rectangle")}
                                 title="Add Rounded Rectangle"
                             ></div>
 
                             {/* Horizontal line */}
-                            <div 
+                            <div
                                 className="w-[80px] h-[80px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => handleAddShape("line")}
                                 title="Add Line"
@@ -144,7 +143,7 @@ const EditorSidebar = (props: any) => {
                             </div>
 
                             {/* Arrow */}
-                            <div 
+                            <div
                                 className="w-[80px] h-[80px] flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => handleAddShape("arrow")}
                                 title="Add Arrow"
@@ -155,7 +154,7 @@ const EditorSidebar = (props: any) => {
                             </div>
 
                             {/* Circle */}
-                            <div 
+                            <div
                                 className="w-[80px] h-[80px] bg-black rounded-full flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={() => handleAddShape("circle")}
                                 title="Add Circle"
@@ -286,6 +285,54 @@ const EditorSidebar = (props: any) => {
                 </div>
             );
         }
+        else if (activeItemId === "text-color") {
+            // Text color picker content
+            return (
+                <div className="flex flex-col p-6">
+                    <h3 className="text-lg font-medium mb-4">Text Color</h3>
+                    <div className="space-y-4">
+                        {/* Color palette */}
+                        <div className="grid grid-cols-8 gap-2">
+                            {/* Basic colors */}
+                            {[
+                                "#000000", "#333333", "#666666", "#999999",
+                                "#CCCCCC", "#FFFFFF", "#FF0000", "#00FF00",
+                                "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF",
+                                "#FFA500", "#800080", "#008000", "#800000"
+                            ].map((color) => (
+                                <button
+                                    key={color}
+                                    className="w-8 h-8 rounded border border-gray-200 hover:scale-110 transition-transform"
+                                    style={{ backgroundColor: color }}
+                                    onClick={() => {
+                                       
+                                    }}
+                                />
+                            ))}
+                        </div>
+                        
+                        {/* Custom color input */}
+                        <div className="mt-4">
+                            <label className="block text-sm font-medium mb-2">Custom Color</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="color"
+                                    className="w-12 h-8 rounded border border-gray-200"
+                                    onChange={(e) => {
+                                        console.log('Custom color:', e.target.value);
+                                    }}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="#000000"
+                                    className="flex-1 px-3 py-1 border border-gray-200 rounded text-sm"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
         // Fallback for other menu items
         return (
             <div className="flex flex-col p-6">
@@ -302,25 +349,11 @@ const EditorSidebar = (props: any) => {
                 variant="editor"
                 onItemClick={handleItemClick}
             />
-            {/* 3️⃣  the floating panel */}
-            <Popover.Portal>
-                <Popover.Content
-                    side="bottom"       /* above | below | left | right */
-                    align="start"      /* start | center | end  ↔  vertical */
-                    alignOffset={4}     /* fine-tune distance from anchor edge */
-                    className="pl-[calc(var(--sidebar-width)+1rem)] pt-2"
-                    ref={popoverRef}
-                    id="popover-content"
-                >
-                    <div className="border border-neutral-200 shadow-xl rounded-xl h-[var(--editor-sidebar-popover-height)] bg-white w-[450px] overflow-y-scroll p-2">
-                        {renderPopoverContent()}
-                    </div>
-
-                </Popover.Content>
-            </Popover.Portal>
-
+            <SidebarPopover>
+                {renderPopoverContent()}
+            </SidebarPopover>
         </>
-    )
+    );
 };
 
 export default EditorSidebar;

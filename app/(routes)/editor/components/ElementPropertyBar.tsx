@@ -25,7 +25,8 @@ import {
   Type,
   Underline
 } from "lucide-react"
-import { useEffect, useRef, useState, forwardRef, ForwardRefRenderFunction } from "react"
+import { useEffect, useRef, useState, forwardRef, ForwardRefRenderFunction, useCallback } from "react"
+import useEditorStore from "@/lib/stores/useEditorStore"
 
 // Common button style classes
 const BUTTON_BASE_CLASSES = "text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition"
@@ -100,7 +101,10 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   const [isUnderlined, setIsUnderlined] = useState(selectedElement?.isUnderlined || false)
   const [isStrikethrough, setIsStrikethrough] = useState(selectedElement?.isStrikethrough || false)
   // Add position state
-  const [isPositionPopoverOpen, setIsPositionPopoverOpen] = useState(false)
+
+  const openPopover = useEditorStore((state) => state.openPopover);
+  const isPopoverOpen = useEditorStore((state) => state.popover.isOpen);
+
 
   const toolbarRef = useRef<HTMLDivElement>(null)
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -156,7 +160,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   }
 
   // Handle text formatting changes - DRY approach with unified handler
-  const handleFormatChange = (formatType: 'bold' | 'italic' | 'underline' | 'strikethrough') => 
+  const handleFormatChange = (formatType: 'bold' | 'italic' | 'underline' | 'strikethrough') =>
     (e: React.MouseEvent) => {
       e.stopPropagation();
       const currentValue = {
@@ -165,9 +169,9 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
         underline: isUnderlined,
         strikethrough: isStrikethrough
       }[formatType];
-      
+
       const newValue = !currentValue;
-      
+
       // Update local state
       switch (formatType) {
         case 'bold':
@@ -183,7 +187,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
           setIsStrikethrough(newValue);
           break;
       }
-      
+
       // Call parent handler
       if (onFormatChange) {
         onFormatChange({ [formatType]: newValue });
@@ -228,6 +232,17 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   const handleToolbarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
+
+  const handleTextColorButtonClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('hi!')
+    // Open color picker or perform text color action
+    openPopover("text-color");
+  }, [openPopover]);
+
+  useEffect(() => {
+    console.log('isPopoverOpen changed:', isPopoverOpen);
+  }, [isPopoverOpen]);
 
   // Clean up timeout on unmount
   useEffect(() => {
@@ -320,7 +335,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
       </div>
 
       {/* Text Color with Hue Bar */}
-      <ToolbarButton onClick={(e) => e.stopPropagation()} title="Text Color">
+      <ToolbarButton onClick={handleTextColorButtonClick} title="Text Color">
         <Type className="h-4 w-4 mx-auto" />
         <div className="w-6 h-[6px] bg-center bg-repeat bg-contain rounded-sm border-[0.8px] border-neutral-400" style={{
           backgroundImage: `url(hue-bar.png)`
@@ -349,7 +364,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
 
       {/* Text Alignment */}
       <div className="flex items-center">
-        <ToolbarButton 
+        <ToolbarButton
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("left");
@@ -359,7 +374,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
         >
           <AlignLeft className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton 
+        <ToolbarButton
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("center");
@@ -369,7 +384,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
         >
           <AlignCenter className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton 
+        <ToolbarButton
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("right");
@@ -379,7 +394,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
         >
           <AlignRight className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton 
+        <ToolbarButton
           onClick={(e) => {
             e.stopPropagation();
             handleTextAlignChange("justify");

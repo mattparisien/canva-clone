@@ -71,14 +71,13 @@ export const ElementControls = React.memo(({
       {/* Top-left corner handle */}
       {(!isResizing || resizeDirection === "nw") && (
         <div
-          className="absolute cursor-nwse-resize"
+          className="absolute cursor-nwse-resize z-editor-overlay"
           style={{
             width: `${handleSize}px`,
             height: `${handleSize}px`,
             borderRadius: "50%",
             boxShadow: "0 2px 8px 2px rgba(0,0,0,0.15)",
             border: "1px solid var(--handle-border)",
-            zIndex: 10,
             top: 0,
             left: 0,
             transform: `translate(-50%, -50%) scale(${1})`,

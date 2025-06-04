@@ -374,7 +374,7 @@ const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControl
     return (
         <div
             ref={mergeRefs(elementRef, ref)}
-            className={classNames("", {
+            className={classNames("z-editor-overlay", {
                 "is-highlighted relative": isSelected || isHovering
             })} style={{
                 position: 'fixed',
@@ -383,7 +383,6 @@ const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControl
                 width: element.width * scale,
                 height: element.height * scale,
                 cursor: isEditMode && !element.locked ? (isDragging ? "grabbing" : "grab") : "default",
-                zIndex: 99999,
                 pointerEvents: 'auto',
                 transform: 'translate3d(0, 0, 0)' // Force hardware acceleration for smoother rendering
             }}

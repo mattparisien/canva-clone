@@ -118,7 +118,9 @@ const config: Config = {
         'header': 'var(--header-height)',
       },
       zIndex: {
+        'editor-overlay': 'var(--z-editor-overlay)',
         'sidebar': 'var(--z-sidebar)',
+        'sidebar-popover': 'var(--z-sidebar-popover)',
         'toolbar': 'var(--z-toolbar)',
         'popover': 'var(--z-popover)',
         'header': 'var(--z-header)',
