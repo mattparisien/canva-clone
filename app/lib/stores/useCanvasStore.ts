@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { create } from 'zustand';
 import { DEFAULT_CANVAS_SIZE } from '../constants/canvas';
 import { CanvasContextType, Element, HistoryAction } from '../types/canvas.types';
+import { scaleElement as scaleElementUtil } from '../utils/canvas-utils';
 import useEditorStore from './useEditorStore';
 
 interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'> {
@@ -465,16 +466,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
     get().updateElement(id, { isNew: false });
   },
 
-  // Helper to scale an element's position and size
+  // Helper to scale an element
   scaleElement: (element, scaleFactor) => {
-    return {
-      ...element,
-      x: element.x * scaleFactor,
-      y: element.y * scaleFactor,
-      width: element.width * scaleFactor,
-      height: element.height * scaleFactor,
-      fontSize: element.fontSize ? element.fontSize * scaleFactor : undefined
-    };
+    return scaleElementUtil(element, scaleFactor);
   },
 
   // Undo the last action
