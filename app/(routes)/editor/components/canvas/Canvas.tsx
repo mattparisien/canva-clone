@@ -34,6 +34,13 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   const selectedElement = useCanvasStore(state => state.selectedElement)
   const isLoaded = useCanvasStore(state => state.isLoaded)
   const updateMultipleElements = useCanvasStore(state => state.updateMultipleElements)
+  
+  // Alignment guides from canvas store
+  const alignmentGuides = useCanvasStore(state => state.alignmentGuides)
+  const isDragging = useCanvasStore(state => state.isDragging)
+  const activeDragElement = useCanvasStore(state => state.activeDragElement)
+  const setDragState = useCanvasStore(state => state.setDragState)
+  const clearAlignmentGuides = useCanvasStore(state => state.clearAlignmentGuides)
 
   const canvasRef = useRef<HTMLDivElement>(null) // un‑scaled logical canvas
 
@@ -50,9 +57,6 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   /* ------------------------------------------------------------------
    * State
    * ------------------------------------------------------------------ */
-  const [isDragging, setIsDragging] = useState(false)
-  const [activeDragElement, setActiveDragElement] = useState<string | null>(null)
-  const [alignments, setAlignments] = useState({ horizontal: [] as number[], vertical: [] as number[] })
   const [lastDragPos, setLastDragPos] = useState<{ x: number, y: number } | null>(null) // Track last drag position
 
 
@@ -140,17 +144,17 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
     // If in view mode, do nothing
     if (!isEditMode) return;
 
-    setIsDragging(true)
-    setActiveDragElement(element.id)
-    setAlignments({ horizontal: [], vertical: [] })
+    setDragState(true, element.id)
+    clearAlignmentGuides()
     setLastDragPos({ x: element.x, y: element.y }) // Initialize last drag position
-  }, [isEditMode])
+  }, [isEditMode, setDragState, clearAlignmentGuides])
 
-  const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignments, isDragSelection: boolean = false) => {
+  const handleDrag = useCallback((element: any, x: number, y: number, newAlignments: typeof alignmentGuides, isDragSelection: boolean = false) => {
     // If in view mode, do nothing
     if (!isEditMode) return;
 
-    setAlignments(newAlignments)
+    // Note: alignment guides are now managed by ElementControls through the canvas store
+    // This handler is kept for backward compatibility but the guides are set in ElementControls
 
     // When dragging multiple elements, update their positions
     if (isDragSelection && selectedElementIds.length > 1) {
@@ -177,11 +181,10 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
     // If in view mode, do nothing
     if (!isEditMode) return;
 
-    setIsDragging(false)
-    setActiveDragElement(null)
-    setAlignments({ horizontal: [], vertical: [] })
+    setDragState(false)
+    clearAlignmentGuides()
     setLastDragPos(null) // Reset last drag position
-  }, [isEditMode])
+  }, [isEditMode, setDragState, clearAlignmentGuides])
 
   // Handle element hover
   const handleElementHover = useCallback((id: string | null) => {
@@ -264,7 +267,7 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
             elements={elements}
             canvasWidth={canvasSize.width}
             canvasHeight={canvasSize.height}
-            alignments={alignments}
+            alignments={alignmentGuides}
           />
         )
       }

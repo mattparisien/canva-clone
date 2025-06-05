@@ -38,6 +38,9 @@ const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControl
     const updateElement = useCanvasStore(state => state.updateElement);
     const selectElement = useCanvasStore(state => state.selectElement);
     const clearNewElementFlag = useCanvasStore(state => state.clearNewElementFlag);
+    const setAlignmentGuides = useCanvasStore(state => state.setAlignmentGuides);
+    const setDragState = useCanvasStore(state => state.setDragState);
+    const clearAlignmentGuides = useCanvasStore(state => state.clearAlignmentGuides);
 
     // Use the interaction hook
     const {
@@ -156,7 +159,10 @@ const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControl
         startDrag(
             e,
             element,
-            () => { }, // onDragStart callback
+            () => { 
+                // onDragStart callback - notify canvas store
+                setDragState(true, element.id);
+            }, 
             selectElement,
             clearNewElementFlag
         );
@@ -207,6 +213,9 @@ const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControl
             newX = snappedX;
             newY = snappedY;
 
+            // Update alignment guides in canvas store
+            setAlignmentGuides(alignments);
+
             // Update element position in canvas store
             updateElement(element.id, { x: newX, y: newY });
 
@@ -231,6 +240,10 @@ const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControl
         const handleMouseUp = () => {
             // Use the hook's endDrag function
             endDrag(() => { }); // onDragEnd callback
+
+            // Clear alignment guides and drag state in canvas store  
+            setDragState(false);
+            clearAlignmentGuides();
 
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);

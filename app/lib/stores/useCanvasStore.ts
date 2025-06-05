@@ -14,6 +14,16 @@ interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'>
     elementId: string | null;
   };
   hoveredElementId: string | null;
+  // Alignment guides state
+  alignmentGuides: {
+    horizontal: number[];
+    vertical: number[];
+  };
+  isDragging: boolean;
+  activeDragElement: string | null;
+  setAlignmentGuides: (alignments: { horizontal: number[], vertical: number[] }) => void;
+  setDragState: (isDragging: boolean, elementId?: string | null) => void;
+  clearAlignmentGuides: () => void;
   showElementActionBar: (elementId: string, position: { x: number; y: number }) => void;
   hideElementActionBar: () => void;
   setElementActionBarPosition: (position: { x: number; y: number }) => void;
@@ -42,6 +52,31 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
     elementId: null,
   },
   hoveredElementId: null,
+  // Alignment guides state
+  alignmentGuides: {
+    horizontal: [],
+    vertical: [],
+  },
+  isDragging: false,
+  activeDragElement: null,
+
+  // Alignment guides methods
+  setAlignmentGuides: (alignments) => {
+    set({ alignmentGuides: alignments });
+  },
+  
+  setDragState: (isDragging, elementId = null) => {
+    set({ 
+      isDragging, 
+      activeDragElement: elementId,
+      // Clear alignment guides when drag ends
+      alignmentGuides: isDragging ? get().alignmentGuides : { horizontal: [], vertical: [] }
+    });
+  },
+  
+  clearAlignmentGuides: () => {
+    set({ alignmentGuides: { horizontal: [], vertical: [] } });
+  },
 
   // Add new element to the canvas
   addElement: (elementData) => {

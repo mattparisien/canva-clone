@@ -19,6 +19,13 @@ interface ElementRendererProps {
     handleHeightChange: (newHeight: number) => void;
     handleTextAlignChange: (align: "left" | "center" | "right" | "justify") => void;
     isEditMode: boolean;
+    // Optional drag handlers for alignment guides
+    onDragStart?: () => void;
+    onDrag?: (alignments: { horizontal: number[], vertical: number[] }) => void;
+    onDragEnd?: () => void;
+    allElements?: CanvasElement[];
+    canvasWidth?: number;
+    canvasHeight?: number;
 }
 
 const ElementRenderer = memo(({
@@ -29,7 +36,13 @@ const ElementRenderer = memo(({
     clearNewElementFlag,
     handleHeightChange,
     handleTextAlignChange,
-    isEditMode
+    isEditMode,
+    onDragStart,
+    onDrag,
+    onDragEnd,
+    allElements,
+    canvasWidth,
+    canvasHeight
 }: ElementRendererProps) => {
     // Use a simple switch to route to the appropriate component
     switch (element.type) {

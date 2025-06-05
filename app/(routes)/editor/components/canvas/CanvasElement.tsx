@@ -16,6 +16,13 @@ interface CanvasElementProps {
   canvasRef: React.RefObject<HTMLDivElement>
   onHover: (id: string | null) => void
   isEditMode: boolean
+  // Props expected by Canvas for alignment guides
+  allElements?: EditorCanvasElement[]
+  canvasWidth?: number
+  canvasHeight?: number
+  onDragStart?: (element: EditorCanvasElement) => void
+  onDrag?: (element: EditorCanvasElement, x: number, y: number, alignments: { horizontal: number[], vertical: number[] }, isDragSelection?: boolean) => void
+  onDragEnd?: () => void
 }
 
 export function CanvasElement({
@@ -25,6 +32,12 @@ export function CanvasElement({
   canvasRef,
   onHover,
   isEditMode,
+  allElements = [],
+  canvasWidth = 800,
+  canvasHeight = 600,
+  onDragStart,
+  onDrag,
+  onDragEnd,
 }: CanvasElementProps) {
   // Get Zustand store methods
   const updateElement = useCanvasStore(state => state.updateElement);
@@ -39,6 +52,25 @@ export function CanvasElement({
   
   // Initialize text measurement hook
   const { measureElementHeight, renderMeasurer } = useTextMeasurement();
+
+  // Create custom drag handlers that communicate with Canvas alignment guides
+  const handleDragStart = useCallback(() => {
+    if (onDragStart) {
+      onDragStart(element);
+    }
+  }, [element, onDragStart]);
+
+  const handleDrag = useCallback((alignments: { horizontal: number[], vertical: number[] }) => {
+    if (onDrag) {
+      onDrag(element, element.x, element.y, alignments);
+    }
+  }, [element, onDrag]);
+
+  const handleDragEnd = useCallback(() => {
+    if (onDragEnd) {
+      onDragEnd();
+    }
+  }, [onDragEnd]);
 
   // Helper function to update element with viewport rect
   const updateElementWithRect = useCallback((updates: Partial<EditorCanvasElement>) => {
@@ -159,6 +191,13 @@ export function CanvasElement({
           handleHeightChange={handleHeightChange}
           handleTextAlignChange={handleTextAlignChange}
           isEditMode={isEditMode}
+          // Pass drag handlers and canvas data for alignment guides
+          onDragStart={handleDragStart}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          allElements={allElements}
+          canvasWidth={canvasWidth}
+          canvasHeight={canvasHeight}
         />
       </div>
     </>
