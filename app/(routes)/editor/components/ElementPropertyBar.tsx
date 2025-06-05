@@ -106,8 +106,8 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   const [isStrikethrough, setIsStrikethrough] = useState(selectedElement?.isStrikethrough || false)
   // Add position state
 
-  const openPopover = useEditorStore((state) => state.openPopover);
-  const isPopoverOpen = useEditorStore((state) => state.popover.isOpen);
+  const openSidebarPanel = useEditorStore((state) => state.openSidebarPanel);
+  const isPanelOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
 
 
   const toolbarRef = useRef<HTMLDivElement>(null)
@@ -239,17 +239,17 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
 
   const handleTextColorButtonClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    openPopover("text-color");
-  }, [openPopover]);
+    openSidebarPanel("text-color");
+  }, [openSidebarPanel]);
 
   const handleBackgroundColorButtonClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    openPopover("background-color");
-  }, [openPopover]);
+    openSidebarPanel("background-color");
+  }, [openSidebarPanel]);
 
   useEffect(() => {
-    console.log('isPopoverOpen changed:', isPopoverOpen);
-  }, [isPopoverOpen]);
+    console.log('isPanelOpen changed:', isPanelOpen);
+  }, [isPanelOpen]);
 
   // Clean up timeout on unmount
   useEffect(() => {

@@ -27,16 +27,16 @@ export default function EditorLayout({
 }
 
 function EditorLayoutContent({ children }: { children: React.ReactNode }) {
-    const isPopoverOpen = useEditorStore((state) => state.popover.isOpen);
-    const closePopover = useEditorStore((state) => state.closePopover);
+    const isPanelOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
+    const closeSidebarPanel = useEditorStore((state) => state.closeSidebarPanel);
     const { handleTextColorChange, handleBackgroundColorChange } = useCanvas();
 
     return (
-        <Popover.Root 
-            open={isPopoverOpen} 
+        <Popover.Root
+            open={isPanelOpen}
             onOpenChange={(open) => {
                 if (!open) {
-                    closePopover();
+                    closeSidebarPanel();
                 }
             }}
         >
