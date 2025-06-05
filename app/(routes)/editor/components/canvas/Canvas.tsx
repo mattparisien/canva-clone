@@ -223,7 +223,7 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   return (
     <div
       ref={handleRef}
-      className={classNames("flex items-center justify-center p-1 z-50 relative bg-white shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)] overflow-hidden",
+      className={classNames("canvas-container flex items-center justify-center p-1 z-50 relative bg-white shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)] overflow-hidden",
         // "border-4 border-brand-blue": isBorderActive,
         isBorderActive && "is-highlighted"
       )}
