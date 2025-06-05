@@ -11,6 +11,7 @@ import { SidebarPopover } from "./SidebarPopover";
 
 interface EditorSidebarProps {
     onTextColorChange?: (color: string) => void;
+    onBackgroundColorChange?: (color: string) => void;
 }
 
 // Modular popover components
@@ -386,6 +387,152 @@ const TextColorPopoverContent = ({ onTextColorChange }: { onTextColorChange?: (c
     );
 };
 
+const BackgroundColorPopoverContent = ({ onBackgroundColorChange }: { onBackgroundColorChange?: (color: string) => void }) => {
+    // Get the currently selected element to show which color is active
+    const selectedElement = useCanvasStore(state => state.selectedElement);
+    const currentBackgroundColor = selectedElement?.backgroundColor;
+
+    return (
+    <div className="flex flex-col p-6">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-6">
+            <Palette className="h-5 w-5 text-gray-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Default colors</h3>
+        </div>
+
+        {/* Solid colors section */}
+        <div className="mb-6">
+            <h4 className="text-sm font-medium text-gray-600 mb-4">Solid colors</h4>
+            
+            {/* Color grid - 6 columns, 4 rows */}
+            <div className="grid grid-cols-6 gap-3">
+                {/* Row 1: Grays and white */}
+                {[
+                    "#000000", // Black
+                    "#4A4A4A", // Dark gray
+                    "#7A7A7A", // Medium gray
+                    "#A8A8A8", // Light gray
+                    "#D1D1D1", // Very light gray
+                    "#FFFFFF"  // White
+                ].map((color) => (
+                    <button
+                        key={color}
+                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
+                            color === "#FFFFFF" ? "border-2 border-gray-200" : ""
+                        } ${
+                            currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => {
+                            if (onBackgroundColorChange) {
+                                onBackgroundColorChange(color);
+                            }
+                        }}
+                    />
+                ))}
+                
+                {/* Row 2: Reds, pinks, purples */}
+                {[
+                    "#EF4444", // Red
+                    "#F87171", // Light red
+                    "#EC4899", // Pink
+                    "#C084FC", // Light purple
+                    "#8B5CF6", // Purple
+                    "#6366F1"  // Blue purple
+                ].map((color) => (
+                    <button
+                        key={color}
+                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
+                            currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => {
+                            if (onBackgroundColorChange) {
+                                onBackgroundColorChange(color);
+                            }
+                        }}
+                    />
+                ))}
+                
+                {/* Row 3: Blues and teals */}
+                {[
+                    "#0891B2", // Teal
+                    "#06B6D4", // Cyan
+                    "#22D3EE", // Light cyan
+                    "#3B82F6", // Blue
+                    "#6366F1", // Indigo
+                    "#1E40AF"  // Dark blue
+                ].map((color) => (
+                    <button
+                        key={color}
+                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
+                            currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => {
+                            if (onBackgroundColorChange) {
+                                onBackgroundColorChange(color);
+                            }
+                        }}
+                    />
+                ))}
+                
+                {/* Row 4: Greens, yellows, oranges */}
+                {[
+                    "#10B981", // Green 
+                    "#84CC16", // Lime
+                    "#EAB308", // Yellow
+                    "#F59E0B", // Amber
+                    "#F97316", // Orange
+                    "#EF4444"  // Red orange
+                ].map((color) => (
+                    <button
+                        key={color}
+                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
+                            currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => {
+                            if (onBackgroundColorChange) {
+                                onBackgroundColorChange(color);
+                            }
+                        }}
+                    />
+                ))}
+            </div>
+        </div>
+        
+        {/* Custom color input */}
+        <div className="border-t pt-4">
+            <div className="flex gap-3 items-center">
+                <input
+                    type="color"
+                    value={currentBackgroundColor || "#000000"}
+                    className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
+                    onChange={(e) => {
+                        if (onBackgroundColorChange) {
+                            onBackgroundColorChange(e.target.value);
+                        }
+                    }}
+                />
+                <input
+                    type="text"
+                    placeholder="#000000"
+                    value={currentBackgroundColor || ""}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^#[0-9A-F]{6}$/i.test(value) && onBackgroundColorChange) {
+                            onBackgroundColorChange(value);
+                        }
+                    }}
+                />
+            </div>
+        </div>
+    </div>
+    );
+};
+
 const DefaultPopoverContent = ({ activeItemId }: { activeItemId: string }) => (
     <div className="flex flex-col p-6">
         <h3 className="text-lg font-medium">Content for {activeItemId}</h3>
@@ -393,7 +540,7 @@ const DefaultPopoverContent = ({ activeItemId }: { activeItemId: string }) => (
     </div>
 );
 
-const EditorSidebar = ({ onTextColorChange }: EditorSidebarProps) => {
+const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSidebarProps) => {
     const openPopover = useEditorStore((state) => state.openPopover);
     const activeItemId = useEditorStore((state) => state.popover.activeItemId);
     const canvasSize = useCurrentCanvasSize();
@@ -446,10 +593,12 @@ const EditorSidebar = ({ onTextColorChange }: EditorSidebarProps) => {
                 return <TextPopoverContent />;
             case "text-color":
                 return <TextColorPopoverContent onTextColorChange={onTextColorChange} />;
+            case "background-color":
+                return <BackgroundColorPopoverContent onBackgroundColorChange={onBackgroundColorChange} />;
             default:
                 return <DefaultPopoverContent activeItemId={activeItemId || ""} />;
         }
-    }, [activeItemId, handleAddShape, onTextColorChange]);
+    }, [activeItemId, handleAddShape, onTextColorChange, onBackgroundColorChange]);
 
     return (
         <>

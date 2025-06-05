@@ -29,7 +29,7 @@ export default function EditorLayout({
 function EditorLayoutContent({ children }: { children: React.ReactNode }) {
     const isPopoverOpen = useEditorStore((state) => state.popover.isOpen);
     const closePopover = useEditorStore((state) => state.closePopover);
-    const { handleTextColorChange } = useCanvas();
+    const { handleTextColorChange, handleBackgroundColorChange } = useCanvas();
 
     return (
         <Popover.Root 
@@ -44,7 +44,10 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
                 <Popover.Anchor>
                     <EditorNavbar />
                 </Popover.Anchor>
-                <EditorSidebar onTextColorChange={handleTextColorChange} />
+                <EditorSidebar 
+                    onTextColorChange={handleTextColorChange} 
+                    onBackgroundColorChange={handleBackgroundColorChange} 
+                />
                 {children}
             </div>
         </Popover.Root>
