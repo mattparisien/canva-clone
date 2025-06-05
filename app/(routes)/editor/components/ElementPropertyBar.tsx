@@ -418,6 +418,20 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
         </>
       )}
 
+      {/* Shape Element Controls - Show color control for shapes */}
+      {isShapeElement && (
+        <>
+          {/* Shape Color with Hue Wheel */}
+          <ToolbarButton onClick={handleTextColorButtonClick} title="Shape Color">
+            <div className="w-5 h-5 bg-center bg-contain rounded-full border-[0.8px] border-neutral-400" style={{
+              backgroundImage: `url(hue-wheel.png)`
+            }}></div>
+          </ToolbarButton>
+
+          <Divider />
+        </>
+      )}
+
       {/* Position Controls - Show for both text and shape elements */}
       <div className="flex items-center">
         <Popover>
