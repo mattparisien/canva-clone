@@ -31,7 +31,7 @@ const ElementActionBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elemen
     return (
         <div
             ref={ref}
-            className={`fixed bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_3px_10px_rgba(0,0,0,0.15)] flex items-center p-1 border border-gray-100 z-50 pointer-events-auto z-editor-overlay ${
+            className={`fixed bg-white/95 backdrop-blur-sm rounded-2xl shadow-[0_3px_10px_rgba(0,0,0,0.15)] flex items-center p-1 border border-gray-100 z-50 pointer-events-auto z-editor-popover ${
                 isVertical ? 'flex-col space-y-0.5' : 'space-x-0.5'
             }`}
             style={{

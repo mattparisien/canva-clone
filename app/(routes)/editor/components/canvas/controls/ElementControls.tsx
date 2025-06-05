@@ -383,7 +383,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
     return (
         <div
             ref={mergeRefs(elementRef, ref)}
-            className={classNames("z-editor-overlay", {
+            className={classNames("z-editor-canvas-controls", {
                 "is-highlighted relative": isSelected || isHovering
             })} style={{
                 position: 'fixed',

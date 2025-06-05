@@ -102,7 +102,8 @@ body {
 
     --z-sidebar: 1000;
     --z-sidebar-popover: 999;
-    --z-editor-overlay: 998;
+    --z-editor-popover: 998;
+    --z-editor-canvas-controls: 997;
     --z-header: 999999;
     --z-element-action-bar: 1500; /* Added z-index for element action bar */
 
