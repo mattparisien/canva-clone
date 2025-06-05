@@ -8,6 +8,9 @@ import useEditorStore from "@/lib/stores/useEditorStore";
 import { ArrowRight, ChevronRight, Circle, Palette, Search } from "lucide-react";
 import { useCallback } from "react";
 import { SidebarPopover } from "./SidebarPopover";
+import { useQuery } from "@tanstack/react-query";
+import { brandsAPI } from "@/lib/api";
+import { Brand } from "@/lib/types/brands";
 
 interface EditorSidebarProps {
     onTextColorChange?: (color: string) => void;
@@ -245,6 +248,10 @@ const TextColorPopoverContent = ({ onTextColorChange }: { onTextColorChange?: (c
     // Get the currently selected element to show which color is active
     const selectedElement = useCanvasStore(state => state.selectedElement);
     const currentTextColor = selectedElement?.type === "text" ? selectedElement.textColor : null;
+    const { data: brands } = useQuery<Brand[]>({
+        queryKey: ["editor-brands"],
+        queryFn: () => brandsAPI.getAll(),
+    });
 
     return (
     <div className="flex flex-col p-6">
@@ -355,6 +362,36 @@ const TextColorPopoverContent = ({ onTextColorChange }: { onTextColorChange?: (c
                 ))}
             </div>
         </div>
+
+        {/* Brand color palettes */}
+        {brands && brands.length > 0 && (
+            <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-600 mb-4">Brand palettes</h4>
+                {brands.map((brand) => (
+                    <div key={brand._id} className="mb-4">
+                        {brand.colorPalettes.map((palette, idx) => (
+                            <div key={idx} className="mb-2">
+                                <div className="text-xs text-gray-500 mb-2">{palette.name}</div>
+                                <div className="flex gap-3 flex-wrap">
+                                    {palette.colors.map((color) => (
+                                        <button
+                                            key={color}
+                                            className={`w-10 h-10 rounded-full hover:scale-105 transition-transform ${currentTextColor === color ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+                                            style={{ backgroundColor: color }}
+                                            onClick={() => {
+                                                if (onTextColorChange) {
+                                                    onTextColorChange(color);
+                                                }
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </div>
+        )}
         
         {/* Custom color input */}
         <div className="border-t pt-4">
@@ -391,6 +428,10 @@ const BackgroundColorPopoverContent = ({ onBackgroundColorChange }: { onBackgrou
     // Get the currently selected element to show which color is active
     const selectedElement = useCanvasStore(state => state.selectedElement);
     const currentBackgroundColor = selectedElement?.backgroundColor;
+    const { data: brands } = useQuery<Brand[]>({
+        queryKey: ["editor-brands"],
+        queryFn: () => brandsAPI.getAll(),
+    });
 
     return (
     <div className="flex flex-col p-6">
@@ -501,7 +542,37 @@ const BackgroundColorPopoverContent = ({ onBackgroundColorChange }: { onBackgrou
                 ))}
             </div>
         </div>
-        
+
+        {/* Brand color palettes */}
+        {brands && brands.length > 0 && (
+            <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-600 mb-4">Brand palettes</h4>
+                {brands.map((brand) => (
+                    <div key={brand._id} className="mb-4">
+                        {brand.colorPalettes.map((palette, idx) => (
+                            <div key={idx} className="mb-2">
+                                <div className="text-xs text-gray-500 mb-2">{palette.name}</div>
+                                <div className="flex gap-3 flex-wrap">
+                                    {palette.colors.map((color) => (
+                                        <button
+                                            key={color}
+                                            className={`w-10 h-10 rounded-full hover:scale-105 transition-transform ${currentBackgroundColor === color ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+                                            style={{ backgroundColor: color }}
+                                            onClick={() => {
+                                                if (onBackgroundColorChange) {
+                                                    onBackgroundColorChange(color);
+                                                }
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ))}
+            </div>
+        )}
+
         {/* Custom color input */}
         <div className="border-t pt-4">
             <div className="flex gap-3 items-center">
