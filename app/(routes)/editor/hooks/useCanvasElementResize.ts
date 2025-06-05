@@ -145,6 +145,12 @@ export function useCanvasElementResize() {
       const totalDeltaX = (mouseX - initialMousePos.current.x) / scale;
       const totalDeltaY = (mouseY - initialMousePos.current.y) / scale;
 
+      // When resizing from the center (Alt/Option key pressed) we double the
+      // delta applied to dimensions while shifting the element by the original
+      // delta to keep the center stationary.
+      const deltaX = isAltKeyPressed ? totalDeltaX * 2 : totalDeltaX;
+      const deltaY = isAltKeyPressed ? totalDeltaY * 2 : totalDeltaY;
+
       let newWidth = origWidth;
       let newHeight = origHeight;
       let newX = origX;
@@ -160,8 +166,8 @@ export function useCanvasElementResize() {
           case "se": // Southeast
             if (shouldMaintainAspectRatio) {
               // Constrained mode: maintain aspect ratio
-              const potentialWidthSE = Math.max(50, origWidth + totalDeltaX);
-              const potentialHeightSE = Math.max(20, origHeight + totalDeltaY);
+              const potentialWidthSE = Math.max(50, origWidth + deltaX);
+              const potentialHeightSE = Math.max(20, origHeight + deltaY);
 
               // Choose the dimension that would result in the larger area
               if (potentialWidthSE / origWidth > potentialHeightSE / origHeight) {
@@ -173,24 +179,24 @@ export function useCanvasElementResize() {
               }
             } else {
               // Free mode: resize width and height independently
-              newWidth = Math.max(50, origWidth + totalDeltaX);
-              newHeight = Math.max(20, origHeight + totalDeltaY);
+              newWidth = Math.max(50, origWidth + deltaX);
+              newHeight = Math.max(20, origHeight + deltaY);
             }
             
             widthChanged = true;
 
-            // If Alt/Option key is pressed, resize from center
+            // If Alt/Option key is pressed, shift position to keep center fixed
             if (isAltKeyPressed) {
-              newX = origX - (newWidth - origWidth) / 2;
-              newY = origY - (newHeight - origHeight) / 2;
+              newX = origX - totalDeltaX;
+              newY = origY - totalDeltaY;
             }
             break;
 
           case "sw": // Southwest
             if (shouldMaintainAspectRatio) {
               // Constrained mode: maintain aspect ratio
-              const potentialWidthSW = Math.max(50, origWidth - totalDeltaX);
-              const potentialHeightSW = Math.max(20, origHeight + totalDeltaY);
+              const potentialWidthSW = Math.max(50, origWidth - deltaX);
+              const potentialHeightSW = Math.max(20, origHeight + deltaY);
 
               if (potentialWidthSW / origWidth > potentialHeightSW / origHeight) {
                 newWidth = potentialWidthSW;
@@ -201,17 +207,15 @@ export function useCanvasElementResize() {
               }
             } else {
               // Free mode: resize width and height independently
-              newWidth = Math.max(50, origWidth - totalDeltaX);
-              newHeight = Math.max(20, origHeight + totalDeltaY);
+              newWidth = Math.max(50, origWidth - deltaX);
+              newHeight = Math.max(20, origHeight + deltaY);
             }
             
             widthChanged = true;
 
             if (isAltKeyPressed) {
-              // When alt is pressed, resize from center
-              const widthDelta = origWidth - newWidth;
-              newX = origX + widthDelta / 2;
-              newY = origY - (newHeight - origHeight) / 2;
+              newX = origX + totalDeltaX;
+              newY = origY - totalDeltaY;
             } else {
               newX = origX + (origWidth - newWidth);
             }
@@ -220,8 +224,8 @@ export function useCanvasElementResize() {
           case "ne": // Northeast
             if (shouldMaintainAspectRatio) {
               // Constrained mode: maintain aspect ratio
-              const potentialWidthNE = Math.max(50, origWidth + totalDeltaX);
-              const potentialHeightNE = Math.max(20, origHeight - totalDeltaY);
+              const potentialWidthNE = Math.max(50, origWidth + deltaX);
+              const potentialHeightNE = Math.max(20, origHeight - deltaY);
 
               if (potentialWidthNE / origWidth > potentialHeightNE / origHeight) {
                 newWidth = potentialWidthNE;
@@ -232,16 +236,15 @@ export function useCanvasElementResize() {
               }
             } else {
               // Free mode: resize width and height independently
-              newWidth = Math.max(50, origWidth + totalDeltaX);
-              newHeight = Math.max(20, origHeight - totalDeltaY);
+              newWidth = Math.max(50, origWidth + deltaX);
+              newHeight = Math.max(20, origHeight - deltaY);
             }
             
             widthChanged = true;
 
             if (isAltKeyPressed) {
-              newX = origX - (newWidth - origWidth) / 2;
-              const heightDelta = origHeight - newHeight;
-              newY = origY + heightDelta / 2;
+              newX = origX - totalDeltaX;
+              newY = origY + totalDeltaY;
             } else {
               newY = origY + (origHeight - newHeight);
             }
@@ -250,8 +253,8 @@ export function useCanvasElementResize() {
           case "nw": // Northwest
             if (shouldMaintainAspectRatio) {
               // Constrained mode: maintain aspect ratio
-              const potentialWidthNW = Math.max(50, origWidth - totalDeltaX);
-              const potentialHeightNW = Math.max(20, origHeight - totalDeltaY);
+              const potentialWidthNW = Math.max(50, origWidth - deltaX);
+              const potentialHeightNW = Math.max(20, origHeight - deltaY);
 
               if (potentialWidthNW / origWidth > potentialHeightNW / origHeight) {
                 newWidth = potentialWidthNW;
@@ -262,17 +265,15 @@ export function useCanvasElementResize() {
               }
             } else {
               // Free mode: resize width and height independently
-              newWidth = Math.max(50, origWidth - totalDeltaX);
-              newHeight = Math.max(20, origHeight - totalDeltaY);
+              newWidth = Math.max(50, origWidth - deltaX);
+              newHeight = Math.max(20, origHeight - deltaY);
             }
             
             widthChanged = true;
 
             if (isAltKeyPressed) {
-              const widthDelta = origWidth - newWidth;
-              const heightDelta = origHeight - newHeight;
-              newX = origX + widthDelta / 2;
-              newY = origY + heightDelta / 2;
+              newX = origX + totalDeltaX;
+              newY = origY + totalDeltaY;
             } else {
               newX = origX + (origWidth - newWidth);
               newY = origY + (origHeight - newHeight);
@@ -289,49 +290,41 @@ export function useCanvasElementResize() {
       } else if (resizeDirection) {
         // Handle edge resizing (non-uniform scaling)
         if (resizeDirection.includes("e")) {
-          newWidth = Math.max(50, origWidth + totalDeltaX);
-          widthChanged = true;
-
-          // If Alt/Option key is pressed, make the opposite side resize equally
           if (isAltKeyPressed) {
-            newX = origX - totalDeltaX / 2;
-            newWidth = Math.max(50, origWidth + totalDeltaX);
-          }
-        }
-        
-        if (resizeDirection.includes("w")) {
-          newWidth = Math.max(50, origWidth - totalDeltaX);
-          widthChanged = true;
-
-          // If Alt/Option key is pressed, make the opposite side resize equally
-          if (isAltKeyPressed) {
-            const widthDelta = origWidth - newWidth;
-            newX = origX + widthDelta / 2;
-            newWidth = Math.max(50, origWidth + widthDelta);
+            newWidth = Math.max(50, origWidth + deltaX);
+            newX = origX - totalDeltaX;
           } else {
+            newWidth = Math.max(50, origWidth + deltaX);
+          }
+          widthChanged = true;
+        }
+
+        if (resizeDirection.includes("w")) {
+          if (isAltKeyPressed) {
+            newWidth = Math.max(50, origWidth - deltaX);
+            newX = origX + totalDeltaX;
+          } else {
+            newWidth = Math.max(50, origWidth - deltaX);
             newX = origX + (origWidth - newWidth);
           }
+          widthChanged = true;
         }
-        
-        if (resizeDirection.includes("s")) {
-          newHeight = Math.max(20, origHeight + totalDeltaY);
 
-          // If Alt/Option key is pressed, make the opposite side resize equally
+        if (resizeDirection.includes("s")) {
           if (isAltKeyPressed) {
-            newY = origY - totalDeltaY / 2;
-            newHeight = Math.max(20, origHeight + totalDeltaY);
+            newHeight = Math.max(20, origHeight + deltaY);
+            newY = origY - totalDeltaY;
+          } else {
+            newHeight = Math.max(20, origHeight + deltaY);
           }
         }
-        
-        if (resizeDirection.includes("n")) {
-          newHeight = Math.max(20, origHeight - totalDeltaY);
 
-          // If Alt/Option key is pressed, make the opposite side resize equally
+        if (resizeDirection.includes("n")) {
           if (isAltKeyPressed) {
-            const heightDelta = origHeight - newHeight;
-            newY = origY + heightDelta / 2;
-            newHeight = Math.max(20, origHeight + heightDelta);
+            newHeight = Math.max(20, origHeight - deltaY);
+            newY = origY + totalDeltaY;
           } else {
+            newHeight = Math.max(20, origHeight - deltaY);
             newY = origY + (origHeight - newHeight);
           }
         }
