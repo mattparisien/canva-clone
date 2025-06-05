@@ -191,7 +191,6 @@ export function CanvasElement({
           handleHeightChange={handleHeightChange}
           handleTextAlignChange={handleTextAlignChange}
           isEditMode={isEditMode}
-          // Pass drag handlers and canvas data for alignment guides
           onDragStart={handleDragStart}
           onDrag={handleDrag}
           onDragEnd={handleDragEnd}

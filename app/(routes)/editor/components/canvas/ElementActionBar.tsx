@@ -40,6 +40,7 @@ const ElementActionBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elemen
                 transform: shouldCenterHorizontally ? 'translateX(-50%)' : 'none',
             }}
             onClick={(e) => e.stopPropagation()}
+            data-editor-interactive="true"
         >
             <Button variant="ghost" size="sm" onClick={onLock} title={element.locked ? "Unlock" : "Lock"} className="h-7 w-7 rounded-xl">
                 <LockIcon size={14} className={element.locked ? "text-blue-500" : "text-gray-700"} />

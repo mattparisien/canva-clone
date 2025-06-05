@@ -5,7 +5,7 @@ import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation";
 import { createArrowElement, createCircleElement, createLineElement, createRectangleElement } from "@/lib/factories/element-factories";
 import useCanvasStore, { useCurrentCanvasSize } from "@/lib/stores/useCanvasStore";
 import useEditorStore from "@/lib/stores/useEditorStore";
-import { ArrowRight, ChevronRight, Circle, Search } from "lucide-react";
+import { ArrowRight, ChevronRight, Circle, Palette, Search } from "lucide-react";
 import { useCallback } from "react";
 import { SidebarPopover } from "./SidebarPopover";
 
@@ -249,10 +249,7 @@ const TextColorPopoverContent = ({ onTextColorChange }: { onTextColorChange?: (c
     <div className="flex flex-col p-6">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-gray-600">
-                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
-                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" strokeWidth="2"/>
-            </svg>
+            <Palette className="h-5 w-5 text-gray-600" />
             <h3 className="text-lg font-semibold text-gray-800">Default colors</h3>
         </div>
 

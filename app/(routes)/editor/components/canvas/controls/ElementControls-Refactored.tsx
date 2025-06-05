@@ -159,10 +159,10 @@ const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControl
         startDrag(
             e,
             element,
-            () => { 
+            () => {
                 // onDragStart callback - notify canvas store
                 setDragState(true, element.id);
-            }, 
+            },
             selectElement,
             clearNewElementFlag
         );
@@ -408,32 +408,35 @@ const ElementControlsRefactored = memo(forwardRef<HTMLDivElement, ElementControl
             onMouseLeave={() => handleMouseLeave()}
             onMouseDown={handleMouseDown}
         >
-            {isSelected && !isDragging && <Handles
-                isResizing={isResizing}
-                element={element}
-                resizeDirection={resizeDirection}
-                handleResizeStart={(e: React.MouseEvent, direction: string) => {
-                    // Prevent event propagation to stop triggering drag events when starting resize
-                    e.stopPropagation();
-                    e.preventDefault();
+            {isSelected && !isDragging &&
+                <Handles
+                    isResizing={isResizing}
+                    element={element}
+                    scale={scale}
+                    resizeDirection={resizeDirection}
+                    handleResizeStart={(e: React.MouseEvent, direction: string) => {
+                        // Prevent event propagation to stop triggering drag events when starting resize
+                        e.stopPropagation();
+                        e.preventDefault();
 
-                    // Start resize operation
-                    startResize(element, direction, e.clientX, e.clientY);
-                }}
-                getHandleBg={getHandleBg}
-                setHandleHoverState={setHandleHoverState}
-                leftBorderHover={leftBorderHover}
-                rightBorderHover={rightBorderHover}
-                setLeftBorderHover={setLeftBorderHover}
-                setRightBorderHover={setRightBorderHover}
-                isDragging={isDragging}
-            />}
+                        // Start resize operation
+                        startResize(element, direction, e.clientX, e.clientY);
+                    }}
+                    getHandleBg={getHandleBg}
+                    setHandleHoverState={setHandleHoverState}
+                    leftBorderHover={leftBorderHover}
+                    rightBorderHover={rightBorderHover}
+                    setLeftBorderHover={setLeftBorderHover}
+                    setRightBorderHover={setRightBorderHover}
+                    isDragging={isDragging}
+                />}
         </div>
     );
 }));
 
 interface HandlesProps {
     element: Element;
+    scale: number;
     isResizing: boolean;
     resizeDirection: string | null;
     handleResizeStart: (e: React.MouseEvent, direction: string) => void;
@@ -448,6 +451,7 @@ interface HandlesProps {
 
 const Handles = memo(({
     element,
+    scale,
     isResizing,
     resizeDirection,
     handleResizeStart,
@@ -462,7 +466,8 @@ const Handles = memo(({
 
     const handleSize = 18; // Size of the resize handles
     const showTopBottomHandles = element.type !== "text"
-    const isTooSmallForAllHandles = false;
+
+    const isTooSmallForAllHandles = Math.min(handleSize * 2.2, element.height * 0.6) >= ((element.height * scale) - (handleSize * 0.7 * 2));
 
     // Helper function to get the background color with null-safety
     const getHandleBackground = (direction: string) => {
@@ -565,7 +570,7 @@ const Handles = memo(({
         )}
 
         {/* Southeast corner handle */}
-        {(!isResizing || resizeDirection === "se") && (
+        {(!isResizing || resizeDirection === "se") && !isTooSmallForAllHandles && (
             <div
                 className="absolute cursor-nwse-resize resize-handle"
                 style={{
