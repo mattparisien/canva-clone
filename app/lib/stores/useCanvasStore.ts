@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { Element, CanvasSize, CanvasContextType, HistoryAction } from '../types/canvas.types';
-import { DEFAULT_CANVAS_SIZE } from '../constants/canvas';
-import useEditorStore from './useEditorStore';
 import { nanoid } from 'nanoid';
+import { create } from 'zustand';
+import { DEFAULT_CANVAS_SIZE } from '../constants/canvas';
+import { CanvasContextType, Element, HistoryAction } from '../types/canvas.types';
+import useEditorStore from './useEditorStore';
 
 interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'> {
   historyIndex: number;
@@ -64,16 +64,16 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   setAlignmentGuides: (alignments) => {
     set({ alignmentGuides: alignments });
   },
-  
+
   setDragState: (isDragging, elementId = null) => {
-    set({ 
-      isDragging, 
+    set({
+      isDragging,
       activeDragElement: elementId,
       // Clear alignment guides when drag ends
       alignmentGuides: isDragging ? get().alignmentGuides : { horizontal: [], vertical: [] }
     });
   },
-  
+
   clearAlignmentGuides: () => {
     set({ alignmentGuides: { horizontal: [], vertical: [] } });
   },
@@ -348,7 +348,7 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       };
     });
   },
-  
+
   deselectElement: (id: string) => {
     const state = get();
     const selectedIds = state.selectedElementIds;

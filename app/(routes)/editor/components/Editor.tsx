@@ -3,14 +3,14 @@
 import { ElementPropertyBar } from "@/(routes)/editor/components/ElementPropertyBar";
 import { addToRefArrayOfObjects } from "@/lib/utils/utils";
 import { MAX_ZOOM, MIN_ZOOM } from "@lib/constants/editor";
-import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore";
 import { useCanvas } from "@lib/context/canvas-context";
+import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore";
 import useEditorStore from "@lib/stores/useEditorStore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import useElementActionBar from "../hooks/useElementActionBar";
 import BottomBar from "./BottomBar";
 import Canvas from "./canvas/Canvas";
-import ElementControlsRefactored from "./canvas/controls/ElementControls-Refactored";
+import ElementControls from "./canvas/controls/ElementControls";
 import { ElementActionBar } from "./canvas/ElementActionBar";
 import PageNavigation from "./PageNavigation";
 
@@ -287,14 +287,14 @@ export default function Editor() {
         };
     }, [canvasSize.width, canvasSize.height]);
 
-     useEffect(() => {
+    useEffect(() => {
         const handleOutsideClick = (e: globalThis.MouseEvent) => {
             // Only process if we're in edit mode
             if (!isEditMode) return;
 
-        
+
             const target = e.target as HTMLElement;
-            
+
             // Use data attributes to identify clickable areas
             const isClickOnInteractiveElement = target.closest('[data-editor-interactive]');
 
@@ -303,21 +303,21 @@ export default function Editor() {
             if (isClickOnInteractiveElement) {
                 return;
             }
-    
+
             // Clear selections
             elementRefs.current.forEach(ref => {
                 deselectElement(ref.id);
             });
-    
+
             if (selectedElementIds.length > 0 || selectedElement !== null) {
                 selectElement(null);
             }
-    
+
             if (isCanvasSelected) {
                 selectCanvas(false);
             }
         };
-    
+
         window.addEventListener("mousedown", handleOutsideClick);
         return () => window.removeEventListener("mousedown", handleOutsideClick);
     }, [isEditMode, selectedElementIds, selectedElement, isCanvasSelected, selectElement, selectCanvas]);
@@ -394,7 +394,7 @@ export default function Editor() {
                 />
 
                 {elements.map(element => (
-                    <ElementControlsRefactored
+                    <ElementControls
                         key={element.id}
                         element={element}
                         scale={zoom / 100}
