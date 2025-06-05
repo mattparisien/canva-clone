@@ -133,5 +133,8 @@ export interface CanvasContextType {
   
   // Text styling
   handleTextColorChange: (color: string) => void
+  
+  // Shape styling
+  handleBackgroundColorChange: (color: string) => void
 
 }

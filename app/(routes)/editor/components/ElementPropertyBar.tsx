@@ -73,6 +73,7 @@ interface ElementPropertyBarProps {
   onTextAlignChange: (align: TextAlignment) => void
   onFormatChange?: (format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => void
   onTextColorChange?: (color: string) => void
+  onBackgroundColorChange?: (color: string) => void
   onPositionChange?: (position: { x?: number; y?: number }) => void
   isHovering: boolean
   elementId: string | null
@@ -86,6 +87,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   onTextAlignChange,
   onFormatChange,
   onTextColorChange,
+  onBackgroundColorChange,
   onPositionChange,
   elementId,
   canvasWidth,
@@ -238,6 +240,11 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   const handleTextColorButtonClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     openPopover("text-color");
+  }, [openPopover]);
+
+  const handleBackgroundColorButtonClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    openPopover("background-color");
   }, [openPopover]);
 
   useEffect(() => {
@@ -422,7 +429,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
       {isShapeElement && (
         <>
           {/* Shape Color with Hue Wheel */}
-          <ToolbarButton onClick={handleTextColorButtonClick} title="Shape Color">
+          <ToolbarButton onClick={handleBackgroundColorButtonClick} title="Shape Color">
             <div className="w-5 h-5 bg-center bg-contain rounded-full border-[0.8px] border-neutral-400" style={{
               backgroundImage: `url(hue-wheel.png)`
             }}></div>

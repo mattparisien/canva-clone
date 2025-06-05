@@ -58,7 +58,7 @@ export default function Editor() {
     const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected);
 
     // Canvas context functions
-    const { handleTextColorChange } = useCanvas();
+    const { handleTextColorChange, handleBackgroundColorChange } = useCanvas();
 
     // Hooks
     const { position, placement } = useElementActionBar(selectedElement, elementActionBarRef, elementPropertyBarRef);
@@ -370,6 +370,7 @@ export default function Editor() {
                         onTextAlignChange={handleTextAlignChange}
                         onFormatChange={handleFormatChange}
                         onTextColorChange={handleTextColorChange}
+                        onBackgroundColorChange={handleBackgroundColorChange}
                         onPositionChange={handlePositionChange}
                         isHovering={false}
                         elementId={selectedElement?.id || null}
