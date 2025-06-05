@@ -134,3 +134,17 @@ export const calculateViewportRect = (
     height: viewportHeight
   };
 };
+
+/**
+ * Reorders an array item by moving it from one index to another.
+ * @param items - The array of items to modify
+ * @param from - The original index of the item
+ * @param to - The target index for the item
+ * @returns A new array with the item moved
+ */
+export const reorderByIndex = <T>(items: T[], from: number, to: number): T[] => {
+  const updated = [...items];
+  const [moved] = updated.splice(from, 1);
+  updated.splice(to, 0, moved);
+  return updated;
+};
