@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { create } from 'zustand';
 import { DEFAULT_CANVAS_SIZE } from '../constants/canvas';
 import { CanvasContextType, Element, HistoryAction } from '../types/canvas.types';
+import { reorderByIndex } from '../utils/canvas-utils';
 import useEditorStore from './useEditorStore';
 
 interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'> {
@@ -564,6 +565,15 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
         break;
       }
 
+      case 'REORDER_ELEMENT': {
+        const currentPage = editor.pages.find(page => page.id === action.pageId);
+        if (!currentPage) break;
+
+        const reordered = reorderByIndex(currentPage.elements, action.toIndex, action.fromIndex);
+        editor.updatePageElements(action.pageId, reordered);
+        break;
+      }
+
       // Handle other action types as needed
     }
 
@@ -659,6 +669,15 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
 
         // Apply the canvas size change
         editor.updatePageCanvasSize(action.pageId, action.after);
+        break;
+      }
+
+      case 'REORDER_ELEMENT': {
+        const currentPage = editor.pages.find(page => page.id === action.pageId);
+        if (!currentPage) break;
+
+        const reordered = reorderByIndex(currentPage.elements, action.fromIndex, action.toIndex);
+        editor.updatePageElements(action.pageId, reordered);
         break;
       }
 
