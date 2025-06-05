@@ -369,8 +369,6 @@ export default function Editor() {
                         onFontFamilyChange={handleFontFamilyChange}
                         onTextAlignChange={handleTextAlignChange}
                         onFormatChange={handleFormatChange}
-                        onTextColorChange={handleTextColorChange}
-                        onBackgroundColorChange={handleBackgroundColorChange}
                         onPositionChange={handlePositionChange}
                         isHovering={false}
                         elementId={selectedElement?.id || null}

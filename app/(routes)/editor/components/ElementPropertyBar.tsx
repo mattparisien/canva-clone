@@ -72,8 +72,6 @@ interface ElementPropertyBarProps {
   onFontFamilyChange: (family: string) => void
   onTextAlignChange: (align: TextAlignment) => void
   onFormatChange?: (format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => void
-  onTextColorChange?: (color: string) => void
-  onBackgroundColorChange?: (color: string) => void
   onPositionChange?: (position: { x?: number; y?: number }) => void
   isHovering: boolean
   elementId: string | null
@@ -86,8 +84,6 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   onFontFamilyChange,
   onTextAlignChange,
   onFormatChange,
-  onTextColorChange,
-  onBackgroundColorChange,
   onPositionChange,
   elementId,
   canvasWidth,
@@ -267,7 +263,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   return (
     <div
       ref={handleRef}
-      className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center bg-white/95 backdrop-blur-sm rounded-md shadow-toolbar-float px-2.5 py-1.5 gap-1 border border-gray-100"
+      className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center bg-white/95 backdrop-blur-sm rounded-md shadow-toolbar-float px-2.5 py-1.5 gap-1 border border-gray-100 z-editor-popover"
       onMouseEnter={handleToolbarMouseEnter}
       onMouseLeave={handleToolbarMouseLeave}
       onClick={handleToolbarClick}

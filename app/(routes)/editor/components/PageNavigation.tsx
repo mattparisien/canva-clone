@@ -22,8 +22,7 @@ export default function PageNavigation({
 }: PageNavigationProps) {
 
     return (
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 py-3 px-6 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.09)] bg-white border border-gray-100" style={{
-            zIndex: 'var(--editor-pageNav-z)'
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 py-3 px-6 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.09)] bg-white border border-gray-100 z-editor-popover" style={{
         }}>
             <div className="flex items-center gap-4 page-thumbnails-container">
                 {pages.map((page, index) => (
