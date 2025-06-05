@@ -1,8 +1,9 @@
 import React, { useRef, ReactNode } from 'react';
 import * as Popover from "@radix-ui/react-popover";
 import useEditorStore from "@/lib/stores/useEditorStore";
+import { SidebarPanelMode } from "@/lib/types/sidebar";
 
-interface SidebarPopoverProps {
+interface SidebarPanelProps {
   /** Content to render inside the popover */
   children: ReactNode;
   /** Custom width for the popover. Defaults to 450px */
@@ -22,22 +23,22 @@ interface SidebarPopoverProps {
 }
 
 /**
- * Reusable sidebar popover component that handles the floating panel logic.
+ * Reusable sidebar panel component that handles the floating panel logic.
  * 
  * This component abstracts the common popover behavior used in the editor sidebar,
  * providing a consistent layout and positioning system while allowing flexible content.
  * 
  * @example
  * ```tsx
- * <SidebarPopover>
+ * <SidebarPanel>
  *   <div className="p-6">
  *     <h3>My Content</h3>
  *     <p>Custom popover content goes here</p>
  *   </div>
- * </SidebarPopover>
+ * </SidebarPanel>
  * ```
  */
-export const SidebarPopover: React.FC<SidebarPopoverProps> = ({
+export const SidebarPanel: React.FC<SidebarPanelProps> = ({
   children,
   width = 450,
   height = "var(--editor-sidebar-popover-height)",
@@ -48,11 +49,42 @@ export const SidebarPopover: React.FC<SidebarPopoverProps> = ({
   contentPadding = "0.5rem"
 }) => {
   const popoverRef = useRef<HTMLDivElement>(null);
-  const isPopoverOpen = useEditorStore((state) => state.popover.isOpen);
+  const isOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
+  const mode = useEditorStore((state) => state.sidebarPanel.mode);
 
   // Only render the popover content when it should be open
-  if (!isPopoverOpen) {
+  if (!isOpen) {
     return null;
+  }
+
+  const panelContent = (
+    <div
+      className={`
+          border border-neutral-200 shadow-xl rounded-xl bg-white
+          ${scrollable ? 'overflow-y-scroll' : 'overflow-hidden'}
+          ${className}
+        `}
+      style={{
+        width: typeof width === 'number' ? `${width}px` : width,
+        height: height,
+        padding: contentPadding,
+      }}
+    >
+      {children}
+    </div>
+  );
+
+  if (mode === SidebarPanelMode.DEFAULT) {
+    return (
+      <div
+        ref={popoverRef}
+        className="z-sidebar-popover"
+        style={{ paddingLeft: leftOffset, paddingTop: topOffset }}
+        data-editor-interactive="true"
+      >
+        {panelContent}
+      </div>
+    );
   }
 
   return (
@@ -69,22 +101,9 @@ export const SidebarPopover: React.FC<SidebarPopoverProps> = ({
       }}
       data-editor-interactive="true"
     >
-      <div
-        className={`
-          border border-neutral-200 shadow-xl rounded-xl bg-white
-          ${scrollable ? 'overflow-y-scroll' : 'overflow-hidden'}
-          ${className}
-        `}
-        style={{
-          width: typeof width === 'number' ? `${width}px` : width,
-          height: height,
-          padding: contentPadding
-        }}
-      >
-        {children}
-      </div>
+      {panelContent}
     </Popover.Content>
   );
 };
 
-export default SidebarPopover;
+export default SidebarPanel;

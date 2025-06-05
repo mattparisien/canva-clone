@@ -7,7 +7,7 @@ import useCanvasStore, { useCurrentCanvasSize } from "@/lib/stores/useCanvasStor
 import useEditorStore from "@/lib/stores/useEditorStore";
 import { ArrowRight, ChevronRight, Circle, Palette, Search } from "lucide-react";
 import { useCallback } from "react";
-import { SidebarPopover } from "./SidebarPopover";
+import { SidebarPanel } from "./SidebarPanel";
 import { useQuery } from "@tanstack/react-query";
 import { brandsAPI } from "@/lib/api";
 import { Brand } from "@/lib/types/brands";
@@ -612,15 +612,14 @@ const DefaultPopoverContent = ({ activeItemId }: { activeItemId: string }) => (
 );
 
 const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSidebarProps) => {
-    const openPopover = useEditorStore((state) => state.openPopover);
-    const activeItemId = useEditorStore((state) => state.popover.activeItemId);
+    const openSidebarPanel = useEditorStore((state) => state.openSidebarPanel);
+    const activeItemId = useEditorStore((state) => state.sidebarPanel.activeItemId);
     const canvasSize = useCurrentCanvasSize();
     const addElement = useCanvasStore(state => state.addElement);
 
     const handleItemClick = useCallback((itemId: string) => {
-        // Close any open popover
-        openPopover(itemId);
-    }, [openPopover]);
+        openSidebarPanel(itemId);
+    }, [openSidebarPanel]);
 
     // Function to create different shapes
     const handleAddShape = useCallback((shapeType: "rectangle" | "circle" | "line" | "arrow") => {
@@ -651,8 +650,8 @@ const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSid
                 break;
         }
 
-        // Optional: Close the popover after adding a shape
-        // openPopover("");
+        // Optional: Close the panel after adding a shape
+        // openSidebarPanel("");
     }, [addElement, canvasSize.width, canvasSize.height]);
 
     // Render appropriate content based on active item
@@ -678,9 +677,9 @@ const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSid
                 variant="editor"
                 onItemClick={handleItemClick}
             />
-            <SidebarPopover>
+            <SidebarPanel>
                 {renderPopoverContent()}
-            </SidebarPopover>
+            </SidebarPanel>
         </>
     );
 };

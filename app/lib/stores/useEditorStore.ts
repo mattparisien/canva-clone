@@ -2,22 +2,25 @@ import { projectsAPI } from "@/lib/api";
 import { create } from "zustand";
 import { DEFAULT_CANVAS_SIZE } from "../constants/canvas";
 import { CanvasSize, EditorContextType, Element, Page } from "../types/canvas.types";
+import { SidebarPanelMode } from "../types/sidebar";
 
 // Define the store state interface
 interface EditorState extends Omit<EditorContextType, "currentPage"> {
   designId: string | null;
   captureCanvasScreenshot: () => Promise<string | undefined>;
 
-  // Sidebar popover state
-  popover: {
+  // Sidebar panel state
+  sidebarPanel: {
     isOpen: boolean;
     activeItemId: string | null;
-    content: React.ReactNode | null; // Add the missing content property
+    content: React.ReactNode | null;
+    mode: SidebarPanelMode;
   };
 
-  // Sidebar popover actions
-  openPopover: (itemId: string) => void;
-  closePopover: () => void;
+  // Sidebar panel actions
+  openSidebarPanel: (itemId: string) => void;
+  closeSidebarPanel: () => void;
+  setSidebarPanelMode: (mode: SidebarPanelMode) => void;
 }
 
 // Create the editor store
@@ -42,11 +45,12 @@ const useEditorStore = create<EditorState>((set, get) => ({
   currentPageId: `page-${Date.now()}`,
   currentPageIndex: 0,
 
-  // Sidebar popover state
-  popover: {
+  // Sidebar panel state
+  sidebarPanel: {
     isOpen: false,
     activeItemId: null,
-    content: null
+    content: null,
+    mode: SidebarPanelMode.POPOVER,
   },
 
   // Toggle between edit and view mode
@@ -308,21 +312,32 @@ const useEditorStore = create<EditorState>((set, get) => ({
     });
   },
 
-  // Sidebar popover actions
-  openPopover: (itemId: string) => set({
-    popover: {
-      isOpen: true,
-      activeItemId: itemId,
-      content: undefined
-    }
-  }),
-  closePopover: () => set({
-    popover: {
-      isOpen: false,
-      activeItemId: null,
-      content: undefined
-    }
-  })
+  // Sidebar panel actions
+  openSidebarPanel: (itemId: string) =>
+    set(state => ({
+      sidebarPanel: {
+        ...state.sidebarPanel,
+        isOpen: true,
+        activeItemId: itemId,
+        content: undefined,
+      },
+    })),
+  closeSidebarPanel: () =>
+    set(state => ({
+      sidebarPanel: {
+        ...state.sidebarPanel,
+        isOpen: false,
+        activeItemId: null,
+        content: undefined,
+      },
+    })),
+  setSidebarPanelMode: (mode: SidebarPanelMode) =>
+    set(state => ({
+      sidebarPanel: {
+        ...state.sidebarPanel,
+        mode,
+      },
+    }))
 }));
 
 // Add a currentPage selector
