@@ -1,7 +1,6 @@
 import React, { useRef, ReactNode } from 'react';
 import * as Popover from "@radix-ui/react-popover";
 import useEditorStore from "@/lib/stores/useEditorStore";
-import { SidebarPanelMode } from "@/lib/types/sidebar";
 
 interface SidebarPanelProps {
   /** Content to render inside the popover */
@@ -51,7 +50,7 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
   
   const popoverRef = useRef<HTMLDivElement>(null);
   const isOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
-  const mode = useEditorStore((state) => state.sidebarPanel.mode);
+  
   // Only render the popover content when it should be open
   if (!isOpen) {
     return null;
@@ -73,19 +72,6 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
       {children}
     </div>
   );
-
-  if (mode === SidebarPanelMode.DEFAULT) {
-    return (
-      <div
-        ref={popoverRef}
-        className="z-sidebar-popover"
-        style={{ paddingLeft: leftOffset, paddingTop: topOffset }}
-        data-editor-interactive="true"
-      >
-        {panelContent}
-      </div>
-    );
-  }
 
   return (
     <Popover.Content

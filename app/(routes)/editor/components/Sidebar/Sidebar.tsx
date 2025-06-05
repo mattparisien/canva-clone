@@ -1,7 +1,6 @@
 import { NavigationSidebar } from "@/components/layout/navigation-sidebar";
 import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation";
 import useEditorStore from "@/lib/stores/useEditorStore";
-import { SidebarPanelMode } from "@/lib/types/sidebar";
 import { useCallback } from "react";
 
 interface EditorSidebarProps {
@@ -14,7 +13,7 @@ const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSid
     const openSidebarPanel = useEditorStore((state) => state.openSidebarPanel);
 
     const handleItemClick = useCallback((itemId: string) => {
-        openSidebarPanel(itemId, SidebarPanelMode.POPOVER);
+        openSidebarPanel(itemId);
     }, [openSidebarPanel]);
 
     return (

@@ -48,8 +48,8 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
     const addElement = useCanvasStore(state => state.addElement);
 
 
-    const onTextColorChange = () => { };
-    const onBackgroundColorChange = () => { };
+    const onTextColorChange = handleTextColorChange;
+    const onBackgroundColorChange = handleBackgroundColorChange;
 
     // Function to create different shapes
     const handleAddShape = useCallback((shapeType: "rectangle" | "circle" | "line" | "arrow") => {
