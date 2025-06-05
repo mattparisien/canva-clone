@@ -253,6 +253,10 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
     }
   }, [])
 
+  // Determine if we're dealing with a text element or shape element
+  const isTextElement = selectedElement?.type === "text";
+  const isShapeElement = selectedElement && !isTextElement;
+
   return (
     <div
       ref={handleRef}
@@ -262,156 +266,160 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
       onClick={handleToolbarClick}
       data-editor-interactive="true"
     >
-      {/* Font Family Dropdown */}
-      <div className="relative">
-        <button
-          className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-brand-blue transition font-medium text-sm w-[100px]"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowFontDropdown(!showFontDropdown);
-          }}
-        >
-          <span className="truncate">{fontFamily}</span>
-          <ChevronDown className="h-3 w-3 opacity-70 flex-shrink-0" />
-        </button>
+      {/* Text Element Controls - Show all text-related controls */}
+      {isTextElement && (
+        <>
+          {/* Font Family Dropdown */}
+          <div className="relative">
+            <button
+              className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-brand-blue transition font-medium text-sm w-[100px]"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowFontDropdown(!showFontDropdown);
+              }}
+            >
+              <span className="truncate">{fontFamily}</span>
+              <ChevronDown className="h-3 w-3 opacity-70 flex-shrink-0" />
+            </button>
 
-        {showFontDropdown && (
-          <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-100">
-            {FONT_FAMILIES.map((font) => (
+            {showFontDropdown && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-100">
+                {FONT_FAMILIES.map((font) => (
+                  <button
+                    key={font}
+                    className={cn(
+                      "w-full text-left px-4 py-2 text-sm hover:bg-gray-50",
+                      fontFamily === font ? "bg-gray-50 font-medium text-brand-blue" : "",
+                    )}
+                    style={{ fontFamily: font }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFontFamilyChange(font);
+                    }}
+                  >
+                    {font}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Divider />
+
+          {/* Font Size Controls */}
+          <div className="flex items-center">
+            <div className="flex items-stretch rounded-lg overflow-hidden border border-gray-200">
               <button
-                key={font}
-                className={cn(
-                  "w-full text-left px-4 py-2 text-sm hover:bg-gray-50",
-                  fontFamily === font ? "bg-gray-50 font-medium text-brand-blue" : "",
-                )}
-                style={{ fontFamily: font }}
+                className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-brand-blue transition flex items-center justify-center border-r border-gray-200"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleFontFamilyChange(font);
+                  handleFontSizeChange(fontSize - 1);
                 }}
               >
-                {font}
+                <Minus className="h-4 w-4" />
               </button>
-            ))}
+
+              <input
+                type="number"
+                value={fontSize}
+                min={MIN_FONT_SIZE}
+                max={MAX_FONT_SIZE}
+                placeholder="– –"
+                onChange={(e) => handleFontSizeChange(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                className="w-12 px-1.5 py-0.5 text-sm font-medium focus:ring-1 focus:ring-brand-blue focus:outline-none text-center border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+
+              <button
+                className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-brand-blue transition flex items-center justify-center border-l border-gray-200"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleFontSizeChange(fontSize + 1);
+                }}
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        )}
-      </div>
 
-      <div className="h-5 w-px bg-gray-200 mx-1"></div>
+          {/* Text Color with Hue Bar */}
+          <ToolbarButton onClick={handleTextColorButtonClick} title="Text Color">
+            <Type className="h-4 w-4 mx-auto" />
+            <div className="w-6 h-[6px] bg-center bg-repeat bg-contain rounded-sm border-[0.8px] border-neutral-400" style={{
+              backgroundImage: `url(hue-bar.png)`
+            }}></div>
+          </ToolbarButton>
 
-      {/* Font Size Controls */}
+          <Divider />
+
+          {/* Text Formatting */}
+          <div className="flex items-center">
+            <ToolbarButton onClick={handleFormatChange('bold')} isActive={isBold}>
+              <Bold className="h-4 w-4" />
+            </ToolbarButton>
+            <ToolbarButton onClick={handleFormatChange('italic')} isActive={isItalic}>
+              <Italic className="h-4 w-4" />
+            </ToolbarButton>
+            <ToolbarButton onClick={handleFormatChange('underline')} isActive={isUnderlined}>
+              <Underline className="h-4 w-4" />
+            </ToolbarButton>
+            <ToolbarButton onClick={handleFormatChange('strikethrough')} isActive={isStrikethrough} rounded="lg">
+              <Strikethrough className="h-4 w-4" />
+            </ToolbarButton>
+          </div>
+
+          <Divider />
+
+          {/* Text Alignment */}
+          <div className="flex items-center">
+            <ToolbarButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTextAlignChange("left");
+              }}
+              isActive={textAlign === "left"}
+              rounded="lg"
+            >
+              <AlignLeft className="h-4 w-4" />
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTextAlignChange("center");
+              }}
+              isActive={textAlign === "center"}
+              rounded="lg"
+            >
+              <AlignCenter className="h-4 w-4" />
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTextAlignChange("right");
+              }}
+              isActive={textAlign === "right"}
+              rounded="lg"
+            >
+              <AlignRight className="h-4 w-4" />
+            </ToolbarButton>
+            <ToolbarButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTextAlignChange("justify");
+              }}
+              isActive={textAlign === "justify"}
+              rounded="lg"
+            >
+              <AlignJustify className="h-4 w-4" />
+            </ToolbarButton>
+          </div>
+
+          <Divider />
+        </>
+      )}
+
+      {/* Position Controls - Show for both text and shape elements */}
       <div className="flex items-center">
-        <div className="flex items-stretch rounded-lg overflow-hidden border border-gray-200">
-          <button
-            className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-brand-blue transition flex items-center justify-center border-r border-gray-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleFontSizeChange(fontSize - 1);
-            }}
-          >
-            <Minus className="h-4 w-4" />
-          </button>
-
-          <input
-            type="number"
-            value={fontSize}
-            min={MIN_FONT_SIZE}
-            max={MAX_FONT_SIZE}
-            placeholder="– –"
-            onChange={(e) => handleFontSizeChange(e.target.value)}
-            onClick={(e) => e.stopPropagation()}
-            className="w-12 px-1.5 py-0.5 text-sm font-medium focus:ring-1 focus:ring-brand-blue focus:outline-none text-center border-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          />
-
-          <button
-            className="px-2 bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-brand-blue transition flex items-center justify-center border-l border-gray-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleFontSizeChange(fontSize + 1);
-            }}
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Text Color with Hue Bar */}
-      <ToolbarButton onClick={handleTextColorButtonClick} title="Text Color">
-        <Type className="h-4 w-4 mx-auto" />
-        <div className="w-6 h-[6px] bg-center bg-repeat bg-contain rounded-sm border-[0.8px] border-neutral-400" style={{
-          backgroundImage: `url(hue-bar.png)`
-        }}></div>
-      </ToolbarButton>
-
-      <Divider />
-
-      {/* Text Formatting */}
-      <div className="flex items-center">
-        <ToolbarButton onClick={handleFormatChange('bold')} isActive={isBold}>
-          <Bold className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton onClick={handleFormatChange('italic')} isActive={isItalic}>
-          <Italic className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton onClick={handleFormatChange('underline')} isActive={isUnderlined}>
-          <Underline className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton onClick={handleFormatChange('strikethrough')} isActive={isStrikethrough} rounded="lg">
-          <Strikethrough className="h-4 w-4" />
-        </ToolbarButton>
-      </div>
-
-      <Divider />
-
-      {/* Text Alignment */}
-      <div className="flex items-center">
-        <ToolbarButton
-          onClick={(e) => {
-            e.stopPropagation();
-            handleTextAlignChange("left");
-          }}
-          isActive={textAlign === "left"}
-          rounded="lg"
-        >
-          <AlignLeft className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={(e) => {
-            e.stopPropagation();
-            handleTextAlignChange("center");
-          }}
-          isActive={textAlign === "center"}
-          rounded="lg"
-        >
-          <AlignCenter className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={(e) => {
-            e.stopPropagation();
-            handleTextAlignChange("right");
-          }}
-          isActive={textAlign === "right"}
-          rounded="lg"
-        >
-          <AlignRight className="h-4 w-4" />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={(e) => {
-            e.stopPropagation();
-            handleTextAlignChange("justify");
-          }}
-          isActive={textAlign === "justify"}
-          rounded="lg"
-        >
-          <AlignJustify className="h-4 w-4" />
-        </ToolbarButton>
-      </div>
-
-      <Divider />
-
-      {/* Effects and Position */}
-      <div className="flex items-center">
-
         <Popover>
           <PopoverTrigger asChild>
             <button className="rounded-xl px-3 py-1.5 text-gray-700 hover:bg-gray-50 hover:text-brand-blue transition text-sm font-medium">Position</button>
