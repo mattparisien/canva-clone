@@ -11,6 +11,8 @@ import { SidebarPanel } from "./SidebarPanel";
 import { useQuery } from "@tanstack/react-query";
 import { brandsAPI } from "@/lib/api";
 import { Brand } from "@/lib/types/brands";
+import Sidebar from "@/components/layout/sidebar";
+import { SidebarPanelMode } from "@/lib/types/sidebar";
 
 interface EditorSidebarProps {
     onTextColorChange?: (color: string) => void;
@@ -254,173 +256,168 @@ const TextColorPopoverContent = ({ onTextColorChange }: { onTextColorChange?: (c
     });
 
     return (
-    <div className="flex flex-col p-6">
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-6">
-            <Palette className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-gray-800">Default colors</h3>
-        </div>
-
-        {/* Solid colors section */}
-        <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-600 mb-4">Solid colors</h4>
-            
-            {/* Color grid - 6 columns, 4 rows */}
-            <div className="grid grid-cols-6 gap-3">
-                {/* Row 1: Grays and white */}
-                {[
-                    "#000000", // Black
-                    "#4A4A4A", // Dark gray
-                    "#7A7A7A", // Medium gray
-                    "#A8A8A8", // Light gray
-                    "#D1D1D1", // Very light gray
-                    "#FFFFFF"  // White
-                ].map((color) => (
-                    <button
-                        key={color}
-                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
-                            color === "#FFFFFF" ? "border-2 border-gray-200" : ""
-                        } ${
-                            currentTextColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                            if (onTextColorChange) {
-                                onTextColorChange(color);
-                            }
-                        }}
-                    />
-                ))}
-                
-                {/* Row 2: Reds, pinks, purples */}
-                {[
-                    "#EF4444", // Red
-                    "#F87171", // Light red
-                    "#EC4899", // Pink
-                    "#C084FC", // Light purple
-                    "#8B5CF6", // Purple
-                    "#6366F1"  // Blue purple
-                ].map((color) => (
-                    <button
-                        key={color}
-                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
-                            currentTextColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                            if (onTextColorChange) {
-                                onTextColorChange(color);
-                            }
-                        }}
-                    />
-                ))}
-                
-                {/* Row 3: Blues and teals */}
-                {[
-                    "#0891B2", // Teal
-                    "#06B6D4", // Cyan
-                    "#22D3EE", // Light cyan
-                    "#3B82F6", // Blue
-                    "#6366F1", // Indigo
-                    "#1E40AF"  // Dark blue
-                ].map((color) => (
-                    <button
-                        key={color}
-                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
-                            currentTextColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                            if (onTextColorChange) {
-                                onTextColorChange(color);
-                            }
-                        }}
-                    />
-                ))}
-                
-                {/* Row 4: Greens, yellows, oranges */}
-                {[
-                    "#10B981", // Green 
-                    "#84CC16", // Lime
-                    "#EAB308", // Yellow
-                    "#F59E0B", // Amber
-                    "#F97316", // Orange
-                    "#EF4444"  // Red orange
-                ].map((color) => (
-                    <button
-                        key={color}
-                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
-                            currentTextColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                            if (onTextColorChange) {
-                                onTextColorChange(color);
-                            }
-                        }}
-                    />
-                ))}
+        <div className="flex flex-col p-6">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-6">
+                <Palette className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-semibold text-gray-800">Default colors</h3>
             </div>
-        </div>
 
-        {/* Brand color palettes */}
-        {brands && brands.length > 0 && (
+            {/* Solid colors section */}
             <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-600 mb-4">Brand palettes</h4>
-                {brands.map((brand) => (
-                    <div key={brand._id} className="mb-4">
-                        {brand.colorPalettes.map((palette, idx) => (
-                            <div key={idx} className="mb-2">
-                                <div className="text-xs text-gray-500 mb-2">{palette.name}</div>
-                                <div className="flex gap-3 flex-wrap">
-                                    {palette.colors.map((color) => (
-                                        <button
-                                            key={color}
-                                            className={`w-10 h-10 rounded-full hover:scale-105 transition-transform ${currentTextColor === color ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
-                                            style={{ backgroundColor: color }}
-                                            onClick={() => {
-                                                if (onTextColorChange) {
-                                                    onTextColorChange(color);
-                                                }
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ))}
+                <h4 className="text-sm font-medium text-gray-600 mb-4">Solid colors</h4>
+
+                {/* Color grid - 6 columns, 4 rows */}
+                <div className="grid grid-cols-6 gap-3">
+                    {/* Row 1: Grays and white */}
+                    {[
+                        "#000000", // Black
+                        "#4A4A4A", // Dark gray
+                        "#7A7A7A", // Medium gray
+                        "#A8A8A8", // Light gray
+                        "#D1D1D1", // Very light gray
+                        "#FFFFFF"  // White
+                    ].map((color) => (
+                        <button
+                            key={color}
+                            className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${color === "#FFFFFF" ? "border-2 border-gray-200" : ""
+                                } ${currentTextColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                                }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                                if (onTextColorChange) {
+                                    onTextColorChange(color);
+                                }
+                            }}
+                        />
+                    ))}
+
+                    {/* Row 2: Reds, pinks, purples */}
+                    {[
+                        "#EF4444", // Red
+                        "#F87171", // Light red
+                        "#EC4899", // Pink
+                        "#C084FC", // Light purple
+                        "#8B5CF6", // Purple
+                        "#6366F1"  // Blue purple
+                    ].map((color) => (
+                        <button
+                            key={color}
+                            className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${currentTextColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                                }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                                if (onTextColorChange) {
+                                    onTextColorChange(color);
+                                }
+                            }}
+                        />
+                    ))}
+
+                    {/* Row 3: Blues and teals */}
+                    {[
+                        "#0891B2", // Teal
+                        "#06B6D4", // Cyan
+                        "#22D3EE", // Light cyan
+                        "#3B82F6", // Blue
+                        "#6366F1", // Indigo
+                        "#1E40AF"  // Dark blue
+                    ].map((color) => (
+                        <button
+                            key={color}
+                            className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${currentTextColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                                }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                                if (onTextColorChange) {
+                                    onTextColorChange(color);
+                                }
+                            }}
+                        />
+                    ))}
+
+                    {/* Row 4: Greens, yellows, oranges */}
+                    {[
+                        "#10B981", // Green 
+                        "#84CC16", // Lime
+                        "#EAB308", // Yellow
+                        "#F59E0B", // Amber
+                        "#F97316", // Orange
+                        "#EF4444"  // Red orange
+                    ].map((color) => (
+                        <button
+                            key={color}
+                            className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${currentTextColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                                }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                                if (onTextColorChange) {
+                                    onTextColorChange(color);
+                                }
+                            }}
+                        />
+                    ))}
+                </div>
             </div>
-        )}
-        
-        {/* Custom color input */}
-        <div className="border-t pt-4">
-            <div className="flex gap-3 items-center">
-                <input
-                    type="color"
-                    value={currentTextColor || "#000000"}
-                    className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
-                    onChange={(e) => {
-                        if (onTextColorChange) {
-                            onTextColorChange(e.target.value);
-                        }
-                    }}
-                />
-                <input
-                    type="text"
-                    placeholder="#000000"
-                    value={currentTextColor || ""}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^#[0-9A-F]{6}$/i.test(value) && onTextColorChange) {
-                            onTextColorChange(value);
-                        }
-                    }}
-                />
+
+            {/* Brand color palettes */}
+            {brands && brands.length > 0 && (
+                <div className="mb-6">
+                    <h4 className="text-sm font-medium text-gray-600 mb-4">Brand palettes</h4>
+                    {brands.map((brand) => (
+                        <div key={brand._id} className="mb-4">
+                            {brand.colorPalettes.map((palette, idx) => (
+                                <div key={idx} className="mb-2">
+                                    <div className="text-xs text-gray-500 mb-2">{palette.name}</div>
+                                    <div className="flex gap-3 flex-wrap">
+                                        {palette.colors.map((color) => (
+                                            <button
+                                                key={color}
+                                                className={`w-10 h-10 rounded-full hover:scale-105 transition-transform ${currentTextColor === color ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+                                                style={{ backgroundColor: color }}
+                                                onClick={() => {
+                                                    if (onTextColorChange) {
+                                                        onTextColorChange(color);
+                                                    }
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Custom color input */}
+            <div className="border-t pt-4">
+                <div className="flex gap-3 items-center">
+                    <input
+                        type="color"
+                        value={currentTextColor || "#000000"}
+                        className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
+                        onChange={(e) => {
+                            if (onTextColorChange) {
+                                onTextColorChange(e.target.value);
+                            }
+                        }}
+                    />
+                    <input
+                        type="text"
+                        placeholder="#000000"
+                        value={currentTextColor || ""}
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^#[0-9A-F]{6}$/i.test(value) && onTextColorChange) {
+                                onTextColorChange(value);
+                            }
+                        }}
+                    />
+                </div>
             </div>
         </div>
-    </div>
     );
 };
 
@@ -434,173 +431,168 @@ const BackgroundColorPopoverContent = ({ onBackgroundColorChange }: { onBackgrou
     });
 
     return (
-    <div className="flex flex-col p-6">
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-6">
-            <Palette className="h-5 w-5 text-gray-600" />
-            <h3 className="text-lg font-semibold text-gray-800">Default colors</h3>
-        </div>
-
-        {/* Solid colors section */}
-        <div className="mb-6">
-            <h4 className="text-sm font-medium text-gray-600 mb-4">Solid colors</h4>
-            
-            {/* Color grid - 6 columns, 4 rows */}
-            <div className="grid grid-cols-6 gap-3">
-                {/* Row 1: Grays and white */}
-                {[
-                    "#000000", // Black
-                    "#4A4A4A", // Dark gray
-                    "#7A7A7A", // Medium gray
-                    "#A8A8A8", // Light gray
-                    "#D1D1D1", // Very light gray
-                    "#FFFFFF"  // White
-                ].map((color) => (
-                    <button
-                        key={color}
-                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
-                            color === "#FFFFFF" ? "border-2 border-gray-200" : ""
-                        } ${
-                            currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                            if (onBackgroundColorChange) {
-                                onBackgroundColorChange(color);
-                            }
-                        }}
-                    />
-                ))}
-                
-                {/* Row 2: Reds, pinks, purples */}
-                {[
-                    "#EF4444", // Red
-                    "#F87171", // Light red
-                    "#EC4899", // Pink
-                    "#C084FC", // Light purple
-                    "#8B5CF6", // Purple
-                    "#6366F1"  // Blue purple
-                ].map((color) => (
-                    <button
-                        key={color}
-                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
-                            currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                            if (onBackgroundColorChange) {
-                                onBackgroundColorChange(color);
-                            }
-                        }}
-                    />
-                ))}
-                
-                {/* Row 3: Blues and teals */}
-                {[
-                    "#0891B2", // Teal
-                    "#06B6D4", // Cyan
-                    "#22D3EE", // Light cyan
-                    "#3B82F6", // Blue
-                    "#6366F1", // Indigo
-                    "#1E40AF"  // Dark blue
-                ].map((color) => (
-                    <button
-                        key={color}
-                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
-                            currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                            if (onBackgroundColorChange) {
-                                onBackgroundColorChange(color);
-                            }
-                        }}
-                    />
-                ))}
-                
-                {/* Row 4: Greens, yellows, oranges */}
-                {[
-                    "#10B981", // Green 
-                    "#84CC16", // Lime
-                    "#EAB308", // Yellow
-                    "#F59E0B", // Amber
-                    "#F97316", // Orange
-                    "#EF4444"  // Red orange
-                ].map((color) => (
-                    <button
-                        key={color}
-                        className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${
-                            currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => {
-                            if (onBackgroundColorChange) {
-                                onBackgroundColorChange(color);
-                            }
-                        }}
-                    />
-                ))}
+        <div className="flex flex-col p-6">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-6">
+                <Palette className="h-5 w-5 text-gray-600" />
+                <h3 className="text-lg font-semibold text-gray-800">Default colors</h3>
             </div>
-        </div>
 
-        {/* Brand color palettes */}
-        {brands && brands.length > 0 && (
+            {/* Solid colors section */}
             <div className="mb-6">
-                <h4 className="text-sm font-medium text-gray-600 mb-4">Brand palettes</h4>
-                {brands.map((brand) => (
-                    <div key={brand._id} className="mb-4">
-                        {brand.colorPalettes.map((palette, idx) => (
-                            <div key={idx} className="mb-2">
-                                <div className="text-xs text-gray-500 mb-2">{palette.name}</div>
-                                <div className="flex gap-3 flex-wrap">
-                                    {palette.colors.map((color) => (
-                                        <button
-                                            key={color}
-                                            className={`w-10 h-10 rounded-full hover:scale-105 transition-transform ${currentBackgroundColor === color ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
-                                            style={{ backgroundColor: color }}
-                                            onClick={() => {
-                                                if (onBackgroundColorChange) {
-                                                    onBackgroundColorChange(color);
-                                                }
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                ))}
-            </div>
-        )}
+                <h4 className="text-sm font-medium text-gray-600 mb-4">Solid colors</h4>
 
-        {/* Custom color input */}
-        <div className="border-t pt-4">
-            <div className="flex gap-3 items-center">
-                <input
-                    type="color"
-                    value={currentBackgroundColor || "#000000"}
-                    className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
-                    onChange={(e) => {
-                        if (onBackgroundColorChange) {
-                            onBackgroundColorChange(e.target.value);
-                        }
-                    }}
-                />
-                <input
-                    type="text"
-                    placeholder="#000000"
-                    value={currentBackgroundColor || ""}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^#[0-9A-F]{6}$/i.test(value) && onBackgroundColorChange) {
-                            onBackgroundColorChange(value);
-                        }
-                    }}
-                />
+                {/* Color grid - 6 columns, 4 rows */}
+                <div className="grid grid-cols-6 gap-3">
+                    {/* Row 1: Grays and white */}
+                    {[
+                        "#000000", // Black
+                        "#4A4A4A", // Dark gray
+                        "#7A7A7A", // Medium gray
+                        "#A8A8A8", // Light gray
+                        "#D1D1D1", // Very light gray
+                        "#FFFFFF"  // White
+                    ].map((color) => (
+                        <button
+                            key={color}
+                            className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${color === "#FFFFFF" ? "border-2 border-gray-200" : ""
+                                } ${currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                                }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                                if (onBackgroundColorChange) {
+                                    onBackgroundColorChange(color);
+                                }
+                            }}
+                        />
+                    ))}
+
+                    {/* Row 2: Reds, pinks, purples */}
+                    {[
+                        "#EF4444", // Red
+                        "#F87171", // Light red
+                        "#EC4899", // Pink
+                        "#C084FC", // Light purple
+                        "#8B5CF6", // Purple
+                        "#6366F1"  // Blue purple
+                    ].map((color) => (
+                        <button
+                            key={color}
+                            className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                                }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                                if (onBackgroundColorChange) {
+                                    onBackgroundColorChange(color);
+                                }
+                            }}
+                        />
+                    ))}
+
+                    {/* Row 3: Blues and teals */}
+                    {[
+                        "#0891B2", // Teal
+                        "#06B6D4", // Cyan
+                        "#22D3EE", // Light cyan
+                        "#3B82F6", // Blue
+                        "#6366F1", // Indigo
+                        "#1E40AF"  // Dark blue
+                    ].map((color) => (
+                        <button
+                            key={color}
+                            className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                                }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                                if (onBackgroundColorChange) {
+                                    onBackgroundColorChange(color);
+                                }
+                            }}
+                        />
+                    ))}
+
+                    {/* Row 4: Greens, yellows, oranges */}
+                    {[
+                        "#10B981", // Green 
+                        "#84CC16", // Lime
+                        "#EAB308", // Yellow
+                        "#F59E0B", // Amber
+                        "#F97316", // Orange
+                        "#EF4444"  // Red orange
+                    ].map((color) => (
+                        <button
+                            key={color}
+                            className={`w-12 h-12 rounded-full hover:scale-105 transition-transform ${currentBackgroundColor === color ? "ring-2 ring-blue-500 ring-offset-2" : ""
+                                }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => {
+                                if (onBackgroundColorChange) {
+                                    onBackgroundColorChange(color);
+                                }
+                            }}
+                        />
+                    ))}
+                </div>
+            </div>
+
+            {/* Brand color palettes */}
+            {brands && brands.length > 0 && (
+                <div className="mb-6">
+                    <h4 className="text-sm font-medium text-gray-600 mb-4">Brand palettes</h4>
+                    {brands.map((brand) => (
+                        <div key={brand._id} className="mb-4">
+                            {brand.colorPalettes.map((palette, idx) => (
+                                <div key={idx} className="mb-2">
+                                    <div className="text-xs text-gray-500 mb-2">{palette.name}</div>
+                                    <div className="flex gap-3 flex-wrap">
+                                        {palette.colors.map((color) => (
+                                            <button
+                                                key={color}
+                                                className={`w-10 h-10 rounded-full hover:scale-105 transition-transform ${currentBackgroundColor === color ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+                                                style={{ backgroundColor: color }}
+                                                onClick={() => {
+                                                    if (onBackgroundColorChange) {
+                                                        onBackgroundColorChange(color);
+                                                    }
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Custom color input */}
+            <div className="border-t pt-4">
+                <div className="flex gap-3 items-center">
+                    <input
+                        type="color"
+                        value={currentBackgroundColor || "#000000"}
+                        className="w-10 h-10 rounded border border-gray-200 cursor-pointer"
+                        onChange={(e) => {
+                            if (onBackgroundColorChange) {
+                                onBackgroundColorChange(e.target.value);
+                            }
+                        }}
+                    />
+                    <input
+                        type="text"
+                        placeholder="#000000"
+                        value={currentBackgroundColor || ""}
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^#[0-9A-F]{6}$/i.test(value) && onBackgroundColorChange) {
+                                onBackgroundColorChange(value);
+                            }
+                        }}
+                    />
+                </div>
             </div>
         </div>
-    </div>
     );
 };
 
@@ -613,12 +605,13 @@ const DefaultPopoverContent = ({ activeItemId }: { activeItemId: string }) => (
 
 const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSidebarProps) => {
     const openSidebarPanel = useEditorStore((state) => state.openSidebarPanel);
+    const isSidebarOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
     const activeItemId = useEditorStore((state) => state.sidebarPanel.activeItemId);
     const canvasSize = useCurrentCanvasSize();
     const addElement = useCanvasStore(state => state.addElement);
 
     const handleItemClick = useCallback((itemId: string) => {
-        openSidebarPanel(itemId);
+        openSidebarPanel(itemId, SidebarPanelMode.POPOVER);
     }, [openSidebarPanel]);
 
     // Function to create different shapes
@@ -677,9 +670,10 @@ const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSid
                 variant="editor"
                 onItemClick={handleItemClick}
             />
+            {isSidebarOpen &&
             <SidebarPanel>
                 {renderPopoverContent()}
-            </SidebarPanel>
+            </SidebarPanel>}
         </>
     );
 };

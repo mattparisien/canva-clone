@@ -48,10 +48,10 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
   scrollable = true,
   contentPadding = "0.5rem"
 }) => {
+  
   const popoverRef = useRef<HTMLDivElement>(null);
   const isOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
   const mode = useEditorStore((state) => state.sidebarPanel.mode);
-
   // Only render the popover content when it should be open
   if (!isOpen) {
     return null;

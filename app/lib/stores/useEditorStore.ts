@@ -18,7 +18,7 @@ interface EditorState extends Omit<EditorContextType, "currentPage"> {
   };
 
   // Sidebar panel actions
-  openSidebarPanel: (itemId: string) => void;
+  openSidebarPanel: (itemId: string, mode?: SidebarPanelMode) => void;
   closeSidebarPanel: () => void;
   setSidebarPanelMode: (mode: SidebarPanelMode) => void;
 }
@@ -313,10 +313,11 @@ const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   // Sidebar panel actions
-  openSidebarPanel: (itemId: string) =>
+  openSidebarPanel: (itemId: string, mode: SidebarPanelMode = SidebarPanelMode.DEFAULT) =>
     set(state => ({
       sidebarPanel: {
         ...state.sidebarPanel,
+        mode,
         isOpen: true,
         activeItemId: itemId,
         content: undefined,
