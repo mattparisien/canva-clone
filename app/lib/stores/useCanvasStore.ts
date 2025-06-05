@@ -37,7 +37,14 @@ interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'>
 }
 
 // Create the canvas store
-const useCanvasStore = create<CanvasState>((set, get) => ({
+const useCanvasStore = create<CanvasState>((set, get) => {
+  const getCurrentPage = () => {
+    const { currentPageId, pages } = useEditorStore.getState();
+    if (!currentPageId) return null;
+    return pages.find(page => page.id === currentPageId) || null;
+  };
+
+  return {
   // Elements selection state
   selectedElement: null,
   selectedElementIds: [],
@@ -83,12 +90,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   addElement: (elementData) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
 
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-
-    if (!currentPage) return;
+    if (!currentPageId || !currentPage) return;
 
     // Generate a unique ID for the new element
     const newElement: Element = {
@@ -130,12 +134,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   updateElement: (id, updates) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
 
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-
-    if (!currentPage) return;
+    if (!currentPageId || !currentPage) return;
 
     // Find the element to update
     const elementToUpdate = currentPage.elements.find(el => el.id === id);
@@ -188,12 +189,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
     const state = get();
     const currentPageId = editor.currentPageId;
     const selectedIds = state.selectedElementIds;
+    const currentPage = getCurrentPage();
 
-    if (!currentPageId || selectedIds.length === 0) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-
-    if (!currentPage) return;
+    if (!currentPageId || !currentPage || selectedIds.length === 0) return;
 
     // Store previous states for history
     const updatedElements = currentPage.elements.map(element => {
@@ -232,12 +230,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   deleteElement: (id) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
 
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-
-    if (!currentPage) return;
+    if (!currentPageId || !currentPage) return;
 
     // Find the element to delete for history
     const elementToDelete = currentPage.elements.find(el => el.id === id);
@@ -302,12 +297,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   selectElement: (id, addToSelection = false) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
 
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-
-    if (!currentPage || !id) {
+    if (!currentPageId || !currentPage || !id) {
       // If id is null, clear selection
       set({
         selectedElement: null,
@@ -411,12 +403,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   changeCanvasSize: (size) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
 
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-
-    if (!currentPage) return;
+    if (!currentPageId || !currentPage) return;
 
     // Store the previous size for history
     const before = { ...currentPage.canvasSize };
@@ -450,12 +439,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   clearNewElementFlag: (id) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
 
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-
-    if (!currentPage) return;
+    if (!currentPageId || !currentPage) return;
 
     // Find the element
     const element = currentPage.elements.find(el => el.id === id);
@@ -734,12 +720,9 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   duplicateElement: (id: string) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
 
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-
-    if (!currentPage) return;
+    if (!currentPageId || !currentPage) return;
 
     // Find the element to duplicate
     const elementToDuplicate = currentPage.elements.find(el => el.id === id);
@@ -818,10 +801,8 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   bringElementForward: (elementId) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-    if (!currentPage) return;
+    const currentPage = getCurrentPage();
+    if (!currentPageId || !currentPage) return;
 
     const elements = [...currentPage.elements];
     const index = elements.findIndex(el => el.id === elementId);
@@ -851,10 +832,8 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   sendElementBackward: (elementId) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-    if (!currentPage) return;
+    const currentPage = getCurrentPage();
+    if (!currentPageId || !currentPage) return;
 
     const elements = [...currentPage.elements];
     const index = elements.findIndex(el => el.id === elementId);
@@ -884,10 +863,8 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   bringElementToFront: (elementId) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-    if (!currentPage) return;
+    const currentPage = getCurrentPage();
+    if (!currentPageId || !currentPage) return;
 
     const elements = [...currentPage.elements];
     const index = elements.findIndex(el => el.id === elementId);
@@ -917,10 +894,8 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
   sendElementToBack: (elementId) => {
     const editor = useEditorStore.getState();
     const currentPageId = editor.currentPageId;
-    if (!currentPageId) return;
-
-    const currentPage = editor.pages.find(page => page.id === currentPageId);
-    if (!currentPage) return;
+    const currentPage = getCurrentPage();
+    if (!currentPageId || !currentPage) return;
 
     const elements = [...currentPage.elements];
     const index = elements.findIndex(el => el.id === elementId);
@@ -946,7 +921,8 @@ const useCanvasStore = create<CanvasState>((set, get) => ({
       canRedo: false,
     }));
   },
-}));
+  };
+});
 
 // Create a selector to get the current page elements
 export const useCurrentPageElements = () => {
