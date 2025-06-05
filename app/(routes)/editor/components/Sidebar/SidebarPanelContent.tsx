@@ -1,26 +1,12 @@
-import { NavigationSidebar } from "@/components/layout/navigation-sidebar";
 import { Button } from "@/components/ui/button";
+import { Search, ChevronRight, Circle, Palette, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation";
-import { createArrowElement, createCircleElement, createLineElement, createRectangleElement } from "@/lib/factories/element-factories";
-import useCanvasStore, { useCurrentCanvasSize } from "@/lib/stores/useCanvasStore";
-import useEditorStore from "@/lib/stores/useEditorStore";
-import { ArrowRight, ChevronRight, Circle, Palette, Search } from "lucide-react";
-import { useCallback } from "react";
-import { SidebarPanel } from "./SidebarPanel";
+import useCanvasStore from "@/lib/stores/useCanvasStore";
 import { useQuery } from "@tanstack/react-query";
-import { brandsAPI } from "@/lib/api";
 import { Brand } from "@/lib/types/brands";
-import Sidebar from "@/components/layout/sidebar";
-import { SidebarPanelMode } from "@/lib/types/sidebar";
+import { brandsAPI } from "@/lib/api";
 
-interface EditorSidebarProps {
-    onTextColorChange?: (color: string) => void;
-    onBackgroundColorChange?: (color: string) => void;
-}
-
-// Modular popover components
-const ElementsPopoverContent = ({ handleAddShape }: { handleAddShape: (shapeType: "rectangle" | "circle" | "line" | "arrow") => void }) => (
+export const ElementsPanelContent = ({ handleAddShape }: { handleAddShape: (shapeType: "rectangle" | "circle" | "line" | "arrow") => void }) => (
     <div className="flex flex-col p-6">
         {/* Search bar */}
         <div className="mb-6">
@@ -236,7 +222,7 @@ const ElementsPopoverContent = ({ handleAddShape }: { handleAddShape: (shapeType
     </div>
 );
 
-const TextPopoverContent = () => (
+export const TextPanelContent = () => (
     <div className="flex flex-col">
         <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
             {/* Text content here */}
@@ -246,7 +232,7 @@ const TextPopoverContent = () => (
     </div>
 );
 
-const TextColorPopoverContent = ({ onTextColorChange }: { onTextColorChange?: (color: string) => void }) => {
+export const TextColorPanelContent = ({ onTextColorChange }: { onTextColorChange?: (color: string) => void }) => {
     // Get the currently selected element to show which color is active
     const selectedElement = useCanvasStore(state => state.selectedElement);
     const currentTextColor = selectedElement?.type === "text" ? selectedElement.textColor : null;
@@ -421,7 +407,7 @@ const TextColorPopoverContent = ({ onTextColorChange }: { onTextColorChange?: (c
     );
 };
 
-const BackgroundColorPopoverContent = ({ onBackgroundColorChange }: { onBackgroundColorChange?: (color: string) => void }) => {
+export const BackgroundColorPanelContent = ({ onBackgroundColorChange }: { onBackgroundColorChange?: (color: string) => void }) => {
     // Get the currently selected element to show which color is active
     const selectedElement = useCanvasStore(state => state.selectedElement);
     const currentBackgroundColor = selectedElement?.backgroundColor;
@@ -596,86 +582,9 @@ const BackgroundColorPopoverContent = ({ onBackgroundColorChange }: { onBackgrou
     );
 };
 
-const DefaultPopoverContent = ({ activeItemId }: { activeItemId: string }) => (
+export const DefaultPanelContent = ({ activeItemId }: { activeItemId: string }) => (
     <div className="flex flex-col p-6">
         <h3 className="text-lg font-medium">Content for {activeItemId}</h3>
         <p className="mt-2 text-gray-600">This panel is still under development.</p>
     </div>
 );
-
-const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSidebarProps) => {
-    const openSidebarPanel = useEditorStore((state) => state.openSidebarPanel);
-    const isSidebarOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
-    const activeItemId = useEditorStore((state) => state.sidebarPanel.activeItemId);
-    const canvasSize = useCurrentCanvasSize();
-    const addElement = useCanvasStore(state => state.addElement);
-
-    const handleItemClick = useCallback((itemId: string) => {
-        openSidebarPanel(itemId, SidebarPanelMode.POPOVER);
-    }, [openSidebarPanel]);
-
-    // Function to create different shapes
-    const handleAddShape = useCallback((shapeType: "rectangle" | "circle" | "line" | "arrow") => {
-        switch (shapeType) {
-            case "rectangle":
-                addElement(createRectangleElement({
-                    backgroundColor: "#333333", // Dark gray
-                }, canvasSize.width, canvasSize.height));
-                break;
-            case "circle":
-                addElement(createCircleElement({
-                    backgroundColor: "#333333", // Dark gray
-                }, canvasSize.width, canvasSize.height));
-                break;
-            case "line":
-                addElement(createLineElement({
-                    borderWidth: 2,
-                    borderColor: "#333333", // Dark gray
-                }, canvasSize.width, canvasSize.height));
-                break;
-            case "arrow":
-                addElement(createArrowElement({
-                    borderWidth: 2,
-                    borderColor: "#333333", // Dark gray
-                }, canvasSize.width, canvasSize.height));
-                break;
-            default:
-                break;
-        }
-
-        // Optional: Close the panel after adding a shape
-        // openSidebarPanel("");
-    }, [addElement, canvasSize.width, canvasSize.height]);
-
-    // Render appropriate content based on active item
-    const renderPopoverContent = useCallback(() => {
-        switch (activeItemId) {
-            case "elements":
-                return <ElementsPopoverContent handleAddShape={handleAddShape} />;
-            case "text":
-                return <TextPopoverContent />;
-            case "text-color":
-                return <TextColorPopoverContent onTextColorChange={onTextColorChange} />;
-            case "background-color":
-                return <BackgroundColorPopoverContent onBackgroundColorChange={onBackgroundColorChange} />;
-            default:
-                return <DefaultPopoverContent activeItemId={activeItemId || ""} />;
-        }
-    }, [activeItemId, handleAddShape, onTextColorChange, onBackgroundColorChange]);
-
-    return (
-        <>
-            <NavigationSidebar
-                items={EDITOR_NAVIGATION_ITEMS}
-                variant="editor"
-                onItemClick={handleItemClick}
-            />
-            {isSidebarOpen &&
-            <SidebarPanel>
-                {renderPopoverContent()}
-            </SidebarPanel>}
-        </>
-    );
-};
-
-export default EditorSidebar;
