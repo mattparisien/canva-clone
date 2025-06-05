@@ -398,7 +398,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
             onClick={(e) => {
                 // Stop propagation to prevent conflicting with canvas click handler
                 e.stopPropagation();
-                handleClick(e, element);
+                handleClick(e, element, selectElement);
             }}
             onMouseEnter={() => handleMouseEnter(element.id, isEditMode)}
             onMouseLeave={() => handleMouseLeave()}

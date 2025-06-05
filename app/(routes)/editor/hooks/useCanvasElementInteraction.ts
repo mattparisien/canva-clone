@@ -9,7 +9,6 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   const [isDragging, setIsDragging] = useState(false);
   const [isAltKeyPressed, setIsAltKeyPressed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  const [isSelected, setIsSelected] = useState(false);
   
   // Track positions
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -132,7 +131,6 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     
     // Select element
     onElementSelect?.(element.id, isShiftPressed);
-    setIsSelected(true);
   }, []);
 
   // We've removed the outside click handler from here
@@ -174,7 +172,6 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     isDragging,
     isAltKeyPressed,
     isHovering,
-    isSelected,
     leftBorderHover,
     rightBorderHover,
     setLeftBorderHover,

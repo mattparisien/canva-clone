@@ -40,7 +40,7 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
                 }
             }}
         >
-            <div className={"flex h-screen flex-col"}>
+            <div className={"flex h-screen flex-col select-none"}>
                 <Popover.Anchor>
                     <EditorNavbar />
                 </Popover.Anchor>

@@ -41,7 +41,6 @@ export function CanvasElement({
 }: CanvasElementProps) {
   // Get Zustand store methods
   const updateElement = useCanvasStore(state => state.updateElement);
-  const selectElement = useCanvasStore(state => state.selectElement);
   const clearNewElementFlag = useCanvasStore(state => state.clearNewElementFlag);
   const showElementActionBar = useCanvasStore(state => state.showElementActionBar);
   const hideElementActionBar = useCanvasStore(state => state.hideElementActionBar);
@@ -85,14 +84,6 @@ export function CanvasElement({
       rect: newRect
     });
   }, [element, canvasRef, scale, updateElement]);
-
-  // Simple click handler for selection only
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    if (!isEditMode) return;
-
-    e.stopPropagation();
-    selectElement(element.id, e.shiftKey);
-  }, [element.id, isEditMode, selectElement]);
 
   // Handle text height change
   const handleHeightChange = useCallback((newHeight: number) => {
@@ -178,7 +169,6 @@ export function CanvasElement({
           // Fixed stacking order based only on element type
           zIndex: element.type === "text" ? 1 : 0,
         }}
-        onClick={handleClick}
         onMouseEnter={() => onHover?.(element.id)}
         onMouseLeave={() => onHover?.(null)}
       >

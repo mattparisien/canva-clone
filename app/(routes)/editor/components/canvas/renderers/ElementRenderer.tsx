@@ -37,12 +37,6 @@ const ElementRenderer = memo(({
     handleHeightChange,
     handleTextAlignChange,
     isEditMode,
-    onDragStart,
-    onDrag,
-    onDragEnd,
-    allElements,
-    canvasWidth,
-    canvasHeight
 }: ElementRendererProps) => {
     // Use a simple switch to route to the appropriate component
     switch (element.type) {
