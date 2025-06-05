@@ -40,8 +40,8 @@ interface SidebarPanelProps {
  */
 export const SidebarPanel: React.FC<SidebarPanelProps> = ({
   children,
-  width = 450,
-  height = "var(--editor-sidebar-popover-height)",
+  width = "var(--editor-sidebarPanel-width)",
+  height = "var(--editor-sidebarPanel-height)",
   className = "",
   leftOffset = "calc(var(--sidebar-width) + 1rem)",
   topOffset = "0.5rem",

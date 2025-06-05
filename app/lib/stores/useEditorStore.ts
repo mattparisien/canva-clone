@@ -313,7 +313,7 @@ const useEditorStore = create<EditorState>((set, get) => ({
   },
 
   // Sidebar panel actions
-  openSidebarPanel: (itemId: string, mode: SidebarPanelMode = SidebarPanelMode.DEFAULT) =>
+  openSidebarPanel: (itemId: string, mode: SidebarPanelMode = SidebarPanelMode.POPOVER) =>
     set(state => ({
       sidebarPanel: {
         ...state.sidebarPanel,

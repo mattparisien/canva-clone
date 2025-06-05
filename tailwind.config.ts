@@ -113,9 +113,13 @@ const config: Config = {
       width: {
         'sidebar': 'var(--sidebar-width)',
       },
+      height: {
+        'editor-propertyBar-height': 'var(--editor-propertyBar-height)',
+      },
       spacing: {
         'sidebar': 'var(--sidebar-width)',
         'header': 'var(--header-height)',
+        'editor-propertyBar': 'var(--editor-propertyBar-offsetTop)',
       },
       zIndex: {
         'editor-popover': 'var(--z-editor-popover)',

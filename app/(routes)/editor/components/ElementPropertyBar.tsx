@@ -263,11 +263,15 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   return (
     <div
       ref={handleRef}
-      className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center bg-white/95 backdrop-blur-sm rounded-md shadow-toolbar-float px-2.5 py-1.5 gap-1 border border-gray-100 z-editor-popover"
+      className="absolute left-1/2 -translate-x-1/2 z-40 flex items-center bg-white/95 backdrop-blur-sm rounded-md shadow-toolbar-float px-2.5 py-1.5 gap-1 border border-gray-100 z-editor-popover"
       onMouseEnter={handleToolbarMouseEnter}
       onMouseLeave={handleToolbarMouseLeave}
       onClick={handleToolbarClick}
       data-editor-interactive="true"
+      style={{
+        height: "var(--editor-propertyBar-height)",
+        top: "var(--editor-propertyBar-topOffset)",
+      }}
     >
       {/* Text Element Controls - Show all text-related controls */}
       {isTextElement && (

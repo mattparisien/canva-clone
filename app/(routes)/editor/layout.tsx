@@ -44,6 +44,7 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
     const { handleTextColorChange, handleBackgroundColorChange } = useCanvas();
     const activeItemId = useEditorStore((state) => state.sidebarPanel.activeItemId);
     const canvasSize = useCurrentCanvasSize();
+    const selectedElement = useCanvasStore(state => state.selectedElement);
     const addElement = useCanvasStore(state => state.addElement);
 
 
@@ -118,7 +119,7 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
                     onBackgroundColorChange={handleBackgroundColorChange}
                 />
                 {isSidebarPanelOpen &&
-                    <EditorSidebarPanel>
+                    <EditorSidebarPanel topOffset={isPanelOpen && selectedElement ? "var(--editor-sidebarPanel-topOffset)" : "0px"}>
                         {renderPanelContent()}
                     </EditorSidebarPanel>}
                 {children}
