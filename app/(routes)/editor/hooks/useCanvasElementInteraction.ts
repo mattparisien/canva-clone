@@ -131,12 +131,11 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   }, []);
 
   const handleMouseLeave = useCallback((onHover?: (id: string | null) => void) => {
-    if (justFinishedResizing.current) {
-      // If we just finished resizing, prevent immediate deselect
-      setIsHovering(false);
-      return;
-    }
+    // Always reset local hover state
     setIsHovering(false);
+
+    // Previously we avoided notifying hover end when just finishing a resize,
+    // but we now always invoke onHover(null) so the highlight clears correctly
     onHover?.(null);
   }, []);
 
