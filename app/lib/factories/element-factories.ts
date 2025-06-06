@@ -39,6 +39,7 @@ export function createTextElement(
     isUnderlined?: boolean
     isStrikethrough?: boolean
     textColor?: string
+    isEditable?: boolean // Whether the text can be edited
   } = {},
   canvasWidth: number,
   canvasHeight: number
@@ -72,6 +73,7 @@ export function createTextElement(
     isUnderlined: options.isUnderlined || false,
     isStrikethrough: options.isStrikethrough || false,
     textColor: options.textColor || "#000000",
+    isEditable: options.isEditable !== undefined ? options.isEditable : true, // Default to editable
   }
 }
 

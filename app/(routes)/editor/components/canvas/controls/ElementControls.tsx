@@ -32,6 +32,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
     // Use the interaction hook
     const {
         isDragging,
+        isDragInitiated,
         isAltKeyPressed,
         isHovering,
         leftBorderHover,
@@ -147,8 +148,8 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
             e,
             element,
             () => {
-                // onDragStart callback - notify canvas store
-                setDragState(true, element.id);
+                // onDragStart callback - this will be called when actual dragging starts
+                // Canvas store drag state is now managed by the useEffect above
             },
             selectElement,
             clearNewElementFlag
@@ -163,6 +164,16 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
         // Start resize operation
         startResize(element, direction, e.clientX, e.clientY);
     }, [element, startResize]);
+
+    // Sync isDragging state with canvas store drag state
+    useEffect(() => {
+        if (isDragging) {
+            setDragState(true, element.id);
+        } else if (!isDragInitiated) {
+            // Only clear drag state if we're not in the initiated state
+            setDragState(false);
+        }
+    }, [isDragging, isDragInitiated, element.id, setDragState]);
 
     // Use snapping hook at the component level to avoid hook rule violations
     const snapping = useSnapping();
@@ -393,7 +404,8 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                 height: element.height * scale,
                 cursor: isEditMode && !element.locked ? (isDragging ? "grabbing" : "grab") : "default",
                 pointerEvents: 'auto',
-                transform: 'translate3d(0, 0, 0)' // Force hardware acceleration for smoother rendering
+                transform: 'translate3d(0, 0, 0)',// Force hardware acceleration for smoother rendering
+                zIndex: element.type === "text" ? 1 : 0, // Ensure text elements are always on top
             }}
             onClick={(e) => {
                 // Stop propagation to prevent conflicting with canvas click handler

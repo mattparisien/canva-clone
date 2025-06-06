@@ -48,6 +48,8 @@ interface TextEditorProps {
   textColor?: string;
   /** Edit mode flag */
   isEditMode?: boolean;
+  /** Whether the editor is in editable mode */
+  isEditable: boolean;
 }
 
 /* ------------------------------------------------------------------
@@ -70,13 +72,13 @@ export function TextEditor({
   isUnderlined = false,
   isStrikethrough = false,
   textColor = "#000000",
+  isEditable = false, // Whether the editor is in editable mode
   onTextAlignChange,
   isEditMode = true, // Default to edit mode if not provided
 }: TextEditorProps) {
   /* ----------------------------------------------------------------
      Local state & refs
      ---------------------------------------------------------------- */
-  const [isEditing, setIsEditing] = useState<boolean>(isNew);
   const [localContent, setLocalContent] = useState<string>(content);
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -84,36 +86,36 @@ export function TextEditor({
      Sync incoming `content` prop → local state when not editing
      ---------------------------------------------------------------- */
   useEffect(() => {
-    if (!isEditing) {
+    if (!isEditable) {
       setLocalContent(content);
     }
-  }, [content, isEditing]);
+  }, [content, isEditable]);
 
-  // Exit editing mode when switching to view mode
-  useEffect(() => {
-    if (!isEditMode && isEditing) {
-      setIsEditing(false);
-    }
-  }, [isEditMode, isEditing]);
+  // // Exit editing mode when switching to view mode
+  // useEffect(() => {
+  //   if (!isEditMode && isEditable) {
+  //     setisEditable(false);
+  //   }
+  // }, [isEditMode, isEditable]);
 
   /* ----------------------------------------------------------------
      Enter editing mode on double-click
      ---------------------------------------------------------------- */
-  const startEditing = () => {
-    // Only allow editing in edit mode
-    if (!isEditMode) return;
+  // const startEditing = () => {
+  //   // Only allow editing in edit mode
+  //   if (!isEditMode) return;
     
-    onEditingStart?.();
-    setIsEditing(true);
-  };
+  //   onEditingStart?.();
+  //   setisEditable(true);
+  // };
 
-  const handleDoubleClick = (e: React.MouseEvent) => {
-    // Only allow editing in edit mode
-    if (!isEditMode) return;
+  // const handleDoubleClick = (e: React.MouseEvent) => {
+  //   // Only allow editing in edit mode
+  //   if (!isEditMode) return;
     
-    e.stopPropagation();
-    startEditing();
-  };
+  //   e.stopPropagation();
+  //   startEditing();
+  // };
 
   /* ----------------------------------------------------------------
      Handle user typing inside the contentEditable div
@@ -142,7 +144,7 @@ export function TextEditor({
      Focus the editor when switching to edit mode
      ---------------------------------------------------------------- */
   useEffect(() => {
-    if (!isEditing || !editorRef.current) return;
+    if (!isEditable || !editorRef.current) return;
 
     // Push the latest localContent into the DOM (once) before focus
     editorRef.current.innerText = localContent;
@@ -154,7 +156,7 @@ export function TextEditor({
     const sel = window.getSelection();
     sel?.removeAllRanges();
     sel?.addRange(range);
-  }, [isEditing]);
+  }, [isEditable]);
 
   /* ----------------------------------------------------------------
      Recalculate and report height on content or width change
@@ -215,7 +217,7 @@ export function TextEditor({
      ---------------------------------------------------------------- */
   return (
     <div className="flex w-full items-center justify-center">
-      {isEditing ? (
+      {isEditable ? (
         <div
           ref={editorRef}
           className="w-full outline-none"
@@ -223,13 +225,13 @@ export function TextEditor({
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}
-          onBlur={() => setIsEditing(false)}
+          // onBlur={() => setisEditable(false)}
         />
       ) : (
         <div
           className="w-full select-none outline-none"
           style={baseStyle}
-          onDoubleClick={handleDoubleClick}
+          // onDoubleClick={handleDoubleClick}
         >
           {localContent}
         </div>

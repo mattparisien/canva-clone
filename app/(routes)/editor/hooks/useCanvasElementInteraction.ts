@@ -9,6 +9,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   const [isDragging, setIsDragging] = useState(false);
   const [isAltKeyPressed, setIsAltKeyPressed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [isDragInitiated, setIsDragInitiated] = useState(false); // Track if drag has been initiated but not yet started
   
   // Track positions
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -16,6 +17,12 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   // For debouncing hover events
   const justFinishedResizing = useRef(false);
   const resizeEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Store drag callbacks for use in mouse events
+  const dragCallbacksRef = useRef<{
+    onDragStart?: (element: CanvasElement) => void;
+    element?: CanvasElement;
+  }>({});
   
   // Edge hover states for resize handles
   const [leftBorderHover, setLeftBorderHover] = useState(false);
@@ -32,7 +39,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   });
 
   /**
-   * Start drag operation
+   * Start drag operation - only prepares for dragging, doesn't set isDragging until mouse moves
    */
   const startDrag = useCallback((e: React.MouseEvent, element: CanvasElement, onDragStart: (element: CanvasElement) => void, onElementSelect: (id: string, addToSelection: boolean) => void, clearNewFlag?: (id: string) => void) => {
     e.stopPropagation();
@@ -47,13 +54,59 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     
     // Select element and notify parent
     onElementSelect(element.id, isShiftPressed);
-    setIsDragging(true);
+    
+    // Store initial drag position but don't set isDragging yet
+    setIsDragInitiated(true);
     setDragStart({
       x: e.clientX,
       y: e.clientY,
     });
-    onDragStart(element);
+    
+    // Store callbacks for later use
+    dragCallbacksRef.current = {
+      onDragStart,
+      element
+    };
   }, []);
+
+  // Handle mouse move to detect when actual dragging starts
+  useEffect(() => {
+    if (!isDragInitiated) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = Math.abs(e.clientX - dragStart.x);
+      const deltaY = Math.abs(e.clientY - dragStart.y);
+      const threshold = 5; // Minimum pixels to move before considering it a drag
+
+      // Only start dragging if we've moved enough distance
+      if ((deltaX > threshold || deltaY > threshold) && !isDragging) {
+        setIsDragging(true);
+        setIsDragInitiated(false);
+        
+        // Call the onDragStart callback now that we're actually dragging
+        if (dragCallbacksRef.current.onDragStart && dragCallbacksRef.current.element) {
+          dragCallbacksRef.current.onDragStart(dragCallbacksRef.current.element);
+        }
+      }
+    };
+
+    const handleMouseUp = () => {
+      // Reset everything if mouse is released without dragging
+      setIsDragInitiated(false);
+      if (!isDragging) {
+        // Clean up if we never started dragging
+        dragCallbacksRef.current = {};
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragInitiated, dragStart.x, dragStart.y, isDragging]);
   
   /**
    * End drag operation
@@ -63,6 +116,8 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
       onDragEnd();
     }
     setIsDragging(false);
+    setIsDragInitiated(false);
+    dragCallbacksRef.current = {};
   }, [isDragging]);
 
   /**
@@ -170,6 +225,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
 
   return {
     isDragging,
+    isDragInitiated,
     isAltKeyPressed,
     isHovering,
     leftBorderHover,
