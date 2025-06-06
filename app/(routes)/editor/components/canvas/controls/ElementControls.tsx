@@ -1,11 +1,11 @@
-import { Element } from "@/lib/types/canvas.types";
-import { memo, useCallback, useEffect, useRef, forwardRef, use } from "react";
-import classNames from "classnames";
+import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "@/(routes)/editor/hooks";
 import useCanvasStore from "@/lib/stores/useCanvasStore";
 import useEditorStore from "@/lib/stores/useEditorStore";
+import { Element } from "@/lib/types/canvas.types";
 import { calculateViewportRect } from "@/lib/utils/canvas-utils";
-import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "@/(routes)/editor/hooks";
 import { mergeRefs } from "@/lib/utils/utils";
+import classNames from "classnames";
+import { forwardRef, memo, useCallback, useEffect, useRef } from "react";
 
 
 interface ElementControlsProps {
