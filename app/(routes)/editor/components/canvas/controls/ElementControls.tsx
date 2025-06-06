@@ -471,7 +471,7 @@ const Handles = memo(({
     setRightBorderHover = () => { },
 }: HandlesProps) => {
 
-    const handleSize = 18; // Size of the resize handles
+    const handleSize = 14; // Size of the resize handles
     const showTopBottomHandles = element.type !== "text"
 
     const isTooSmallForAllHandles = Math.min(handleSize * 2.2, element.height * 0.6) >= ((element.height * scale) - (handleSize * 0.7 * 2));
