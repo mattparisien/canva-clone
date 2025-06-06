@@ -243,6 +243,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     setRightBorderHover,
     handleHover,
     dragStart,
+    isDragActive,
     setIsDragActive,
     setDragStart,
     startDrag,

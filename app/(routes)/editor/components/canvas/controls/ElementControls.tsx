@@ -47,6 +47,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
         setLeftBorderHover,
         setRightBorderHover,
         dragStart,
+        isDragActive,
         setIsDragActive,
         setDragStart,
         startDrag,
