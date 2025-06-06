@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Element as CanvasElement } from "@lib/types/canvas.types";
+import useCanvasStore from "@/lib/stores/useCanvasStore";
 
 /**
  * Hook to handle element interactions including dragging and keyboard modifiers
@@ -176,18 +177,32 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   /**
    * Handle selection on click
    */
-  const handleClick = useCallback((e: React.MouseEvent, element: CanvasElement, onElementSelect?: (id: string, addToSelection: boolean) => void, updateElement?: (id: string, updates: Partial<CanvasElement>) => void, allElements?: CanvasElement[]) => {
+  const handleClick = useCallback((
+    e: React.MouseEvent,
+    element: CanvasElement,
+    onElementSelect?: (id: string, addToSelection: boolean) => void,
+    updateElement?: (id: string, updates: Partial<CanvasElement>) => void,
+    allElements?: CanvasElement[]
+  ) => {
     // Always stop propagation to prevent canvas click handler from running
     e.stopPropagation();
-    
+
     // Check if shift key is pressed for multi-selection
     const isShiftPressed = e.shiftKey;
-    
+
+    // Determine if the element was selected before this click
+    const wasSelected = useCanvasStore.getState().isElementSelected(element.id);
+
     // Select element
     onElementSelect?.(element.id, isShiftPressed);
-    
+
     // Handle text element click-to-edit functionality
-    if (element.type === "text" && updateElement && !isShiftPressed) {
+    if (
+      wasSelected &&
+      element.type === "text" &&
+      updateElement &&
+      !isShiftPressed
+    ) {
       // Only toggle to editable if we're not already dragging and the element is not currently being edited
       if (!isDragInitiated && !isDragging) {
         // First, set all other text elements to non-editable
@@ -198,7 +213,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
             }
           });
         }
-        
+
         // Then toggle the clicked element's editable state
         updateElement(element.id, { isEditable: !element.isEditable });
       }
