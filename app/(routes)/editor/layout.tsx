@@ -114,7 +114,10 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
                     onBackgroundColorChange={handleBackgroundColorChange}
                 />
                 {isSidebarPanelOpen &&
-                    <EditorSidebarPanel topOffset={isPanelOpen && selectedElement ? "var(--editor-sidebarPanel-topOffset)" : "0px"}>
+                    <EditorSidebarPanel 
+                        topOffset={isPanelOpen && selectedElement ? "var(--editor-sidebarPanel-topOffset)" : "0px"}
+                        height={selectedElement ? "var(--editor-sidebarPanel-height)" : "calc(100vh - var(--header-height) - var(--editor-bottomBar-height))"}
+                    >
                         {renderPanelContent()}
                     </EditorSidebarPanel>}
                 {children}
