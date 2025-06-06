@@ -11,7 +11,7 @@ interface SidebarPanelProps {
   height?: string;
   /** Additional CSS classes for the popover container */
   className?: string;
-  /** Custom left padding offset. Defaults to calc(var(--sidebar-width) + 1rem) */
+  /** Custom left padding offset. Defaults to var(--sidebar-width) */
   leftOffset?: string;
   /** Custom top padding offset. Defaults to 0.5rem (pt-2) */
   topOffset?: string;
@@ -42,7 +42,7 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
   width = "var(--editor-sidebarPanel-width)",
   height = "var(--editor-sidebarPanel-height)",
   className = "",
-  leftOffset = "calc(var(--sidebar-width) + 1rem)",
+  leftOffset = "var(--sidebar-width)",
   topOffset = "0.5rem",
   scrollable = true,
   contentPadding = "0.5rem"
