@@ -145,11 +145,10 @@ export function useCanvasElementResize() {
       const totalDeltaX = (mouseX - initialMousePos.current.x) / scale;
       const totalDeltaY = (mouseY - initialMousePos.current.y) / scale;
 
-      // When resizing from the center (Alt/Option key pressed) we double the
-      // delta applied to dimensions while shifting the element by the original
-      // delta to keep the center stationary.
-      const deltaX = isAltKeyPressed ? totalDeltaX * 2 : totalDeltaX;
-      const deltaY = isAltKeyPressed ? totalDeltaY * 2 : totalDeltaY;
+      // For normal resizing, use the delta directly
+      // For center scaling (Alt/Option key), we'll handle positioning separately
+      const deltaX = totalDeltaX;
+      const deltaY = totalDeltaY;
 
       let newWidth = origWidth;
       let newHeight = origHeight;
@@ -185,10 +184,14 @@ export function useCanvasElementResize() {
             
             widthChanged = true;
 
-            // If Alt/Option key is pressed, shift position to keep center fixed
+            // Handle center scaling when Alt/Option key is pressed
             if (isAltKeyPressed) {
-              newX = origX - totalDeltaX;
-              newY = origY - totalDeltaY;
+              // Calculate the size change
+              const widthChange = newWidth - origWidth;
+              const heightChange = newHeight - origHeight;
+              // Shift position by half the size change to keep center fixed
+              newX = origX - widthChange / 2;
+              newY = origY - heightChange / 2;
             }
             break;
 
@@ -214,9 +217,13 @@ export function useCanvasElementResize() {
             widthChanged = true;
 
             if (isAltKeyPressed) {
-              newX = origX + totalDeltaX;
-              newY = origY - totalDeltaY;
+              // Center scaling: calculate size changes and adjust position
+              const widthChange = newWidth - origWidth;
+              const heightChange = newHeight - origHeight;
+              newX = origX - widthChange / 2;
+              newY = origY - heightChange / 2;
             } else {
+              // Normal resize: adjust x position for width change
               newX = origX + (origWidth - newWidth);
             }
             break;
@@ -243,9 +250,13 @@ export function useCanvasElementResize() {
             widthChanged = true;
 
             if (isAltKeyPressed) {
-              newX = origX - totalDeltaX;
-              newY = origY + totalDeltaY;
+              // Center scaling: calculate size changes and adjust position
+              const widthChange = newWidth - origWidth;
+              const heightChange = newHeight - origHeight;
+              newX = origX - widthChange / 2;
+              newY = origY - heightChange / 2;
             } else {
+              // Normal resize: adjust y position for height change
               newY = origY + (origHeight - newHeight);
             }
             break;
@@ -272,9 +283,13 @@ export function useCanvasElementResize() {
             widthChanged = true;
 
             if (isAltKeyPressed) {
-              newX = origX + totalDeltaX;
-              newY = origY + totalDeltaY;
+              // Center scaling: calculate size changes and adjust position
+              const widthChange = newWidth - origWidth;
+              const heightChange = newHeight - origHeight;
+              newX = origX - widthChange / 2;
+              newY = origY - heightChange / 2;
             } else {
+              // Normal resize: adjust both x and y positions
               newX = origX + (origWidth - newWidth);
               newY = origY + (origHeight - newHeight);
             }
@@ -290,41 +305,47 @@ export function useCanvasElementResize() {
       } else if (resizeDirection) {
         // Handle edge resizing (non-uniform scaling)
         if (resizeDirection.includes("e")) {
+          const oldWidth = newWidth;
+          newWidth = Math.max(50, origWidth + deltaX);
           if (isAltKeyPressed) {
-            newWidth = Math.max(50, origWidth + deltaX);
-            newX = origX - totalDeltaX;
-          } else {
-            newWidth = Math.max(50, origWidth + deltaX);
+            // Center scaling: shift position by half the width change
+            const widthChange = newWidth - origWidth;
+            newX = origX - widthChange / 2;
           }
           widthChanged = true;
         }
 
         if (resizeDirection.includes("w")) {
+          const oldWidth = newWidth;
+          newWidth = Math.max(50, origWidth - deltaX);
           if (isAltKeyPressed) {
-            newWidth = Math.max(50, origWidth - deltaX);
-            newX = origX + totalDeltaX;
+            // Center scaling: shift position by half the width change
+            const widthChange = newWidth - origWidth;
+            newX = origX - widthChange / 2;
           } else {
-            newWidth = Math.max(50, origWidth - deltaX);
             newX = origX + (origWidth - newWidth);
           }
           widthChanged = true;
         }
 
         if (resizeDirection.includes("s")) {
+          const oldHeight = newHeight;
+          newHeight = Math.max(20, origHeight + deltaY);
           if (isAltKeyPressed) {
-            newHeight = Math.max(20, origHeight + deltaY);
-            newY = origY - totalDeltaY;
-          } else {
-            newHeight = Math.max(20, origHeight + deltaY);
+            // Center scaling: shift position by half the height change
+            const heightChange = newHeight - origHeight;
+            newY = origY - heightChange / 2;
           }
         }
 
         if (resizeDirection.includes("n")) {
+          const oldHeight = newHeight;
+          newHeight = Math.max(20, origHeight - deltaY);
           if (isAltKeyPressed) {
-            newHeight = Math.max(20, origHeight - deltaY);
-            newY = origY + totalDeltaY;
+            // Center scaling: shift position by half the height change
+            const heightChange = newHeight - origHeight;
+            newY = origY - heightChange / 2;
           } else {
-            newHeight = Math.max(20, origHeight - deltaY);
             newY = origY + (origHeight - newHeight);
           }
         }
