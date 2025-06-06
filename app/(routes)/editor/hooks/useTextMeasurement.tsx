@@ -1,5 +1,5 @@
 import { useRef, useCallback } from "react";
-import { Element as CanvasElement } from "@lib/types/canvasTypes";
+import { Element as CanvasElement } from "@lib/types/canvas.types";
 
 /**
  * Hook to handle text measurement and auto-height adjustment
