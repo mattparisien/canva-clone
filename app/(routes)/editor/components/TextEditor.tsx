@@ -11,7 +11,7 @@ import {
   type TextAlignment
 } from "@/lib/constants/editor";
 import type React from "react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /* ------------------------------------------------------------------
    Types
@@ -25,20 +25,11 @@ interface TextEditorProps {
   fontFamily?: string;
   /** Whether the surrounding element is currently selected */
   isSelected: boolean;
-  /** If true the editor starts in editing mode */
-  isNew?: boolean;
   /** Propagates content changes to the parent */
   onChange: (content: string) => void;
-  /** Propagates font-size changes to the parent */
-  onFontSizeChange: (fontSize: number) => void;
-  /** Propagates font-family changes to the parent */
-  onFontFamilyChange: (fontFamily: string) => void;
-  /** Notifies the parent the user began editing */
-  onEditingStart?: () => void;
   /** Sends the actual pixel height of the node to the parent */
   onHeightChange?: (height: number) => void;
   textAlign?: TextAlignment;
-  onTextAlignChange?: (align: TextAlignment) => void;
   /** Text formatting options */
   isBold?: boolean;
   isItalic?: boolean;
@@ -46,8 +37,6 @@ interface TextEditorProps {
   isStrikethrough?: boolean;
   /** Text color */
   textColor?: string;
-  /** Edit mode flag */
-  isEditMode?: boolean;
   /** Whether the editor is in editable mode */
   isEditable: boolean;
   /** Notifies the parent when editing should end */
@@ -62,11 +51,7 @@ export function TextEditor({
   fontSize = DEFAULT_FONT_SIZE,
   fontFamily = "Inter",
   isSelected,
-  isNew = false,
   onChange,
-  onFontSizeChange,
-  onFontFamilyChange,
-  onEditingStart,
   onHeightChange,
   textAlign = DEFAULT_TEXT_ALIGN,
   isBold = false,
@@ -74,16 +59,18 @@ export function TextEditor({
   isUnderlined = false,
   isStrikethrough = false,
   textColor = "#000000",
-  isEditable = false, // Whether the editor is in editable mode
-  onTextAlignChange,
+  isEditable = false,
   onEditingEnd,
-  isEditMode = true, // Default to edit mode if not provided
 }: TextEditorProps) {
   /* ----------------------------------------------------------------
      Local state & refs
      ---------------------------------------------------------------- */
   const [localContent, setLocalContent] = useState<string>(content);
   const editorRef = useRef<HTMLDivElement>(null);
+  
+  // Debounced callbacks for performance
+  const debouncedOnChange = useRef<NodeJS.Timeout | null>(null);
+  const debouncedHeightChange = useRef<NodeJS.Timeout | null>(null);
 
   /* ----------------------------------------------------------------
      Sync incoming `content` prop → local state when not editing
@@ -94,54 +81,47 @@ export function TextEditor({
     }
   }, [content, isEditable]);
 
-  // // Exit editing mode when switching to view mode
-  // useEffect(() => {
-  //   if (!isEditMode && isEditable) {
-  //     setisEditable(false);
-  //   }
-  // }, [isEditMode, isEditable]);
-
+  // Remove commented out code
+  
   /* ----------------------------------------------------------------
-     Enter editing mode on double-click
+     Debounced functions for performance
      ---------------------------------------------------------------- */
-  // const startEditing = () => {
-  //   // Only allow editing in edit mode
-  //   if (!isEditMode) return;
-    
-  //   onEditingStart?.();
-  //   setisEditable(true);
-  // };
+  const updateContentDebounced = useCallback((newValue: string) => {
+    if (debouncedOnChange.current) {
+      clearTimeout(debouncedOnChange.current);
+    }
+    debouncedOnChange.current = setTimeout(() => {
+      onChange(newValue);
+    }, 150);
+  }, [onChange]);
 
-  // const handleDoubleClick = (e: React.MouseEvent) => {
-  //   // Only allow editing in edit mode
-  //   if (!isEditMode) return;
+  const updateHeightDebounced = useCallback(() => {
+    if (!onHeightChange) return;
     
-  //   e.stopPropagation();
-  //   startEditing();
-  // };
+    if (debouncedHeightChange.current) {
+      clearTimeout(debouncedHeightChange.current);
+    }
+    debouncedHeightChange.current = setTimeout(() => {
+      if (!editorRef.current) return;
+      const newHeight = editorRef.current.scrollHeight;
+      onHeightChange(newHeight);
+    }, 100);
+  }, [onHeightChange]);
 
   /* ----------------------------------------------------------------
      Handle user typing inside the contentEditable div
      ---------------------------------------------------------------- */
-  const handleInput: React.FormEventHandler<HTMLDivElement> = () => {
+  const handleInput: React.FormEventHandler<HTMLDivElement> = useCallback(() => {
     if (!editorRef.current) return;
 
-    // 1. Update content refs/state
+    // Update local content immediately for responsive UI
     const newValue = editorRef.current.innerText;
     setLocalContent(newValue);
-    onChange(newValue);
-
-    // 2. Measure height *after* the DOM paints
-    if (onHeightChange) {
-      requestAnimationFrame(() => {
-        if (!editorRef.current) return;
-        // Reset height to auto to allow shrinking, then read scrollHeight
-        editorRef.current.style.height = "auto";
-        const newHeight = editorRef.current.scrollHeight;
-        onHeightChange(newHeight);
-      });
-    }
-  };
+    
+    // Debounce the expensive operations
+    updateContentDebounced(newValue);
+    updateHeightDebounced();
+  }, [updateContentDebounced, updateHeightDebounced]);
 
   /* ----------------------------------------------------------------
      Focus the editor when switching to edit mode
@@ -162,15 +142,15 @@ export function TextEditor({
   }, [isEditable]);
 
   /* ----------------------------------------------------------------
-     Recalculate and report height on content or width change
+     Recalculate and report height on style changes (not during editing)
      ---------------------------------------------------------------- */
   useLayoutEffect(() => {
-    if (!editorRef.current || !onHeightChange) return;
-    // Reset height to auto to allow shrinking, then read scrollHeight
-    editorRef.current.style.height = "auto";
+    // Skip height calculation during editing to avoid performance issues
+    if (isEditable || !editorRef.current || !onHeightChange) return;
+    
     const newHeight = editorRef.current.scrollHeight;
     onHeightChange(newHeight);
-  }, [localContent, fontSize, fontFamily, textAlign, isBold, isItalic, isUnderlined, isStrikethrough, textColor]);
+  }, [fontSize, fontFamily, textAlign, isBold, isItalic, isUnderlined, isStrikethrough, textColor, isEditable, onHeightChange]);
 
   /* ----------------------------------------------------------------
      Common style object shared by read-only and edit states
@@ -218,18 +198,32 @@ export function TextEditor({
   /* ----------------------------------------------------------------
      Handle ending edit mode
      ---------------------------------------------------------------- */
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     if (onEditingEnd) {
       onEditingEnd();
     }
-  };
+  }, [onEditingEnd]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Escape" && onEditingEnd) {
       e.preventDefault();
       onEditingEnd();
     }
-  };
+  }, [onEditingEnd]);
+
+  /* ----------------------------------------------------------------
+     Cleanup timeouts on unmount
+     ---------------------------------------------------------------- */
+  useEffect(() => {
+    return () => {
+      if (debouncedOnChange.current) {
+        clearTimeout(debouncedOnChange.current);
+      }
+      if (debouncedHeightChange.current) {
+        clearTimeout(debouncedHeightChange.current);
+      }
+    };
+  }, []);
 
   /* ----------------------------------------------------------------
      Render
@@ -246,13 +240,11 @@ export function TextEditor({
           onInput={handleInput}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          // onBlur={() => setisEditable(false)}
         />
       ) : (
         <div
           className="w-full select-none outline-none"
           style={baseStyle}
-          // onDoubleClick={handleDoubleClick}
         >
           {localContent}
         </div>

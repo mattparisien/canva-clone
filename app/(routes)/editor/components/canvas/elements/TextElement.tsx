@@ -1,5 +1,5 @@
-import { TextEditor } from "../../TextEditor";
 import { Element as CanvasElement } from "@/lib/types/canvas.types";
+import { TextEditor } from "../../TextEditor";
 
 interface TextElementProps {
   element: CanvasElement;
@@ -17,9 +17,7 @@ export const TextElement = ({
   isSelected,
   textEditorKey,
   updateElement,
-  clearNewElementFlag,
   handleHeightChange,
-  handleTextAlignChange,
   isEditMode
 }: TextElementProps) => (
   <div className="w-full h-full text-element">
@@ -29,24 +27,14 @@ export const TextElement = ({
       fontSize={element.fontSize}
       fontFamily={element.fontFamily}
       isSelected={isSelected}
-      isNew={element.isNew}
       onChange={(content) => updateElement(element.id, { content })}
-      onFontSizeChange={(fontSize) => updateElement(element.id, { fontSize })}
-      onFontFamilyChange={(fontFamily) => updateElement(element.id, { fontFamily })}
-      onEditingStart={() => {
-        if (element.isNew) {
-          clearNewElementFlag(element.id)
-        }
-      }}
       onHeightChange={handleHeightChange}
       textAlign={element.textAlign || "center"}
-      onTextAlignChange={handleTextAlignChange}
       isBold={element.isBold}
       isItalic={element.isItalic}
       isUnderlined={element.isUnderlined}
       isStrikethrough={element.isStrikethrough}
       textColor={element.textColor}
-      isEditMode={isEditMode}
       isEditable={element.isEditable || false}
       onEditingEnd={() => updateElement(element.id, { isEditable: false })}
     />
