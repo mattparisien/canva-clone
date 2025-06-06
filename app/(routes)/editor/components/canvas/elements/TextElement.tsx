@@ -47,6 +47,8 @@ export const TextElement = ({
       isStrikethrough={element.isStrikethrough}
       textColor={element.textColor}
       isEditMode={isEditMode}
+      isEditable={element.isEditable || false}
+      onEditingEnd={() => updateElement(element.id, { isEditable: false })}
     />
   </div>
 );

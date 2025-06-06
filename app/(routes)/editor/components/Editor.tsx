@@ -273,7 +273,8 @@ export default function Editor() {
                     isBold: false,
                     isItalic: false,
                     isUnderlined: false,
-                    isStrikethrough: false
+                    isStrikethrough: false,
+                    isEditable: true // Start in editable mode
                 };
 
                 // Add the element to the canvas
@@ -310,9 +311,16 @@ export default function Editor() {
                 closeSidebarPanel();
             }
 
-            // Clear selections
+            // Clear selections and exit text editing mode
             elementRefs.current.forEach(ref => {
                 deselectElement(ref.id);
+            });
+
+            // Exit text editing mode for all elements when clicking outside
+            elements.forEach(element => {
+                if (element.type === "text" && element.isEditable) {
+                    updateElement(element.id, { isEditable: false });
+                }
             });
 
             if (selectedElementIds.length > 0 || selectedElement !== null) {

@@ -29,6 +29,12 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
     const setDragState = useCanvasStore(state => state.setDragState);
     const clearAlignmentGuides = useCanvasStore(state => state.clearAlignmentGuides);
 
+    // Get current page elements for text editing management
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+    const currentPage = editor.pages.find(page => page.id === currentPageId);
+    const allElements = currentPage ? currentPage.elements : [];
+
     // Use the interaction hook
     const {
         isDragging,
@@ -410,7 +416,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
             onClick={(e) => {
                 // Stop propagation to prevent conflicting with canvas click handler
                 e.stopPropagation();
-                handleClick(e, element, selectElement);
+                handleClick(e, element, selectElement, updateElement, allElements);
             }}
             onMouseEnter={() => handleMouseEnter(element.id, isEditMode)}
             onMouseLeave={() => handleMouseLeave()}

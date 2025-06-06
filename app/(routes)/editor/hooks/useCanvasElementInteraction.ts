@@ -177,7 +177,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   /**
    * Handle selection on click
    */
-  const handleClick = useCallback((e: React.MouseEvent, element: CanvasElement, onElementSelect?: (id: string, addToSelection: boolean) => void) => {
+  const handleClick = useCallback((e: React.MouseEvent, element: CanvasElement, onElementSelect?: (id: string, addToSelection: boolean) => void, updateElement?: (id: string, updates: Partial<CanvasElement>) => void, allElements?: CanvasElement[]) => {
     // Always stop propagation to prevent canvas click handler from running
     e.stopPropagation();
     
@@ -186,7 +186,25 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     
     // Select element
     onElementSelect?.(element.id, isShiftPressed);
-  }, []);
+    
+    // Handle text element click-to-edit functionality
+    if (element.type === "text" && updateElement && !isShiftPressed) {
+      // Only toggle to editable if we're not already dragging and the element is not currently being edited
+      if (!isDragInitiated && !isDragging) {
+        // First, set all other text elements to non-editable
+        if (allElements) {
+          allElements.forEach(el => {
+            if (el.type === "text" && el.id !== element.id && el.isEditable) {
+              updateElement(el.id, { isEditable: false });
+            }
+          });
+        }
+        
+        // Then toggle the clicked element's editable state
+        updateElement(element.id, { isEditable: !element.isEditable });
+      }
+    }
+  }, [isDragInitiated, isDragging]);
 
   // We've removed the outside click handler from here
   // as it's now handled at the Editor component level

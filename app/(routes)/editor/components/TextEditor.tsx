@@ -50,6 +50,8 @@ interface TextEditorProps {
   isEditMode?: boolean;
   /** Whether the editor is in editable mode */
   isEditable: boolean;
+  /** Notifies the parent when editing should end */
+  onEditingEnd?: () => void;
 }
 
 /* ------------------------------------------------------------------
@@ -74,8 +76,10 @@ export function TextEditor({
   textColor = "#000000",
   isEditable = false, // Whether the editor is in editable mode
   onTextAlignChange,
+  onEditingEnd,
   isEditMode = true, // Default to edit mode if not provided
 }: TextEditorProps) {
+  console.log('iseditable', isEditable)
   /* ----------------------------------------------------------------
      Local state & refs
      ---------------------------------------------------------------- */
@@ -213,6 +217,22 @@ export function TextEditor({
   } as const;
 
   /* ----------------------------------------------------------------
+     Handle ending edit mode
+     ---------------------------------------------------------------- */
+  const handleBlur = () => {
+    if (onEditingEnd) {
+      onEditingEnd();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" && onEditingEnd) {
+      e.preventDefault();
+      onEditingEnd();
+    }
+  };
+
+  /* ----------------------------------------------------------------
      Render
      ---------------------------------------------------------------- */
   return (
@@ -225,6 +245,8 @@ export function TextEditor({
           contentEditable
           suppressContentEditableWarning
           onInput={handleInput}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           // onBlur={() => setisEditable(false)}
         />
       ) : (
