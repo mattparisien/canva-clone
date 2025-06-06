@@ -47,6 +47,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
         setLeftBorderHover,
         setRightBorderHover,
         dragStart,
+        setIsDragActive,
         setDragStart,
         startDrag,
         endDrag,
@@ -414,16 +415,14 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                 transform: 'translate3d(0, 0, 0)',// Force hardware acceleration for smoother rendering
                 zIndex: element.type === "text" ? 1 : 0, // Ensure text elements are always on top
             }}
-            onClick={(e) => {
-                e.stopPropagation();
-                clickCount.current++;
-
-                if (clickCount.current === 2) {
-                    updateElement(element.id, { isEditable: true });
-                    clickCount.current = 0
-                };
-
-            }}
+            onClick={e => handleClick(e, element, (id: string) => {
+                console.log(element);
+                if (element.type === "text") {
+                    updateElement(id, { isEditable: true })
+                    setIsDragActive(false);
+                }
+            })
+            }
             onMouseEnter={() => handleMouseEnter(element.id, isEditMode)}
             onMouseLeave={() => handleMouseLeave()}
             onMouseDown={handleMouseDown}
@@ -444,7 +443,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                     isDragging={isDragging}
                 />
             }
-        </div>
+        </div >
     );
 }));
 

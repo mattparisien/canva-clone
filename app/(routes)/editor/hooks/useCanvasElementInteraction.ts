@@ -7,10 +7,11 @@ import useCanvasStore from "@/lib/stores/useCanvasStore";
  */
 export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDivElement | null>) {
   // Track state
-  const [isDragging, setIsDragging] = useState(false);
-  const [isAltKeyPressed, setIsAltKeyPressed] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
-  const [isDragInitiated, setIsDragInitiated] = useState(false); // Track if drag has been initiated but not yet started
+  const [isDragActive, setIsDragActive] = useState<boolean>(true);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [isAltKeyPressed, setIsAltKeyPressed] = useState<boolean>(false);
+  const [isHovering, setIsHovering] = useState<boolean>(false);
+  const [isDragInitiated, setIsDragInitiated] = useState<boolean>(false); // Track if drag has been initiated but not yet started
 
   // Track positions
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -38,6 +39,8 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     e: false,
     w: false,
   });
+
+  const clickCount = useRef<number>(0);
 
   /**
    * Start drag operation - only prepares for dragging, doesn't set isDragging until mouse moves
@@ -180,40 +183,18 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   const handleClick = useCallback((
     e: React.MouseEvent,
     element: CanvasElement,
-    onElementSelect?: (id: string, addToSelection: boolean) => void,
+    onDoubleClick: (id: string) => void,
   ) => {
     // Always stop propagation to prevent canvas click handler from running
     e.stopPropagation();
 
-    // Check if shift key is pressed for multi-selection
-    const isShiftPressed = e.shiftKey;
+    clickCount.current++;
 
-    // Select element
-    onElementSelect?.(element.id, isShiftPressed);
+    if (clickCount.current === 2) {
+      onDoubleClick(element.id);
+      clickCount.current = 0; // Reset after double click
+    }
 
-    // // Handle text element click-to-edit functionality
-    // if (
-    //   element &&
-    //   isSelected &&
-    //   element.type === "text" &&
-    //   updateElement &&
-    //   !isShiftPressed
-    // ) {
-    //   // Only toggle to editable if we're not already dragging and the element is not currently being edited
-    //   if (!isDragInitiated && !isDragging) {
-    //     // First, set all other text elements to non-editable
-    //     if (allElements) {
-    //       allElements.forEach(el => {
-    //         if (el.type === "text" && el.id !== element.id && el.isEditable) {
-    //           updateElement(el.id, { isEditable: false });
-    //         }
-    //       });
-    //     }
-
-    //     // Then toggle the clicked element's editable state
-    //     updateElement(element.id, { isEditable: !element.isEditable });
-    //   }
-    // }
   }, [isDragInitiated, isDragging]);
 
   // We've removed the outside click handler from here
@@ -262,6 +243,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     setRightBorderHover,
     handleHover,
     dragStart,
+    setIsDragActive,
     setDragStart,
     startDrag,
     endDrag,
