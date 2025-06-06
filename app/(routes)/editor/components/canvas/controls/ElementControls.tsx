@@ -1,5 +1,5 @@
 import { Element } from "@/lib/types/canvas.types";
-import { memo, useCallback, useEffect, useRef, forwardRef } from "react";
+import { memo, useCallback, useEffect, useRef, forwardRef, use } from "react";
 import classNames from "classnames";
 import useCanvasStore from "@/lib/stores/useCanvasStore";
 import useEditorStore from "@/lib/stores/useEditorStore";
@@ -20,6 +20,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
     isEditMode
 }, ref) => {
     const elementRef = useRef<HTMLDivElement>(null);
+    const clickCount = useRef<number>(0);
 
     // Canvas store methods
     const updateElement = useCanvasStore(state => state.updateElement);
@@ -275,7 +276,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                 cancelAnimationFrame(animationFrameId);
             }
         };
-    }, [isDragging, dragStart, element, scale, updateElement, setDragStart, endDrag, isResizing]);
+    }, [isDragging, dragStart, element, scale, updateElement, setDragStart, endDrag]);
 
     // Handle resizing
     useEffect(() => {
@@ -414,9 +415,14 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                 zIndex: element.type === "text" ? 1 : 0, // Ensure text elements are always on top
             }}
             onClick={(e) => {
-                // Stop propagation to prevent conflicting with canvas click handler
                 e.stopPropagation();
-                handleClick(e, element, selectElement, updateElement, allElements);
+                clickCount.current++;
+
+                if (clickCount.current === 2) {
+                    updateElement(element.id, { isEditable: true });
+                    clickCount.current = 0
+                };
+
             }}
             onMouseEnter={() => handleMouseEnter(element.id, isEditMode)}
             onMouseLeave={() => handleMouseLeave()}

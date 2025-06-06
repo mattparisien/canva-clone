@@ -11,24 +11,24 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   const [isAltKeyPressed, setIsAltKeyPressed] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [isDragInitiated, setIsDragInitiated] = useState(false); // Track if drag has been initiated but not yet started
-  
+
   // Track positions
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  
+
   // For debouncing hover events
   const justFinishedResizing = useRef(false);
   const resizeEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Store drag callbacks for use in mouse events
   const dragCallbacksRef = useRef<{
     onDragStart?: (element: CanvasElement) => void;
     element?: CanvasElement;
   }>({});
-  
+
   // Edge hover states for resize handles
   const [leftBorderHover, setLeftBorderHover] = useState(false);
   const [rightBorderHover, setRightBorderHover] = useState(false);
-  
+
   // Handle states for resize corners/edges
   const [handleHover, setHandleHover] = useState({
     nw: false,
@@ -44,25 +44,25 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
    */
   const startDrag = useCallback((e: React.MouseEvent, element: CanvasElement, onDragStart: (element: CanvasElement) => void, onElementSelect: (id: string, addToSelection: boolean) => void, clearNewFlag?: (id: string) => void) => {
     e.stopPropagation();
-    
+
     // Clear isNew flag if needed
     if (element.isNew && clearNewFlag) {
       clearNewFlag(element.id);
     }
-    
+
     // Check if shift key is pressed for multi-selection
     const isShiftPressed = e.shiftKey;
-    
+
     // Select element and notify parent
     onElementSelect(element.id, isShiftPressed);
-    
+
     // Store initial drag position but don't set isDragging yet
     setIsDragInitiated(true);
     setDragStart({
       x: e.clientX,
       y: e.clientY,
     });
-    
+
     // Store callbacks for later use
     dragCallbacksRef.current = {
       onDragStart,
@@ -83,7 +83,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
       if ((deltaX > threshold || deltaY > threshold) && !isDragging) {
         setIsDragging(true);
         setIsDragInitiated(false);
-        
+
         // Call the onDragStart callback now that we're actually dragging
         if (dragCallbacksRef.current.onDragStart && dragCallbacksRef.current.element) {
           dragCallbacksRef.current.onDragStart(dragCallbacksRef.current.element);
@@ -108,7 +108,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isDragInitiated, dragStart.x, dragStart.y, isDragging]);
-  
+
   /**
    * End drag operation
    */
@@ -145,12 +145,12 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
    */
   const setJustFinishedResizing = useCallback((value: boolean, duration = 200) => {
     justFinishedResizing.current = value;
-    
+
     // Clear existing timeout
     if (resizeEndTimeoutRef.current) {
       clearTimeout(resizeEndTimeoutRef.current);
     }
-    
+
     // Set new timeout if turning on the flag
     if (value) {
       resizeEndTimeoutRef.current = setTimeout(() => {
@@ -163,8 +163,8 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
    * Helper to get handle background
    */
   const getHandleBg = useCallback((dir: string, resizeDirection: string | null, isResizing: boolean) => {
-    return (handleHover[dir as keyof typeof handleHover] || 
-            (resizeDirection === dir && isResizing)) ? "var(--handle-hover)" : "#fff";
+    return (handleHover[dir as keyof typeof handleHover] ||
+      (resizeDirection === dir && isResizing)) ? "var(--handle-hover)" : "#fff";
   }, [handleHover]);
 
   /**
@@ -181,8 +181,6 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     e: React.MouseEvent,
     element: CanvasElement,
     onElementSelect?: (id: string, addToSelection: boolean) => void,
-    updateElement?: (id: string, updates: Partial<CanvasElement>) => void,
-    allElements?: CanvasElement[]
   ) => {
     // Always stop propagation to prevent canvas click handler from running
     e.stopPropagation();
@@ -190,34 +188,32 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     // Check if shift key is pressed for multi-selection
     const isShiftPressed = e.shiftKey;
 
-    // Determine if the element was selected before this click
-    const wasSelected = useCanvasStore.getState().isElementSelected(element.id);
-
     // Select element
     onElementSelect?.(element.id, isShiftPressed);
 
-    // Handle text element click-to-edit functionality
-    if (
-      wasSelected &&
-      element.type === "text" &&
-      updateElement &&
-      !isShiftPressed
-    ) {
-      // Only toggle to editable if we're not already dragging and the element is not currently being edited
-      if (!isDragInitiated && !isDragging) {
-        // First, set all other text elements to non-editable
-        if (allElements) {
-          allElements.forEach(el => {
-            if (el.type === "text" && el.id !== element.id && el.isEditable) {
-              updateElement(el.id, { isEditable: false });
-            }
-          });
-        }
+    // // Handle text element click-to-edit functionality
+    // if (
+    //   element &&
+    //   isSelected &&
+    //   element.type === "text" &&
+    //   updateElement &&
+    //   !isShiftPressed
+    // ) {
+    //   // Only toggle to editable if we're not already dragging and the element is not currently being edited
+    //   if (!isDragInitiated && !isDragging) {
+    //     // First, set all other text elements to non-editable
+    //     if (allElements) {
+    //       allElements.forEach(el => {
+    //         if (el.type === "text" && el.id !== element.id && el.isEditable) {
+    //           updateElement(el.id, { isEditable: false });
+    //         }
+    //       });
+    //     }
 
-        // Then toggle the clicked element's editable state
-        updateElement(element.id, { isEditable: !element.isEditable });
-      }
-    }
+    //     // Then toggle the clicked element's editable state
+    //     updateElement(element.id, { isEditable: !element.isEditable });
+    //   }
+    // }
   }, [isDragInitiated, isDragging]);
 
   // We've removed the outside click handler from here

@@ -79,7 +79,6 @@ export function TextEditor({
   onEditingEnd,
   isEditMode = true, // Default to edit mode if not provided
 }: TextEditorProps) {
-  console.log('iseditable', isEditable)
   /* ----------------------------------------------------------------
      Local state & refs
      ---------------------------------------------------------------- */
