@@ -198,7 +198,7 @@ body {
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
-}
+} 
 
 /* Text element styling */
 .text-element {
