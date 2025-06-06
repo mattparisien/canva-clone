@@ -275,7 +275,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                 cancelAnimationFrame(animationFrameId);
             }
         };
-    }, [isDragging, dragStart, element, scale, updateElement, setDragStart, endDrag]);
+    }, [isDragging, dragStart, element, scale, updateElement, setDragStart, endDrag, isResizing]);
 
     // Handle resizing
     useEffect(() => {
