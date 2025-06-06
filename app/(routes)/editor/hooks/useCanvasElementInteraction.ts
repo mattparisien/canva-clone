@@ -20,6 +20,10 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   const justFinishedResizing = useRef(false);
   const resizeEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Track if we just finished dragging to prevent double-click after drag
+  const justFinishedDragging = useRef(false);
+  const dragEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Store drag callbacks for use in mouse events
   const dragCallbacksRef = useRef<{
     onDragStart?: (element: CanvasElement) => void;
@@ -118,6 +122,18 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
   const endDrag = useCallback((onDragEnd: () => void) => {
     if (isDragging) {
       onDragEnd();
+      // Set flag to prevent double-click callback immediately after drag ends
+      justFinishedDragging.current = true;
+      
+      // Clear existing timeout
+      if (dragEndTimeoutRef.current) {
+        clearTimeout(dragEndTimeoutRef.current);
+      }
+      
+      // Clear the flag after a short delay
+      dragEndTimeoutRef.current = setTimeout(() => {
+        justFinishedDragging.current = false;
+      }, 100);
     }
     setIsDragging(false);
     setIsDragInitiated(false);
@@ -188,6 +204,11 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     // Always stop propagation to prevent canvas click handler from running
     e.stopPropagation();
 
+    // Don't process clicks if we just finished dragging
+    if (justFinishedDragging.current) {
+      return;
+    }
+
     clickCount.current++;
 
     if (clickCount.current === 2) {
@@ -228,6 +249,9 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     return () => {
       if (resizeEndTimeoutRef.current) {
         clearTimeout(resizeEndTimeoutRef.current);
+      }
+      if (dragEndTimeoutRef.current) {
+        clearTimeout(dragEndTimeoutRef.current);
       }
     }
   }, []);

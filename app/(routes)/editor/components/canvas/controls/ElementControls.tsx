@@ -417,7 +417,6 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                 zIndex: element.type === "text" ? 1 : 0, // Ensure text elements are always on top
             }}
             onClick={e => handleClick(e, element, (id: string) => {
-                console.log(element);
                 if (element.type === "text") {
                     updateElement(id, { isEditable: true })
                     setIsDragActive(false);
