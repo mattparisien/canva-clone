@@ -103,6 +103,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   // Add position state
 
   const openSidebarPanel = useEditorStore((state) => state.openSidebarPanel);
+  const closeSidebarPanel = useEditorStore((state) => state.closeSidebarPanel);
   const isPanelOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
 
 
@@ -235,17 +236,17 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
 
   const handleTextColorButtonClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    openSidebarPanel("text-color");
-  }, [openSidebarPanel]);
+    if (!isPanelOpen) {
+      openSidebarPanel("text-color");
+    } else {
+      closeSidebarPanel();
+    }
+  }, [isPanelOpen, openSidebarPanel, closeSidebarPanel]);
 
   const handleBackgroundColorButtonClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     openSidebarPanel("background-color");
   }, [openSidebarPanel]);
-
-  useEffect(() => {
-    console.log('isPanelOpen changed:', isPanelOpen);
-  }, [isPanelOpen]);
 
   // Clean up timeout on unmount
   useEffect(() => {

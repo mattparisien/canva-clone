@@ -104,11 +104,6 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
     return (
         <Popover.Root
             open={isPanelOpen}
-            onOpenChange={(open) => {
-                if (!open) {
-                    closeSidebarPanel();
-                }
-            }}
         >
             <div className={"flex h-screen flex-col select-none"}>
                 <Popover.Anchor>

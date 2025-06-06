@@ -56,6 +56,8 @@ export default function Editor() {
     const deselectElement = useCanvasStore(state => state.deselectElement);
     const selectCanvas = useCanvasStore(state => state.selectCanvas);
     const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected);
+    const isSidebarPanelOpen = useEditorStore(state => state.sidebarPanel.isOpen);
+    const closeSidebarPanel = useEditorStore(state => state.closeSidebarPanel);
 
     // Canvas context functions
     const { handleTextColorChange, handleBackgroundColorChange } = useCanvas();
@@ -298,10 +300,14 @@ export default function Editor() {
             // Use data attributes to identify clickable areas
             const isClickOnInteractiveElement = target.closest('[data-editor-interactive]');
 
-            console.log(isClickOnInteractiveElement, ',')
             // If click is on an interactive element, don't clear selection
             if (isClickOnInteractiveElement) {
                 return;
+            }
+
+            // Close sidebar panel if open
+            if (isSidebarPanelOpen) {
+                closeSidebarPanel();
             }
 
             // Clear selections
@@ -320,7 +326,7 @@ export default function Editor() {
 
         window.addEventListener("mousedown", handleOutsideClick);
         return () => window.removeEventListener("mousedown", handleOutsideClick);
-    }, [isEditMode, selectedElementIds, selectedElement, isCanvasSelected, selectElement, selectCanvas]);
+    }, [isEditMode, selectedElementIds, selectedElement, isCanvasSelected, isSidebarPanelOpen, selectElement, selectCanvas, closeSidebarPanel]);
     return (
         <div
             className="flex flex-1 overflow-hidden flex-col relative bg-editor pl-sidebar"
