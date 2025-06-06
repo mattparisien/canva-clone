@@ -14,7 +14,6 @@ interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'>
     position: { x: number; y: number };
     elementId: string | null;
   };
-  hoveredElementId: string | null;
   // Alignment guides state
   alignmentGuides: {
     horizontal: number[];
@@ -28,8 +27,6 @@ interface CanvasState extends Omit<CanvasContextType, 'elements' | 'canvasSize'>
   showElementActionBar: (elementId: string, position: { x: number; y: number }) => void;
   hideElementActionBar: () => void;
   setElementActionBarPosition: (position: { x: number; y: number }) => void;
-  setHoveredElement: (elementId: string | null) => void;
-  isElementHovered: (elementId: string) => boolean;
   bringElementForward: (elementId: string) => void;
   sendElementBackward: (elementId: string) => void;
   bringElementToFront: (elementId: string) => void;
@@ -59,7 +56,6 @@ const useCanvasStore = create<CanvasState>((set, get) => {
     position: { x: 0, y: 0 },
     elementId: null,
   },
-  hoveredElementId: null,
   // Alignment guides state
   alignmentGuides: {
     horizontal: [],
@@ -765,15 +761,6 @@ const useCanvasStore = create<CanvasState>((set, get) => {
         canRedo: false
       };
     });
-  },
-
-  // Hover state management
-  setHoveredElement: (elementId) => {
-    set({ hoveredElementId: elementId });
-  },
-
-  isElementHovered: (elementId) => {
-    return get().hoveredElementId === elementId;
   },
 
   // Element Action Bar actions
