@@ -79,7 +79,7 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
       align="start"
       alignOffset={4}
       ref={popoverRef}
-      className="z-sidebar-popover"
+      className="sticky z-sidebar-popover"
       id="sidebar-popover-content"
       style={{
         paddingLeft: leftOffset,

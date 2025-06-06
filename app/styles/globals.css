@@ -101,7 +101,7 @@ body {
 
 
     --z-sidebar: 1000;
-    --z-sidebar-popover: 999;
+    --z-sidebar-popover: 1001;
     --z-editor-popover: 998;
     --z-editor-canvas-controls: 997;
     --z-header: 999999;
@@ -211,4 +211,9 @@ body {
   white-space: pre-wrap;
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+/* Custom z-index for Popover.Root */
+.popover-root-custom {
+  z-index: var(--z-sidebar-popover);
 }

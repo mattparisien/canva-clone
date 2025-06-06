@@ -105,7 +105,7 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
         <Popover.Root
             open={isPanelOpen}
         >
-            <div className={"flex h-screen flex-col select-none"}>
+            <div className={"flex h-screen flex-col select-none popover-root-custom"}>
                 <Popover.Anchor>
                     <EditorNavbar />
                 </Popover.Anchor>
