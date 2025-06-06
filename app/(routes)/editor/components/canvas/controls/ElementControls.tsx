@@ -20,7 +20,6 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
     isEditMode
 }, ref) => {
     const elementRef = useRef<HTMLDivElement>(null);
-    const clickCount = useRef<number>(0);
 
     // Canvas store methods
     const updateElement = useCanvasStore(state => state.updateElement);
