@@ -162,6 +162,7 @@ export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarPro
       "pt-header": variant === "editor"
     })}
       ref={ref}
+      data-sidebar
     >
       {/* Create New Button */}
       {variant === "global" && <div className="p-4 mt-2">

@@ -26,7 +26,7 @@ export default function BottomBar({
     isFullscreen
 }: BottomBarProps) {
     return (
-        <div className="h-[var(--editor-bottomBar-height)] flex items-center justify-between px-4 shadow-sm z-editor-popover">
+        <div className="h-[var(--editor-bottomBar-height)] flex items-center justify-between px-4 shadow-sm z-editor-popover bottom-bar" data-bottom-bar>
             <div></div>
 
             {/* Right side - Zoom controls and page info */}

@@ -18,11 +18,61 @@ export default function MarqueeSelection({ canvasRef }: MarqueeSelectionProps) {
   const selectedElementIds = useCanvasStore(state => state.selectedElementIds);
   const isEditMode = useEditorStore(state => state.isEditMode);
 
+  // Helper function to check if click is in an excluded area (sidebar, navbar, etc.)
+  const isInExcludedArea = (target: EventTarget | null): boolean => {
+    if (!target || !(target instanceof Element)) return false;
+    
+    // Check if click is on sidebar, navbar, or other UI elements
+    const excludedSelectors = [
+      '[data-sidebar]',
+      '[data-navbar]', 
+      '[data-bottom-bar]',
+      '[data-page-navigation]',
+      '.sidebar',
+      '.navbar',
+      '.bottom-bar',
+      '.page-navigation',
+      'nav',
+      'button',
+      'input',
+      'textarea',
+      '[role="button"]',
+      '.element-action-bar',
+      '.element-property-bar',
+      '.page-thumbnails-container'
+    ];
+    
+    return excludedSelectors.some(selector => 
+      target.closest(selector) !== null
+    );
+  };
+
+  // Helper function to convert global coordinates to canvas-relative coordinates
+  const getCanvasCoordinates = (clientX: number, clientY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const scale = parseFloat(getComputedStyle(canvas).getPropertyValue('--canvas-scale') || '1');
+    
+    // Convert global coordinates to canvas-relative coordinates
+    const canvasRelativeX = (clientX - canvasRect.left) / scale;
+    const canvasRelativeY = (clientY - canvasRect.top) / scale;
+    
+    return { x: canvasRelativeX, y: canvasRelativeY };
+  };
+
+  // Helper function to get viewport coordinates for display
+  const getViewportCoordinates = (clientX: number, clientY: number) => {
+    return { x: clientX, y: clientY };
+  };
+
   useEffect(() => {
     if (!isSelecting) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      setEnd({ x: e.clientX, y: e.clientY });
+      const viewportCoords = getViewportCoordinates(e.clientX, e.clientY);
+      setEnd(viewportCoords);
     };
 
     const handleMouseUp = (e: MouseEvent) => {
@@ -30,21 +80,28 @@ export default function MarqueeSelection({ canvasRef }: MarqueeSelectionProps) {
 
       if (!start) return;
 
+      const endViewport = getViewportCoordinates(e.clientX, e.clientY);
+      
+      // Convert viewport coordinates to canvas coordinates for element intersection
+      const startCanvas = getCanvasCoordinates(start.x, start.y);
+      const endCanvas = getCanvasCoordinates(endViewport.x, endViewport.y);
+      
+      // Create selection rectangle in canvas coordinates
       const rect = {
-        left: Math.min(start.x, e.clientX),
-        top: Math.min(start.y, e.clientY),
-        right: Math.max(start.x, e.clientX),
-        bottom: Math.max(start.y, e.clientY)
+        left: Math.min(startCanvas.x, endCanvas.x),
+        top: Math.min(startCanvas.y, endCanvas.y),
+        right: Math.max(startCanvas.x, endCanvas.x),
+        bottom: Math.max(startCanvas.y, endCanvas.y)
       };
 
       const ids: string[] = [];
       elements.forEach(el => {
-        if (!el.rect) return;
+        // Check intersection using canvas coordinates (element x, y, width, height)
         const elRect = {
-          left: el.rect.x,
-          top: el.rect.y,
-          right: el.rect.x + el.rect.width,
-          bottom: el.rect.y + el.rect.height
+          left: el.x,
+          top: el.y,
+          right: el.x + el.width,
+          bottom: el.y + el.height
         };
         const intersects =
           rect.left < elRect.right &&
@@ -75,40 +132,51 @@ export default function MarqueeSelection({ canvasRef }: MarqueeSelectionProps) {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isSelecting, start, elements, selectMultipleElements, selectedElementIds]);
+  }, [isSelecting, start, elements, selectMultipleElements, selectedElementIds, canvasRef]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
     const handleMouseDown = (e: MouseEvent) => {
       if (!isEditMode) return;
-      if (e.target !== canvas) return;
-      if (e.button !== 0) return;
+      if (e.button !== 0) return; // Only left mouse button
+      
+      // Check if click is in an excluded area
+      if (isInExcludedArea(e.target)) return;
+      
+      // Start marquee selection from anywhere in the editor area
       setIsSelecting(true);
-      setStart({ x: e.clientX, y: e.clientY });
-      setEnd({ x: e.clientX, y: e.clientY });
+      const viewportCoords = getViewportCoordinates(e.clientX, e.clientY);
+      setStart(viewportCoords);
+      setEnd(viewportCoords);
+      
+      // Prevent default to avoid any unwanted behaviors
+      e.preventDefault();
     };
 
-    canvas.addEventListener('mousedown', handleMouseDown);
+    // Listen on document to capture clicks anywhere in the editor
+    document.addEventListener('mousedown', handleMouseDown);
     return () => {
-      canvas.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('mousedown', handleMouseDown);
     };
-  }, [canvasRef, isEditMode]);
+  }, [isEditMode]);
 
-  const style = start && end ? {
-    left: Math.min(start.x, end.x),
-    top: Math.min(start.y, end.y),
-    width: Math.abs(start.x - end.x),
-    height: Math.abs(start.y - end.y)
-  } : undefined;
+  // Get viewport style for displaying the marquee selection rectangle
+  const getViewportStyle = () => {
+    if (!start || !end) return undefined;
+
+    return {
+      left: Math.min(start.x, end.x),
+      top: Math.min(start.y, end.y),
+      width: Math.abs(start.x - end.x),
+      height: Math.abs(start.y - end.y)
+    };
+  };
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div className="fixed inset-0 pointer-events-none z-50">
       {isSelecting && start && end && (
         <div
-          className="absolute border-2 border-brand-blue/50 bg-brand-blue/10"
-          style={style}
+          className="absolute border-2 border-brand-blue/50 bg-brand-blue/10 pointer-events-none"
+          style={getViewportStyle()}
         />
       )}
     </div>
