@@ -2,27 +2,20 @@
 
 import { Section } from "@/components/ui/section"
 import { SelectionActions } from "@/components/composite/SelectionActions"
+import { StickyControlsBar, ViewMode } from "@/components/composite/StickyControlsBar"
 import { Button } from "@components/ui/button"
 import { Card } from "@components/ui/card"
 import { LazyGrid } from "@/components/composite/LazyGrid"
 import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveCard"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@components/ui/tooltip"
 import { useToast } from "@components/ui/use-toast"
 import { useInfiniteProjects } from "@features/projects/use-infinite-projects"
 import { useProjectQuery } from "@features/projects/use-projects"
-import { type Project } from "@lib/api/api"
+import { type Project } from "@/lib/types/api"
 import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import { getRelativeTime } from "@lib/utils/utils"
 import { upperFirst } from "lodash"
 import {
   Filter,
-  Grid3x3,
-  List,
   Plus,
   SlidersHorizontal
 } from "lucide-react"
@@ -53,7 +46,7 @@ function DashboardContent() {
     updateProject
   } = useProjectQuery()
 
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [activeTab, setActiveTab] = useState("all")
   const [isCreating, setIsCreating] = useState(false)
   const [searchQuery, setSearchQuery] = useState<string>("")
@@ -262,60 +255,31 @@ function DashboardContent() {
       {/* All Designs */}
       <Section heading="My Designs">
 
-        {/* Sticky Tabs and Controls */}
-        {projects.length > 0 &&
-          <div className="sticky top-16 z-40 -mx-4 px-4 py-3 mb-8 backdrop-blur-sm border-b border-gray-100">
-            <div className="container mx-auto max-w-7xl">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                {/* Tabs and search would go here */}
-
-                <div className="flex items-center gap-3 ml-auto">
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="rounded-xl transition-all duration-300"
-                          onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-                        >
-                          {viewMode === "grid" ? (
-                            <Grid3x3 className="h-4 w-4" />
-                          ) : (
-                            <List className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>{viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" className="rounded-xl transition-all duration-300">
-                          <Filter className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Filter</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-
-                  <TooltipProvider delayDuration={100}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon" className="rounded-xl transition-all duration-300">
-                          <SlidersHorizontal className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Sort</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            </div>
-          </div>
-        }
+        {/* Sticky Controls Bar */}
+        <StickyControlsBar
+          showCondition={projects.length > 0}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          showViewToggle={true}
+          customActions={[
+            {
+              icon: Filter,
+              label: "Filter",
+              onClick: () => {
+                // TODO: Implement filter functionality
+                console.log("Filter clicked");
+              },
+            },
+            {
+              icon: SlidersHorizontal,
+              label: "Sort",
+              onClick: () => {
+                // TODO: Implement sort functionality
+                console.log("Sort clicked");
+              },
+            }
+          ]}
+        />
 
         {/* Loading state */}
         {isLoading && !projects.length && (

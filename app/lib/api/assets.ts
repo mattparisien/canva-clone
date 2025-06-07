@@ -31,7 +31,7 @@ export class AssetsAPI extends APIBase implements APIService<Asset> {
             }
             
             const response = await this.apiClient.get<{ data: Asset[] }>(url);
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 "Error fetching assets:",

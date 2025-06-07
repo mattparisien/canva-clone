@@ -8,6 +8,7 @@ import { Brand } from "./brands";
 export interface Asset {
   _id: string;                 // Unique identifier for the asset
   name: string;                // Display name of the asset
+  originalFilename?: string;   // Original filename when uploaded
   type: string;                // Type of asset (e.g., 'image', 'video', 'audio')
   url: string;                 // URL to access the asset
   cloudinaryUrl?: string;      // Cloudinary-specific URL if using Cloudinary for storage

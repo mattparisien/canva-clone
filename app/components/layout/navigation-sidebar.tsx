@@ -8,6 +8,7 @@ import * as Popover from "@radix-ui/react-popover";
 import classNames from "classnames";
 import {
   Component,
+  Database,
   FolderKanban,
   Home,
   LayoutTemplate,
@@ -75,6 +76,8 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
       return <Upload {...props} />
     case 'shapes':
       return <Shapes {...props} />
+    case 'database':
+      return <Database {...props} />
     default:
       return <Home {...props} /> // Default fallback
   }

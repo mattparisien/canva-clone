@@ -20,6 +20,12 @@ export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
         label: "Templates",
     },
     {
+        id: "assets",
+        path: "/assets",
+        iconName: "database",
+        label: "Assets",
+    },
+    {
         id: "brands",
         path: "/brands",
         iconName: "square-kanban",
