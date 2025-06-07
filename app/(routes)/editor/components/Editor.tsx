@@ -13,6 +13,7 @@ import Canvas from "./canvas/Canvas";
 import ElementControls from "./canvas/controls/ElementControls";
 import { ElementActionBar } from "./canvas/ElementActionBar";
 import PageNavigation from "./PageNavigation";
+import MarqueeSelection from "./canvas/MarqueeSelection";
 
 
 /**
@@ -420,6 +421,8 @@ export default function Editor() {
                         }}
                     />
                 ))}
+
+                <MarqueeSelection canvasRef={canvasRef} />
 
             </div>
 
