@@ -438,29 +438,33 @@ export default function AssetsPage() {
 
             {/* Header */}
             <Section heading="Assets" subHeading="Manage your media assets - images, videos, documents, and more" />
-            {/* <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-3xl font-bold">Assets</h1>
-                        <p className="text-gray-600 mt-1">
-                            Manage your media assets - images, videos, documents, and more
-                        </p>
-                    </div>
-                    <Button onClick={open} disabled={isUploading}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        {isUploading ? 'Uploading...' : 'Upload Assets'}
-                    </Button>
-                </div> */}
 
 
             {/* Drag and drop overlay */}
             {isDragActive && (
-                <div className="fixed inset-0 bg-primary/10 border-2 border-dashed border-primary z-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <Upload className="h-16 w-16 text-primary mx-auto mb-4" />
-                        <h2 className="text-2xl font-semibold mb-2">Drop files to upload</h2>
-                        <p className="text-gray-600">
-                            Upload images, videos, documents, and more to your asset library
+                <div className="fixed inset-0 bg-blue-500/20 backdrop-blur-sm border-4 border-dashed border-blue-500 z-50 flex items-center justify-center animate-pulse">
+                    <div className="text-center bg-white/95 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-blue-200 max-w-md mx-4">
+                        <div className="relative">
+                            <Upload className="h-20 w-20 text-blue-500 mx-auto mb-6 animate-bounce" />
+                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full animate-ping"></div>
+                        </div>
+                        <h2 className="text-3xl font-bold mb-3 text-gray-800">Drop files here!</h2>
+                        <p className="text-gray-600 text-lg mb-4">
+                            Release to upload your files instantly
                         </p>
+                        <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                            <span className="flex items-center gap-1">
+                                <FileImage className="h-4 w-4" /> Images
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                                <FileVideo className="h-4 w-4" /> Videos
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1">
+                                <FileText className="h-4 w-4" /> Documents
+                            </span>
+                        </div>
                     </div>
                 </div>
             )}
