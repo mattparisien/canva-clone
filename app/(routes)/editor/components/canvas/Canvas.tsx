@@ -2,7 +2,6 @@
 
 import { AlignmentGuides } from "@/(routes)/editor/components/canvas/AlignmentGuides"
 import { CanvasElement } from "@/(routes)/editor/components/canvas/CanvasElement"
-import MarqueeSelection from "./MarqueeSelection"
 import { calculateFitScale } from "@/lib/utils/canvas-utils"
 import useCanvasStore, { useCurrentCanvasSize, useCurrentPageElements } from "@lib/stores/useCanvasStore"
 import useEditorStore from "@lib/stores/useEditorStore"
@@ -293,7 +292,6 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
           />
         ))
       }
-      <MarqueeSelection canvasRef={canvasRef as React.RefObject<HTMLDivElement>} />
     </div>
   )
 }
