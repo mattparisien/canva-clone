@@ -12,11 +12,25 @@ export class AssetsAPI extends APIBase implements APIService<Asset> {
     }
 
     /**
-     * Get all assets
+     * Get all assets with optional filtering
      */
-    async getAll(): Promise<Asset[]> {
+    async getAll(userId?: string, folderId?: string): Promise<Asset[]> {
         try {
-            const response = await this.apiClient.get<{ data: Asset[] }>("/assets");
+            let url = "/assets";
+            const params = new URLSearchParams();
+            
+            if (userId) {
+                params.append("userId", userId);
+            }
+            if (folderId !== undefined) {
+                params.append("folderId", folderId);
+            }
+            
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
+            
+            const response = await this.apiClient.get<{ data: Asset[] }>(url);
             return response.data.data;
         } catch (error: any) {
             console.error(
@@ -102,21 +116,50 @@ export class AssetsAPI extends APIBase implements APIService<Asset> {
 
     /**
      * Upload a file as an asset
-     * 
      */
-
-    async upload(file: File, tags: string[] = []): Promise<Asset> {
+    async upload(params: { file: File; userId?: string; folderId?: string; name?: string; tags?: string[] } | File, tags: string[] = []): Promise<Asset> {
         try {
             const formData = new FormData();
-            formData.append("asset", file);
+            
+            // Handle both old (file, tags) and new ({file, userId, folderId, name, tags}) parameter formats
+            let file: File;
+            let userId: string | undefined;
+            let folderId: string | undefined;
+            let name: string | undefined;
+            let finalTags: string[];
 
-            // Add tags if provided
-            if (tags.length > 0) {
-                formData.append("tags", JSON.stringify(tags));
+            if (params instanceof File) {
+                // Legacy format: upload(file, tags)
+                file = params;
+                finalTags = tags;
+            } else {
+                // New format: upload({file, userId, folderId, name, tags})
+                file = params.file;
+                userId = params.userId;
+                folderId = params.folderId;
+                name = params.name;
+                finalTags = params.tags || tags;
             }
 
-            const response = await this.apiClient.post<{ data: Asset }>(
-                "/assets",
+            // Append the file with correct field name expected by backend
+            formData.append("file", file);
+
+            // Add optional parameters
+            if (userId) {
+                formData.append("userId", userId);
+            }
+            if (folderId) {
+                formData.append("folderId", folderId);
+            }
+            if (name) {
+                formData.append("name", name);
+            }
+            if (finalTags.length > 0) {
+                formData.append("tags", JSON.stringify(finalTags));
+            }
+
+            const response = await this.apiClient.post<Asset | {data: Asset}>(
+                "/assets/upload",
                 formData,
                 {
                     headers: {
@@ -125,12 +168,22 @@ export class AssetsAPI extends APIBase implements APIService<Asset> {
                 }
             );
 
-            return response.data.data;
+            // Handle both formats: direct asset response or {data: asset} wrapper
+            return (response.data as any).data ? (response.data as any).data : (response.data as Asset);
         } catch (error: any) {
             console.error(
                 "Error uploading asset:",
                 error.response?.data || error.message
             );
+            
+            // Handle 409 Conflict responses (duplicate files)
+            if (error.response?.status === 409) {
+                const conflictError = new Error(error.response.data.message || "Duplicate file detected");
+                (conflictError as any).conflict = error.response.data.conflict;
+                (conflictError as any).existingAsset = error.response.data.existingAsset;
+                throw conflictError;
+            }
+            
             throw error.response?.data || new Error("Failed to upload asset");
         }
     }

@@ -7,7 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/components/ui/use-toast"
-import { assetsAPI, type Asset } from "@/lib/api/api"
+import { assetsAPI } from "@/lib/api"
+import { type Asset } from "@/lib/types/api"
 import { foldersAPI, type Folder as FolderType } from "@/lib/api/folders"
 import { pathToBreadcrumbs } from "@/lib/utils/folder-utils"
 import { ArrowLeft, File, Folder as FolderIcon, FolderOpen, Plus, Trash, Upload } from "lucide-react"
@@ -208,9 +209,25 @@ export default function FolderBySlugPage() {
                 })
 
                 return { success: true, asset }
-            } catch (error) {
+            } catch (error: any) {
                 console.error(`Failed to upload ${file.name}:`, error)
-                return { success: false, filename: file.name }
+                
+                // Handle duplicate file conflicts
+                if (error.conflict) {
+                    const conflictType = error.conflict === 'filename' ? 'name' : 'content'
+                    const existingAsset = error.existingAsset
+                    
+                    return { 
+                        success: false, 
+                        filename: file.name, 
+                        isDuplicate: true,
+                        duplicateType: conflictType,
+                        existingAsset,
+                        message: error.message
+                    }
+                }
+                
+                return { success: false, filename: file.name, error: error.message || 'Upload failed' }
             }
         })
 
@@ -225,20 +242,41 @@ export default function FolderBySlugPage() {
             setAssets(prev => [...prev, ...successfulAssets])
         }
 
-        // Report results
-        const failedCount = results.filter(r => !r.success).length
+        // Report results with specific duplicate file handling
+        const failedResults = results.filter(r => !r.success)
+        const duplicateFiles = failedResults.filter((r: any) => r.isDuplicate)
+        const otherFailures = failedResults.filter((r: any) => !r.isDuplicate)
 
-        if (failedCount === 0) {
+        if (failedResults.length === 0) {
             toast({
                 title: "Upload complete",
                 description: `Successfully uploaded ${successfulAssets.length} file(s)`,
             })
         } else {
-            toast({
-                title: "Upload results",
-                description: `Uploaded ${successfulAssets.length} file(s), ${failedCount} failed`,
-                variant: failedCount === results.length ? "destructive" : "default"
-            })
+            // Show specific messages for different failure types
+            if (duplicateFiles.length > 0) {
+                const duplicateNames = duplicateFiles.map((r: any) => r.filename).join(', ')
+                toast({
+                    title: "Duplicate files detected",
+                    description: `${duplicateFiles.length} file(s) already exist: ${duplicateNames}. Upload skipped.`,
+                    variant: "destructive"
+                })
+            }
+            
+            if (otherFailures.length > 0) {
+                toast({
+                    title: "Upload errors",
+                    description: `${otherFailures.length} file(s) failed to upload due to other errors.`,
+                    variant: "destructive"
+                })
+            }
+            
+            if (successfulAssets.length > 0) {
+                toast({
+                    title: "Partial success",
+                    description: `${successfulAssets.length} file(s) uploaded successfully despite some failures.`,
+                })
+            }
         }
 
         // Reset the file input
@@ -412,14 +450,14 @@ export default function FolderBySlugPage() {
 
                                         // Process all deletions
                                         Promise.all([...folderPromises, ...assetPromises])
-                                            .then(results => {
+                                            .then((results: Array<{ success: boolean; id: string }>) => {
                                                 const successfulFolderIds = results
-                                                    .filter(r => r.success && selectedFolders.includes(r.id))
-                                                    .map(r => r.id);
+                                                    .filter((r: { success: boolean; id: string }) => r.success && selectedFolders.includes(r.id))
+                                                    .map((r: { success: boolean; id: string }) => r.id);
 
                                                 const successfulAssetIds = results
-                                                    .filter(r => r.success && selectedAssets.includes(r.id))
-                                                    .map(r => r.id);
+                                                    .filter((r: { success: boolean; id: string }) => r.success && selectedAssets.includes(r.id))
+                                                    .map((r: { success: boolean; id: string }) => r.id);
 
                                                 setFolders(prev => prev.filter(f => !successfulFolderIds.includes(f._id)));
                                                 setAssets(prev => prev.filter(a => !successfulAssetIds.includes(a._id)));

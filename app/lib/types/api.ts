@@ -13,9 +13,12 @@ export interface Asset {
   cloudinaryUrl?: string;      // Cloudinary-specific URL if using Cloudinary for storage
   cloudinaryId?: string;       // Cloudinary resource identifier
   mimeType: string;            // MIME type of the asset (e.g., 'image/jpeg')
-  size?: number;               // Size of the asset in bytes
+  fileSize: number;            // Size of the asset in bytes
+  size?: number;               // Legacy size property for backward compatibility
+  thumbnail?: string;          // URL to thumbnail for images/videos
   tags?: string[];             // Keywords/tags associated with the asset for organization and search
   userId: string;              // ID of the user who owns this asset
+  folderId?: string;           // ID of the folder containing this asset
   createdAt: string;           // ISO timestamp of asset creation
   updatedAt: string;           // ISO timestamp of last update
 }
@@ -142,9 +145,10 @@ export interface APIService<T> extends APIServiceBase {
 
   /**
    * Retrieves all records of type T.
+   * @param args - Optional arguments for filtering (implementation-specific)
    * @returns Promise resolving to an array of T objects
    */
-  getAll: () => Promise<T[]>;
+  getAll: (...args: any[]) => Promise<T[]>;
 
   /**
    * Retrieves a specific record by its ID.

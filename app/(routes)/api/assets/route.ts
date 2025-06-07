@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const headers = getHeadersWithAuth(req);
     
-    const response = await axios.post(`${BACKEND_URL}/assets`, body, { headers });
+    const response = await axios.post(`${BACKEND_URL}/api/assets`, body, { headers });
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error('Error creating asset:', error.response?.data || error.message);
