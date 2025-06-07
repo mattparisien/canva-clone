@@ -207,16 +207,280 @@ export class AssetsAPI extends APIBase implements APIService<Asset> {
     async getByTags(tags: string[]): Promise<Asset[]> {
         try {
             const queryString = tags.join(",");
-            const response = await this.apiClient.get<{ data: Asset[] }>(
+            const response = await this.apiClient.get<Asset[]>(
                 `/assets/tags?tags=${queryString}`
             );
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 "Error fetching assets by tags:",
                 error.response?.data || error.message
             );
             throw error.response?.data || new Error("Failed to fetch assets by tags");
+        }
+    }
+
+    /**
+     * Search assets using vector similarity
+     */
+    async searchByVector(query: string, options?: { 
+        userId?: string; 
+        limit?: number; 
+        threshold?: number; 
+    }): Promise<{ 
+        query: string; 
+        results: (Asset & { similarity: number })[]; 
+        total: number; 
+    }> {
+        try {
+            const params = new URLSearchParams({
+                query,
+                ...(options?.userId && { userId: options.userId }),
+                ...(options?.limit && { limit: options.limit.toString() }),
+                ...(options?.threshold && { threshold: options.threshold.toString() })
+            });
+
+            const response = await this.apiClient.get<{
+                query: string;
+                results: (Asset & { similarity: number })[];
+                total: number;
+            }>(`/assets/search/vector?${params}`);
+            
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                "Error in vector search:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Vector search failed");
+        }
+    }
+
+    /**
+     * Find similar assets to a given asset
+     */
+    async findSimilar(assetId: string, options?: { 
+        limit?: number; 
+        threshold?: number; 
+    }): Promise<{
+        originalAsset: Asset;
+        similarAssets: (Asset & { similarity: number })[];
+        total: number;
+    }> {
+        try {
+            const params = new URLSearchParams({
+                ...(options?.limit && { limit: options.limit.toString() }),
+                ...(options?.threshold && { threshold: options.threshold.toString() })
+            });
+
+            const response = await this.apiClient.get<{
+                originalAsset: Asset;
+                similarAssets: (Asset & { similarity: number })[];
+                total: number;
+            }>(`/assets/${assetId}/similar?${params}`);
+            
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                `Error finding similar assets for ${assetId}:`,
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to find similar assets");
+        }
+    }
+
+    /**
+     * Get vector store statistics
+     */
+    async getVectorStats(userId?: string): Promise<{
+        user: string;
+        assets: {
+            total: number;
+            vectorized: number;
+            pending: number;
+            vectorizationRate: string;
+        };
+        vectorStore: any;
+        queueStats: any;
+    }> {
+        try {
+            const params = userId ? `?userId=${userId}` : '';
+            const response = await this.apiClient.get(`/assets/vector/stats${params}`);
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                "Error getting vector stats:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to get vector statistics");
+        }
+    }
+
+    /**
+     * Process pending vectorization jobs
+     */
+    async processVectorJobs(userId?: string): Promise<any> {
+        try {
+            const response = await this.apiClient.post('/assets/vector/process', {
+                ...(userId && { userId })
+            });
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                "Error processing vector jobs:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to process vector jobs");
+        }
+    }
+
+    /**
+     * Force re-vectorization of all assets
+     */
+    async reVectorizeAssets(userId?: string): Promise<any> {
+        try {
+            const response = await this.apiClient.post('/assets/vector/revectorize', {
+                ...(userId && { userId })
+            });
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                "Error re-vectorizing assets:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to re-vectorize assets");
+        }
+    }
+
+    /**
+     * Search assets using vector similarity
+     */
+    async searchByVector(query: string, options?: { 
+        userId?: string; 
+        limit?: number; 
+        threshold?: number; 
+    }): Promise<{ 
+        query: string; 
+        results: (Asset & { similarity: number })[]; 
+        total: number; 
+    }> {
+        try {
+            const params = new URLSearchParams({
+                query,
+                ...(options?.userId && { userId: options.userId }),
+                ...(options?.limit && { limit: options.limit.toString() }),
+                ...(options?.threshold && { threshold: options.threshold.toString() })
+            });
+
+            const response = await this.apiClient.get<{
+                query: string;
+                results: (Asset & { similarity: number })[];
+                total: number;
+            }>(`/assets/search/vector?${params}`);
+            
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                "Error in vector search:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Vector search failed");
+        }
+    }
+
+    /**
+     * Find similar assets to a given asset
+     */
+    async findSimilar(assetId: string, options?: { 
+        limit?: number; 
+        threshold?: number; 
+    }): Promise<{
+        originalAsset: Asset;
+        similarAssets: (Asset & { similarity: number })[];
+        total: number;
+    }> {
+        try {
+            const params = new URLSearchParams({
+                ...(options?.limit && { limit: options.limit.toString() }),
+                ...(options?.threshold && { threshold: options.threshold.toString() })
+            });
+
+            const response = await this.apiClient.get<{
+                originalAsset: Asset;
+                similarAssets: (Asset & { similarity: number })[];
+                total: number;
+            }>(`/assets/${assetId}/similar?${params}`);
+            
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                `Error finding similar assets for ${assetId}:`,
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to find similar assets");
+        }
+    }
+
+    /**
+     * Get vector store statistics
+     */
+    async getVectorStats(userId?: string): Promise<{
+        user: string;
+        assets: {
+            total: number;
+            vectorized: number;
+            pending: number;
+            vectorizationRate: string;
+        };
+        vectorStore: any;
+        queueStats: any;
+    }> {
+        try {
+            const params = userId ? `?userId=${userId}` : '';
+            const response = await this.apiClient.get(`/assets/vector/stats${params}`);
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                "Error getting vector stats:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to get vector statistics");
+        }
+    }
+
+    /**
+     * Process pending vectorization jobs
+     */
+    async processVectorJobs(userId?: string): Promise<any> {
+        try {
+            const response = await this.apiClient.post('/assets/vector/process', {
+                ...(userId && { userId })
+            });
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                "Error processing vector jobs:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to process vector jobs");
+        }
+    }
+
+    /**
+     * Force re-vectorization of all assets
+     */
+    async reVectorizeAssets(userId?: string): Promise<any> {
+        try {
+            const response = await this.apiClient.post('/assets/vector/revectorize', {
+                ...(userId && { userId })
+            });
+            return response.data;
+        } catch (error: any) {
+            console.error(
+                "Error re-vectorizing assets:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to re-vectorize assets");
         }
     }
 }

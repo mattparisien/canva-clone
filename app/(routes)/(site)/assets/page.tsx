@@ -434,10 +434,27 @@ export default function AssetsPage() {
     }
 
     return (
-        <>
+        <div {...getRootProps()} className="min-h-screen">
+            <input {...getInputProps()} />
 
             {/* Header */}
-            <Section heading="Assets" subHeading="Manage your media assets - images, videos, documents, and more" />
+            <div className="container mb-10">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold mb-2">Assets</h1>
+                        <p className="text-gray-600">Manage your media assets - images, videos, documents, and more</p>
+                    </div>
+                    <Button
+                        onClick={open}
+                        disabled={isUploading}
+                        size="lg"
+                        className="bg-primary hover:bg-primary/90"
+                    >
+                        <Upload className="h-5 w-5 mr-2" />
+                        {isUploading ? "Uploading..." : "Upload Assets"}
+                    </Button>
+                </div>
+            </div>
 
 
             {/* Drag and drop overlay */}
@@ -598,6 +615,6 @@ export default function AssetsPage() {
                     />
                 )}
             </Section>
-        </>
+        </div>
     )
 }
