@@ -77,14 +77,24 @@ export default function MarqueeSelection({ canvasRef }: MarqueeSelectionProps) {
     };
   }, [isSelecting, start, elements, selectMultipleElements, selectedElementIds]);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!isEditMode) return;
-    if (!canvasRef.current || e.target !== canvasRef.current) return;
-    if (e.button !== 0) return;
-    setIsSelecting(true);
-    setStart({ x: e.clientX, y: e.clientY });
-    setEnd({ x: e.clientX, y: e.clientY });
-  };
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (!isEditMode) return;
+      if (e.target !== canvas) return;
+      if (e.button !== 0) return;
+      setIsSelecting(true);
+      setStart({ x: e.clientX, y: e.clientY });
+      setEnd({ x: e.clientX, y: e.clientY });
+    };
+
+    canvas.addEventListener('mousedown', handleMouseDown);
+    return () => {
+      canvas.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, [canvasRef, isEditMode]);
 
   const style = start && end ? {
     left: Math.min(start.x, end.x),
@@ -94,7 +104,7 @@ export default function MarqueeSelection({ canvasRef }: MarqueeSelectionProps) {
   } : undefined;
 
   return (
-    <div className="absolute inset-0 pointer-events-none" onMouseDown={handleMouseDown}>
+    <div className="absolute inset-0 pointer-events-none">
       {isSelecting && start && end && (
         <div
           className="absolute border-2 border-brand-blue/50 bg-brand-blue/10"
