@@ -211,6 +211,30 @@ export function useAssets() {
     }
   }, [])
 
+  // Analyze asset with AI
+  const analyzeAsset = useCallback(async (assetId: string) => {
+    try {
+      return await assetsAPI.analyzeAsset(assetId)
+    } catch (error) {
+      console.error("Failed to analyze asset:", error)
+      throw error
+    }
+  }, [])
+
+  // Batch analyze assets with AI
+  const batchAnalyzeAssets = useCallback(async (options?: {
+    userId?: string;
+    limit?: number;
+    forceReanalyze?: boolean;
+  }) => {
+    try {
+      return await assetsAPI.batchAnalyzeAssets(options)
+    } catch (error) {
+      console.error("Failed to batch analyze assets:", error)
+      throw error
+    }
+  }, [])
+
   return {
     assets,
     isLoading,
@@ -229,5 +253,7 @@ export function useAssets() {
     getVectorStats,
     processVectorJobs,
     reVectorizeAssets,
+    analyzeAsset,
+    batchAnalyzeAssets,
   }
 }

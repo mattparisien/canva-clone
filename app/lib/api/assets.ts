@@ -353,134 +353,38 @@ export class AssetsAPI extends APIBase implements APIService<Asset> {
     }
 
     /**
-     * Search assets using vector similarity
+     * Analyze a single asset with AI (for images)
      */
-    async searchByVector(query: string, options?: { 
-        userId?: string; 
-        limit?: number; 
-        threshold?: number; 
-    }): Promise<{ 
-        query: string; 
-        results: (Asset & { similarity: number })[]; 
-        total: number; 
-    }> {
+    async analyzeAsset(assetId: string): Promise<any> {
         try {
-            const params = new URLSearchParams({
-                query,
-                ...(options?.userId && { userId: options.userId }),
-                ...(options?.limit && { limit: options.limit.toString() }),
-                ...(options?.threshold && { threshold: options.threshold.toString() })
-            });
-
-            const response = await this.apiClient.get<{
-                query: string;
-                results: (Asset & { similarity: number })[];
-                total: number;
-            }>(`/assets/search/vector?${params}`);
-            
+            const response = await this.apiClient.post(`/assets/${assetId}/analyze`);
             return response.data;
         } catch (error: any) {
             console.error(
-                "Error in vector search:",
+                "Error analyzing asset:",
                 error.response?.data || error.message
             );
-            throw error.response?.data || new Error("Vector search failed");
+            throw error.response?.data || new Error("Failed to analyze asset");
         }
     }
 
     /**
-     * Find similar assets to a given asset
+     * Batch analyze multiple assets with AI
      */
-    async findSimilar(assetId: string, options?: { 
-        limit?: number; 
-        threshold?: number; 
-    }): Promise<{
-        originalAsset: Asset;
-        similarAssets: (Asset & { similarity: number })[];
-        total: number;
-    }> {
+    async batchAnalyzeAssets(options?: {
+        userId?: string;
+        limit?: number;
+        forceReanalyze?: boolean;
+    }): Promise<any> {
         try {
-            const params = new URLSearchParams({
-                ...(options?.limit && { limit: options.limit.toString() }),
-                ...(options?.threshold && { threshold: options.threshold.toString() })
-            });
-
-            const response = await this.apiClient.get<{
-                originalAsset: Asset;
-                similarAssets: (Asset & { similarity: number })[];
-                total: number;
-            }>(`/assets/${assetId}/similar?${params}`);
-            
+            const response = await this.apiClient.post('/assets/analyze/batch', options || {});
             return response.data;
         } catch (error: any) {
             console.error(
-                `Error finding similar assets for ${assetId}:`,
+                "Error in batch analysis:",
                 error.response?.data || error.message
             );
-            throw error.response?.data || new Error("Failed to find similar assets");
-        }
-    }
-
-    /**
-     * Get vector store statistics
-     */
-    async getVectorStats(userId?: string): Promise<{
-        user: string;
-        assets: {
-            total: number;
-            vectorized: number;
-            pending: number;
-            vectorizationRate: string;
-        };
-        vectorStore: any;
-        queueStats: any;
-    }> {
-        try {
-            const params = userId ? `?userId=${userId}` : '';
-            const response = await this.apiClient.get(`/assets/vector/stats${params}`);
-            return response.data;
-        } catch (error: any) {
-            console.error(
-                "Error getting vector stats:",
-                error.response?.data || error.message
-            );
-            throw error.response?.data || new Error("Failed to get vector statistics");
-        }
-    }
-
-    /**
-     * Process pending vectorization jobs
-     */
-    async processVectorJobs(userId?: string): Promise<any> {
-        try {
-            const response = await this.apiClient.post('/assets/vector/process', {
-                ...(userId && { userId })
-            });
-            return response.data;
-        } catch (error: any) {
-            console.error(
-                "Error processing vector jobs:",
-                error.response?.data || error.message
-            );
-            throw error.response?.data || new Error("Failed to process vector jobs");
-        }
-    }
-
-    /**
-     * Force re-vectorization of all assets
-     */
-    async reVectorizeAssets(userId?: string): Promise<any> {
-        try {
-            const response = await this.apiClient.post('/assets/vector/revectorize', {
-                ...(userId && { userId })
-            });
-            return response.data;
-        } catch (error: any) {
-            console.error(
-                "Error re-vectorizing assets:",
-                error.response?.data || error.message
-            );
-            throw error.response?.data || new Error("Failed to re-vectorize assets");
+            throw error.response?.data || new Error("Failed to batch analyze assets");
         }
     }
 }
