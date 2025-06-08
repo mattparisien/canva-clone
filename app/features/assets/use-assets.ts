@@ -147,6 +147,70 @@ export function useAssets() {
     })
   }, [assets])
 
+  // Vector search assets
+  const vectorSearchAssets = useCallback(async (
+    query: string, 
+    options?: { userId?: string; limit?: number; threshold?: number }
+  ): Promise<{ 
+    query: string; 
+    results: (Asset & { similarity: number })[]; 
+    total: number; 
+  }> => {
+    try {
+      return await assetsAPI.searchByVector(query, options)
+    } catch (error) {
+      console.error("Failed to search assets by vector:", error)
+      throw error
+    }
+  }, [])
+
+  // Find similar assets
+  const findSimilarAssets = useCallback(async (
+    assetId: string, 
+    options?: { limit?: number; threshold?: number }
+  ): Promise<{
+    originalAsset: Asset;
+    similarAssets: (Asset & { similarity: number })[];
+    total: number;
+  }> => {
+    try {
+      return await assetsAPI.findSimilar(assetId, options)
+    } catch (error) {
+      console.error(`Failed to find similar assets for ${assetId}:`, error)
+      throw error
+    }
+  }, [])
+
+  // Get vector statistics
+  const getVectorStats = useCallback(async (userId?: string) => {
+    try {
+      return await assetsAPI.getVectorStats(userId)
+    } catch (error) {
+      console.error("Failed to get vector stats:", error)
+      throw error
+    }
+  }, [])
+
+  // Process vector jobs
+  const processVectorJobs = useCallback(async (userId?: string) => {
+    try {
+      return await assetsAPI.processVectorJobs(userId)
+    } catch (error) {
+      console.error("Failed to process vector jobs:", error)
+      throw error
+    }
+  }, [])
+
+  // Re-vectorize assets
+  const reVectorizeAssets = useCallback(async (userId?: string) => {
+    try {
+      return await assetsAPI.reVectorizeAssets(userId)
+    } catch (error) {
+      console.error("Failed to re-vectorize assets:", error)
+      throw error
+    }
+  }, [])
+
   return {
     assets,
     isLoading,
@@ -160,5 +224,10 @@ export function useAssets() {
     searchAssets,
     filterAssetsByType,
     sortAssets,
+    vectorSearchAssets,
+    findSimilarAssets,
+    getVectorStats,
+    processVectorJobs,
+    reVectorizeAssets,
   }
 }
