@@ -32,6 +32,7 @@ import {
     MoreVertical,
     Plus,
     SlidersHorizontal,
+    Table,
     Trash2,
     Upload
 } from "lucide-react"
@@ -265,13 +266,17 @@ function AssetsPageContent() {
     }
 
     // Get asset type icon
-    const getAssetIcon = (type: string) => {
+    const getAssetIcon = (type: string, asset?: Asset) => {
         switch (type) {
             case 'image':
                 return <FileImage className="h-4 w-4" />
             case 'video':
                 return <FileVideo className="h-4 w-4" />
             case 'document':
+                // Check if it's a CSV file
+                if (asset?.mimeType?.includes('csv') || asset?.originalFilename?.endsWith('.csv')) {
+                    return <Table className="h-4 w-4 text-green-500" />
+                }
                 return <FileText className="h-4 w-4" />
             default:
                 return <File className="h-4 w-4" />
@@ -302,7 +307,7 @@ function AssetsPageContent() {
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-50">
                                 <div className="text-center">
-                                    {getAssetIcon(asset.type)}
+                                    {getAssetIcon(asset.type, asset)}
                                     <p className="text-xs text-gray-500 mt-1">{asset.type.toUpperCase()}</p>
                                 </div>
                             </div>
@@ -406,7 +411,7 @@ function AssetsPageContent() {
                                     className="w-full h-full object-cover rounded"
                                 />
                             ) : (
-                                getAssetIcon(asset.type)
+                                getAssetIcon(asset.type, asset)
                             )}
                         </div>
 

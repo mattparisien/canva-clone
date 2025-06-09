@@ -23,6 +23,7 @@ import {
     Filter,
     Plus,
     SlidersHorizontal,
+    Table,
     Trash2,
     Upload
 } from "lucide-react"
@@ -265,13 +266,17 @@ function AssetsPageContent() {
     }
 
     // Get asset type icon
-    const getAssetIcon = (type: string) => {
+    const getAssetIcon = (type: string, asset?: Asset) => {
         switch (type) {
             case 'image':
                 return <FileImage className="h-8 w-8 text-blue-500" />
             case 'video':
                 return <FileVideo className="h-8 w-8 text-purple-500" />
             case 'document':
+                // Check if it's a CSV file
+                if (asset && (asset.mimeType?.includes('csv') || asset.originalFilename?.endsWith('.csv'))) {
+                    return <Table className="h-8 w-8 text-green-500" />
+                }
                 return <FileText className="h-8 w-8 text-red-500" />
             default:
                 return <FileText className="h-8 w-8 text-gray-500" />
@@ -312,7 +317,7 @@ function AssetsPageContent() {
                 {/* Custom content for non-image assets */}
                 {!image && (
                     <div className="h-full flex items-center justify-center bg-gray-50">
-                        {getAssetIcon(asset.type)}
+                        {getAssetIcon(asset.type, asset)}
                     </div>
                 )}
             </InteractiveCard>
@@ -338,7 +343,7 @@ function AssetsPageContent() {
                                     className="w-full h-full object-cover rounded"
                                 />
                             ) : (
-                                getAssetIcon(asset.type)
+                                getAssetIcon(asset.type, asset)
                             )}
                         </div>
 
@@ -529,8 +534,6 @@ function AssetsPageContent() {
                     <div className="fixed bottom-6 right-6">
                         <Button
                             onClick={open}
-                            className="rounded-full shadow-lg"
-                            size="lg"
                         >
                             <Plus className="h-5 w-5 mr-2" />
                             Upload

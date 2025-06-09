@@ -18,12 +18,14 @@ import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import {
     Brain,
     Download,
+    File,
     FileImage,
     FileText,
     FileVideo,
     Plus,
     Search,
     Sparkles,
+    Table,
     Trash2,
     Zap
 } from "lucide-react"
@@ -174,13 +176,17 @@ function AISearchPageContent() {
     }
 
     // Get asset type icon
-    const getAssetIcon = (type: string) => {
+    const getAssetIcon = (type: string, asset?: Asset) => {
         switch (type) {
             case 'image':
                 return <FileImage className="h-8 w-8 text-blue-500" />
             case 'video':
                 return <FileVideo className="h-8 w-8 text-purple-500" />
             case 'document':
+                // Check if it's a CSV file
+                if (asset?.mimeType?.includes('csv') || asset?.originalFilename?.endsWith('.csv')) {
+                    return <Table className="h-8 w-8 text-green-500" />
+                }
                 return <FileText className="h-8 w-8 text-red-500" />
             default:
                 return <FileText className="h-8 w-8 text-gray-500" />
@@ -220,7 +226,7 @@ function AISearchPageContent() {
                     {/* Custom content for non-image assets */}
                     {!image && (
                         <div className="h-full flex items-center justify-center bg-gray-50">
-                            {getAssetIcon(asset.type)}
+                            {getAssetIcon(asset.type, asset)}
                         </div>
                     )}
                 </InteractiveCard>
@@ -257,7 +263,7 @@ function AISearchPageContent() {
                                     className="w-full h-full object-cover rounded"
                                 />
                             ) : (
-                                getAssetIcon(asset.type)
+                                getAssetIcon(asset.type, asset)
                             )}
                         </div>
 
