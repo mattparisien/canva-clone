@@ -32,15 +32,15 @@ export function BrandDocumentUpload({ onSuccess, onCancel }: BrandDocumentUpload
 
     // Handle file drop
     const onDrop = useCallback((acceptedFiles: File[]) => {
-        // Only accept PDF, DOCX, images, and text files
+        // Only accept PDF, DOCX, CSV, images, and text files
         const validFiles = acceptedFiles.filter(file =>
-            file.type.match(/^(application\/(pdf|vnd.openxmlformats-officedocument.wordprocessingml.document)|image\/(jpeg|png|jpg|gif)|text\/plain)$/i)
+            file.type.match(/^(application\/(pdf|vnd.openxmlformats-officedocument.wordprocessingml.document)|image\/(jpeg|png|jpg|gif)|text\/(plain|csv)|application\/csv)$/i)
         )
 
         if (validFiles.length !== acceptedFiles.length) {
             toast({
                 title: "Invalid file type",
-                description: "Only PDF, DOCX, images, and text files are supported.",
+                description: "Only PDF, DOCX, CSV, images, and text files are supported.",
                 variant: "destructive",
             })
         }
@@ -54,6 +54,8 @@ export function BrandDocumentUpload({ onSuccess, onCancel }: BrandDocumentUpload
         accept: {
             'application/pdf': ['.pdf'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+            'text/csv': ['.csv'],
+            'application/csv': ['.csv'],
             'image/*': ['.jpeg', '.png', '.jpg', '.gif'],
             'text/plain': ['.txt']
         }
@@ -160,7 +162,7 @@ export function BrandDocumentUpload({ onSuccess, onCancel }: BrandDocumentUpload
                                             : "Drag & drop files, or click to select"}
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        Supports PDF, DOCX, images, and text files
+                                        Supports PDF, DOCX, CSV, images, and text files
                                     </p>
                                 </div>
                             </div>

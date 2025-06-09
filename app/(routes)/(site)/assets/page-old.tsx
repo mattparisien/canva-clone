@@ -195,7 +195,9 @@ function AssetsPageContent() {
             'application/pdf': ['.pdf'],
             'application/msword': ['.doc'],
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-            'text/*': ['.txt']
+            'text/csv': ['.csv'],
+            'application/csv': ['.csv'],
+            'text/plain': ['.txt']
         }
     })
 
