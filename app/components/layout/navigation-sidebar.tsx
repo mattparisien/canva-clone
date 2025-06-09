@@ -13,6 +13,7 @@ import {
   FolderKanban,
   Home,
   LayoutTemplate,
+  MessageCircle,
   PanelsTopLeft,
   Plus,
   Shapes,
@@ -81,6 +82,8 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
       return <Database {...props} />
     case 'brain':
       return <Brain {...props} />
+    case 'message-circle':
+      return <MessageCircle {...props} />
     default:
       return <Home {...props} /> // Default fallback
   }
