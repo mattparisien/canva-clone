@@ -9,6 +9,7 @@ import { Badge } from "@components/ui/badge"
 import { Button } from "@components/ui/button"
 import { Card, CardContent } from "@components/ui/card"
 import { Skeleton } from "@components/ui/skeleton"
+import EmptyState from "@/components/ui/empty-state"
 import { useToast } from "@components/ui/use-toast"
 import { useAssets } from "@features/assets/use-assets"
 import { Asset } from "@lib/types/api"
@@ -503,28 +504,27 @@ function AssetsPageContent() {
 
                 {/* Empty state */}
                 {filteredAssets.length === 0 && !isLoading && (
-                    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                        <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                        <h2 className="text-xl font-semibold mb-2">No assets found</h2>
-                        <p className="text-gray-600 mb-4">
-                            {searchQuery || filterType !== 'all'
-                                ? "Try adjusting your search or filters"
-                                : "Start by uploading your first asset"
-                            }
-                        </p>
+                    <EmptyState
+                        icon={<Upload className="h-16 w-16 text-gray-400 mx-auto" />}
+                        heading="No assets found"
+                        message={searchQuery || filterType !== 'all' ?
+                            "Try adjusting your search or filters" :
+                            "Start by uploading your first asset"}
+                    >
                         {(!searchQuery && filterType === 'all') && (
-                            <Button onClick={open}>
+                            <Button variant="gradient" onClick={open}>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Upload Your First Asset
                             </Button>
                         )}
-                    </div>
+                    </EmptyState>
                 )}
 
                 {/* Upload button for empty state or floating action */}
                 {filteredAssets.length > 0 && (
                     <div className="fixed bottom-6 right-6">
                         <Button
+                            variant="gradient"
                             onClick={open}
                         >
                             <Plus className="h-5 w-5 mr-2" />

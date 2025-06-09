@@ -25,6 +25,12 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  .brand-gradient {
+    @apply bg-gradient-to-r from-brand-blue to-brand-teal;
+  }
+  .brand-gradient-dark {
+    @apply bg-gradient-to-r from-brand-blue-dark to-brand-teal-dark;
+  }
 }
 
 @layer base {

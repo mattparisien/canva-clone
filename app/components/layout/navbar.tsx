@@ -1,6 +1,6 @@
 "use client"
 
-import { Avatar, AvatarFallback } from "@components/ui/avatar"
+import AvatarWithFallback from "@/components/ui/avatar-with-fallback"
 import { Button } from "@components/ui/button"
 import { ArrowLeft, ArrowRight, ChevronDown, Save, Share2, Edit, Eye } from "lucide-react"
 import useEditorStore from "@lib/stores/useEditorStore"
@@ -260,9 +260,10 @@ export default function EditorNavbar() {
         
         <div className="h-7 w-px bg-white/20 mx-0.5"></div>
         
-        <Avatar className="h-8 w-8 border border-white/20 bg-brand-blue-dark text-white shadow-sm hover:shadow transition-shadow cursor-pointer">
-          <AvatarFallback className="text-sm font-medium">MP</AvatarFallback>
-        </Avatar>
+        <AvatarWithFallback
+          name="MP"
+          className="h-8 w-8 border border-white/20 bg-brand-blue-dark text-white shadow-sm hover:shadow transition-shadow cursor-pointer"
+        />
       </div>
     </div>
   )
