@@ -481,6 +481,7 @@ function AssetsPageContent() {
                             isLoading={isLoading}
                             isInitialLoading={isLoading && filteredAssets.length === 0}
                             loadingVariant="grid"
+                            loadingText="Loading your assets..."
                             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full"
                         />
                     </div>
@@ -494,6 +495,7 @@ function AssetsPageContent() {
                             isLoading={isLoading}
                             isInitialLoading={isLoading && filteredAssets.length === 0}
                             loadingVariant="list"
+                            loadingText="Loading your assets..."
                             className="space-y-2"
                         />
                     </div>

@@ -50,6 +50,10 @@ export interface LazyGridProps<T> {
    */
   loadingVariant?: "grid" | "list";
   /**
+   * Custom loading text for initial loading state
+   */
+  loadingText?: string;
+  /**
    * Tailwind/CSS classes for the grid wrapper.
    * Defaults to a 1-column mobile, 2-column sm, 3-column md, 4-column lg layout.
    */
@@ -69,6 +73,7 @@ export function LazyGrid<T>({
   isInitialLoading = false,
   loadingCount = 8,
   loadingVariant = "grid",
+  loadingText,
   className = "grid w-full gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
   columnClassName = "",
 }: LazyGridProps<T>) {
@@ -106,7 +111,7 @@ export function LazyGrid<T>({
   if (isInitialLoading && items.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
-        <LoadingSpinner size="lg" text="Loading your assets..." />
+        <LoadingSpinner size="lg" text={loadingText} />
       </div>
     );
   }

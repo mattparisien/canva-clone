@@ -183,6 +183,9 @@ function BrandListContent() {
             loadMore={() => { }} // No pagination for brands yet
             hasMore={false} // No pagination for brands yet
             isLoading={isLoading}
+            isInitialLoading={isLoading && (brands?.length === 0 || !brands)}
+            loadingVariant="grid"
+            loadingText="Loading your brands..."
             className="grid w-full gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
           />
 

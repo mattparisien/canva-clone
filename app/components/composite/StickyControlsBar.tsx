@@ -117,7 +117,7 @@ export function StickyControlsBar({
 
   return (
     <div className={`sticky ${stickyTop} ${zIndex} -mx-4 px-4 py-3 mb-8 backdrop-blur-sm border-b border-gray-100 ${className}`}>
-      <div className={`container mx-auto max-w-7xl ${containerClassName}`}>
+      <div className={`mx-auto max-w-7xl ${containerClassName}`}>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           
           {/* Left section */}
