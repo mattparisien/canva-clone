@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { forwardRef, MouseEventHandler, ReactNode } from "react";
+import { forwardRef, ReactNode } from "react";
 import { v4 as uuid } from "uuid";
 import { Button } from "../ui/button";
 
@@ -270,7 +270,7 @@ function ConditionalPopoverTriggerWrapper({ children, condition, onClick, itemId
     <Popover.Trigger
       asChild
       onClick={() => onClick(itemId)}
-      >
+    >
 
       {children}
     </Popover.Trigger>

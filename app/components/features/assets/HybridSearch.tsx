@@ -39,7 +39,7 @@ export function HybridSearch({ onSearchResults, onClearSearch, className }: Hybr
   const [isSearching, setIsSearching] = useState(false)
   const [searchMode, setSearchMode] = useState<"traditional" | "vector" | "hybrid">("traditional")
   const [vectorEnabled, setVectorEnabled] = useState(false)
-  const [similarityThreshold, setSimilarityThreshold] = useState([0.7])
+  const [similarityThreshold, setSimilarityThreshold] = useState([0.78])
   const [maxResults, setMaxResults] = useState([20])
   const [showAdvanced, setShowAdvanced] = useState(false)
   
