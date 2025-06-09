@@ -4,6 +4,7 @@ import { Button } from "@components/ui/button"
 import { Input } from "@components/ui/input"
 import { cn } from "@/lib/utils/utils"
 import { AppWindow, Crown, Folder, LayoutGrid, Search, Settings, Shapes, Sparkles, Type, Upload } from "lucide-react"
+import { TextStyleCard } from "@components/ui/text-style-card"
 import { useEffect, useState } from "react"
 import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore"
 
@@ -153,19 +154,15 @@ export default function Sidebar() {
             </div>
 
             <div className="space-y-3 mb-8">
-              <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
-                onClick={() => handleAddText(32, "Title", "bold")}
+              <TextStyleCard onClick={() => handleAddText(32, "Title", "bold")}
               >
                 <p className="text-2xl font-bold">Title</p>
-              </div>
+              </TextStyleCard>
 
-              <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
-                onClick={() => handleAddText(24, "Heading", "semibold")}
+              <TextStyleCard onClick={() => handleAddText(24, "Heading", "semibold")}
               >
                 <p className="text-xl font-semibold">Heading</p>
-              </div>
+              </TextStyleCard>
             </div>
 
             <div className="mt-6 mb-3">
@@ -173,31 +170,27 @@ export default function Sidebar() {
             </div>
 
             <div className="space-y-3 mb-8">
-              <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
-                onClick={() => handleAddText(18, "Add a subheading")}
+              <TextStyleCard onClick={() => handleAddText(18, "Add a subheading")}
               >
                 <p className="text-lg">Add a subheading</p>
-              </div>
+              </TextStyleCard>
 
-              <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
-                onClick={() => handleAddText(14, "Add a little bit of body text")}
+              <TextStyleCard onClick={() => handleAddText(14, "Add a little bit of body text")}
               >
                 <p className="text-sm">Add a little bit of body text</p>
-              </div>
+              </TextStyleCard>
             </div>
 
             <div className="mt-6 mb-3">
               <h3 className="text-sm font-semibold text-gray-800">Dynamic text</h3>
             </div>
 
-            <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)] flex items-center">
+            <TextStyleCard className="p-3 flex items-center">
               <div className="h-12 w-12 rounded bg-gradient-to-br from-brand-blue to-brand-teal flex items-center justify-center text-white font-bold mr-3">
                 1
               </div>
               <span className="text-sm font-medium">Page numbers</span>
-            </div>
+            </TextStyleCard>
           </div>
         </div>
       )}

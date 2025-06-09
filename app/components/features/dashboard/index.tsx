@@ -306,7 +306,8 @@ function DashboardContent() {
             <p className="text-gray-500 mb-6 max-w-sm">There was an error loading your projects. Please try again.</p>
             <Button
               onClick={() => refetch()}
-              className="rounded-2xl bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue-dark hover:to-brand-teal-dark text-white font-medium"
+              variant="gradient"
+              className="rounded-2xl"
             >
               Try Again
             </Button>
