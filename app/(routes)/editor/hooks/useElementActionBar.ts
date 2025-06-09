@@ -1,4 +1,4 @@
-import { Element as CanvasElement } from "@/lib/types/canvas.types";
+import { Element as CanvasElement } from "@/lib/types/canvas";
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type ActionBarPosition = 'top' | 'bottom' | 'left' | 'right';

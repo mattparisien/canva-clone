@@ -1,4 +1,4 @@
-import { CanvasSize } from "../types/canvas.types"
+import { CanvasSize } from "../types/canvas"
 
 // Default font size as a percentage of canvas width
 export const DEFAULT_TEXT_FONT_SIZE_RATIO = 0.09 // 9% of canvas width

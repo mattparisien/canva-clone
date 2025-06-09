@@ -1,6 +1,6 @@
 import React from 'react';
 import { LockIcon, CopyIcon, TrashIcon } from 'lucide-react';
-import { Element as EditorCanvasElement } from "@lib/types/canvas.types";
+import { Element as EditorCanvasElement } from "@/lib/types/canvas";
 
 interface ElementPopoverProps {
   element: EditorCanvasElement;

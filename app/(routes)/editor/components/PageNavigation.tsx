@@ -1,4 +1,4 @@
-import { Page } from '@/lib/types/canvas.types';
+import { Page } from '@/lib/types/canvas';
 import { Plus } from 'lucide-react';
 
 interface PageNavigationProps {

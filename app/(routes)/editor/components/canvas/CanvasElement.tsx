@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import useCanvasStore from "@lib/stores/useCanvasStore";
-import { Element as EditorCanvasElement } from "@lib/types/canvas.types";
+import { Element as EditorCanvasElement } from "@/lib/types/canvas";
 import { calculateViewportRect } from "@lib/utils/canvas-utils";
 import classNames from "classnames";
 import { useCallback, useEffect, useRef } from "react";

@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, type ReactNode, useEffect } from "react"
-import { EditorContextType } from "../types/canvas.types"
+import { EditorContextType } from "../types/canvas"
 import useEditorStore, { 
   useCurrentPage,
   setupAutoSave, 

@@ -1,4 +1,4 @@
-import { Element as CanvasElement } from "@/lib/types/canvas.types";
+import { Element as CanvasElement } from "@/lib/types/canvas";
 
 export const getShapeStyles = (element: CanvasElement) => ({
   backgroundColor: element.backgroundColor || "transparent",

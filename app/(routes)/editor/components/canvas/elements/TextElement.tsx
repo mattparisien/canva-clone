@@ -1,4 +1,4 @@
-import { Element as CanvasElement } from "@/lib/types/canvas.types";
+import { Element as CanvasElement } from "@/lib/types/canvas";
 import { TextEditor } from "../../TextEditor";
 
 interface TextElementProps {

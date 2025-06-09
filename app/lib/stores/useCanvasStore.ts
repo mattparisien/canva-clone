@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
 import { DEFAULT_CANVAS_SIZE } from '../constants/canvas';
-import { CanvasContextType, Element, HistoryAction } from '../types/canvas.types';
+import { CanvasContextType, Element, HistoryAction } from '../types/canvas';
 import { reorderByIndex } from '../utils/canvas-utils';
 import useEditorStore from './useEditorStore';
 

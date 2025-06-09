@@ -2,7 +2,7 @@
 
 import { useProjectQuery } from "@/features/projects/use-projects";
 import { Project } from "@/lib/types/api";
-import { NavigationIconName, NavigationItem } from "@/lib/types/navigation.types";
+import { NavigationIconName, NavigationItem } from "@/lib/types/navigation";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/ui/tooltip";
 import * as Popover from "@radix-ui/react-popover";
 import classNames from "classnames";

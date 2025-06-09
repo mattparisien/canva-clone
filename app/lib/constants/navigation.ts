@@ -1,4 +1,4 @@
-import { type NavigationItem } from "../types/navigation.types";
+import { type NavigationItem } from "../types/navigation";
 
 export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
     {

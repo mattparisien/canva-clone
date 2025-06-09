@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Element as CanvasElement } from "@/lib/types/canvas.types";
+import { Element as CanvasElement } from "@/lib/types/canvas";
 import { CopyIcon, LockIcon, TrashIcon } from 'lucide-react';
 import { forwardRef, ForwardRefRenderFunction } from 'react';
 

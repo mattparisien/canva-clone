@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { Element as CanvasElement } from "@lib/types/canvas.types";
+import { Element as CanvasElement } from "@/lib/types/canvas";
 import { useSnapping } from "./useSnapping";
 
 type ResizeState = {

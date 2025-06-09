@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import { HistoryAction, Element, CanvasSize, Page } from "../types/canvas.types"
+import { HistoryAction, Element, CanvasSize, Page } from "../types/canvas"
 
 /**
  * Custom hook for managing canvas action history for undo/redo functionality

@@ -1,6 +1,6 @@
 "use client"
 
-import { Element as CanvasElement } from "@lib/types/canvas.types"
+import { Element as CanvasElement } from "@/lib/types/canvas"
 
 interface AlignmentGuidesProps {
   activeElement: CanvasElement

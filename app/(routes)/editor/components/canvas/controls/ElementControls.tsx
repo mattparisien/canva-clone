@@ -1,7 +1,7 @@
 import { useCanvasElementInteraction, useCanvasElementResize, useSnapping, useTextMeasurement } from "@/(routes)/editor/hooks";
 import useCanvasStore from "@/lib/stores/useCanvasStore";
 import useEditorStore from "@/lib/stores/useEditorStore";
-import { Element } from "@/lib/types/canvas.types";
+import { Element } from "@/lib/types/canvas";
 import { calculateViewportRect } from "@/lib/utils/canvas-utils";
 import { mergeRefs } from "@/lib/utils/utils";
 import classNames from "classnames";

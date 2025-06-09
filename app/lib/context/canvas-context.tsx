@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, ReactNode, useCallback } from "react"
-import { CanvasContextType, Element } from "../types/canvas.types"
+import { CanvasContextType, Element } from "../types/canvas"
 import useCanvasStore, {
   useCurrentPageElements,
   useCurrentCanvasSize

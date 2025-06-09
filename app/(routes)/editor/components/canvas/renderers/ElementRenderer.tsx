@@ -1,4 +1,4 @@
-import { Element as CanvasElement } from "@/lib/types/canvas.types";
+import { Element as CanvasElement } from "@/lib/types/canvas";
 import { memo } from "react";
 
 // Fix the import paths - this is likely the source of the error
