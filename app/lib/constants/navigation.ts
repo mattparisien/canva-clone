@@ -25,11 +25,18 @@ export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
         iconName: "database",
         label: "Assets",
     },
+    // {
+    //     id: "chatbot",
+    //     path: "/chatbot",
+    //     iconName: "message-circle",
+    //     label: "Design Assistant",
+    // },
     {
-        id: "chatbot",
-        path: "/chatbot",
-        iconName: "message-circle",
-        label: "Design Assistant",
+        id: "ai-search",
+        path: "/ai-search",
+        iconName: "brain",
+        label: "AI Search",
+
     },
     {
         id: "brands",
