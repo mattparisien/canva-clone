@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@compo
 import * as Popover from "@radix-ui/react-popover";
 import classNames from "classnames";
 import {
+  Brain,
   Component,
   Database,
   FolderKanban,
@@ -78,6 +79,8 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
       return <Shapes {...props} />
     case 'database':
       return <Database {...props} />
+    case 'brain':
+      return <Brain {...props} />
     default:
       return <Home {...props} /> // Default fallback
   }

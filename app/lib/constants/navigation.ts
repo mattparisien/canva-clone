@@ -26,6 +26,12 @@ export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
         label: "Assets",
     },
     {
+        id: "ai-search",
+        path: "/ai-search",
+        iconName: "brain",
+        label: "AI Search",
+    },
+    {
         id: "brands",
         path: "/brands",
         iconName: "square-kanban",
