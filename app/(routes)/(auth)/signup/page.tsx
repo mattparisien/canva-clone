@@ -6,10 +6,10 @@ import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
+import { PasswordInput } from "@components/ui/password-input";
 import { Checkbox } from "@components/ui/checkbox";
 import { Label } from "@components/ui/label";
 import { Alert, AlertDescription } from "@components/ui/alert";
-import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { authAPI } from "@lib/api";
 
@@ -33,7 +33,6 @@ export default function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [agreeToTerms, setAgreeToTerms] = useState(false);
@@ -190,31 +189,16 @@ export default function SignUp() {
 
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                  className="w-full rounded-2xl"
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500"
-                  tabIndex={-1}
-                >
-                  {showPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+                className="w-full rounded-2xl"
+                autoComplete="new-password"
+              />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password[0]}</p>
               )}
@@ -238,7 +222,8 @@ export default function SignUp() {
 
             <Button
               type="submit"
-              className="w-full rounded-2xl bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue-dark hover:to-brand-teal-dark text-white font-medium py-3 h-auto"
+              variant="gradient"
+              className="w-full rounded-2xl py-3 h-auto"
               disabled={isLoading}
             >
               {isLoading ? (

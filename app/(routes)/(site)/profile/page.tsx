@@ -339,7 +339,8 @@ export default function ProfilePage() {
                       <Button
                         type="submit"
                         form="profile-form"
-                        className="rounded-xl bg-gradient-to-r from-brand-blue to-brand-teal hover:from-brand-blue-dark hover:to-brand-teal-dark text-white"
+                        variant="gradient"
+                        className="rounded-xl"
                         size="sm"
                       >
                         <Check className="h-4 w-4 mr-2" />
