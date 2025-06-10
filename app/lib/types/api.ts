@@ -322,3 +322,59 @@ export interface AuthAPIService {
 
   logout: () => Promise<void>;
 }
+
+/**
+ * Represents a chat message in the design assistant conversation.
+ */
+export interface ChatMessage {
+  id: string;                  // Unique identifier for the message
+  type: 'user' | 'bot';        // Type of message (user input or bot response)
+  content: string;             // The message content
+  timestamp: Date;             // When the message was created
+}
+
+/**
+ * Response from the chat API when sending a message.
+ */
+export interface ChatResponse {
+  response: string;            // The bot's response message
+  timestamp: string;           // ISO timestamp of the response
+  useOwnData: boolean;         // Whether user's personal data was used
+  suggestions?: string[];      // Optional suggested follow-up actions
+}
+
+/**
+ * Request payload for sending a message to the chat API.
+ */
+export interface SendMessageRequest {
+  message: string;             // The user's message
+  useOwnData?: boolean;        // Whether to use user's personal assets/data
+}
+
+/**
+ * Health check response from the chat API.
+ */
+export interface ChatHealthResponse {
+  status: string;              // Service status
+  service: string;             // Service name
+  timestamp: string;           // ISO timestamp
+  version: string;             // API version
+}
+
+/**
+ * Chat API service interface for design assistant functionality.
+ */
+export interface ChatAPIService extends APIServiceBase {
+  /**
+   * Sends a message to the design assistant.
+   * @param request - The message request containing user input
+   * @returns Promise resolving to the chat response
+   */
+  sendMessage(request: SendMessageRequest): Promise<ChatResponse>;
+
+  /**
+   * Checks the health status of the chat service.
+   * @returns Promise resolving to health status information
+   */
+  healthCheck(): Promise<ChatHealthResponse>;
+}
