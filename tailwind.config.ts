@@ -124,7 +124,7 @@ const config: Config = {
       spacing: {
         'sidebar': 'var(--sidebar-width)',
         'header': 'var(--header-height)',
-        'editor-propertyBar': 'var(--editor-propertyBar-offsetTop)',
+        'editor-propertyBar': 'var(--editor-propertyBar-topOffset)',
       },
       zIndex: {
         'editor-popover': 'var(--z-editor-popover)',
