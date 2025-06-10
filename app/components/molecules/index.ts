@@ -10,6 +10,18 @@ export { ActionButtonGroup } from './ActionButtonGroup'
 export { SelectionCounter } from './SelectionCounter'
 export { NavigationMenu } from './NavigationMenu'
 
+// Moved from atoms (default exports)
+export { default as SignupForm } from './SignupForm'
+export { Hero } from './Hero'
+export { CreateButton } from './CreateButton'
+export { Breadcrumbs } from './Breadcrumbs'
+export { EmptyState } from './EmptyState'
+export { CollapsibleSection } from './CollapsibleSection'
+
+// Moved from organisms  
+export { SelectionCheckbox } from './SelectionCheckbox'
+export { CardMedia } from './CardMedia'
+
 // Re-export types
 export type { SearchBarProps } from './SearchBar'
 export type { FilterSelectProps, FilterOption } from './FilterSelect'

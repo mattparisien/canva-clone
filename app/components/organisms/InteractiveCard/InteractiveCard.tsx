@@ -1,9 +1,8 @@
 import { Card } from "@components/atoms/card";
 import { useState } from "react";
 import { useSelection } from "@lib/context/selection-context";
-import { SelectionCheckbox } from "./SelectionCheckbox";
+import { SelectionCheckbox, CardMedia } from "@components/molecules";
 import { EditableTitle } from "./EditableTitle";
-import { CardMedia } from "./CardMedia";
 
 interface InteractiveCardProps {
     id: string;
