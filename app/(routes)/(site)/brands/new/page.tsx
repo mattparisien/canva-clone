@@ -1,9 +1,9 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/atoms/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/atoms/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/atoms/tabs"
 import { ArrowLeft } from "lucide-react"
 import { Brand } from "@/lib/types/brands"
 import { BrandDocumentUpload } from "../components/BrandDocumentUpload"

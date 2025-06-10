@@ -2,17 +2,23 @@ import { type NavigationItem } from "../types/navigation";
 
 export const GLOBAL_NAVIGATION_ITEMS: NavigationItem[] = [
     {
-        id: "design",
+        id: "home",
         path: "/",
         iconName: "home",
         label: "Home"
     },
     {
-        id: "projects",
-        path: "/projects",
-        iconName: "folder-kanban",
-        label: "Projects",
+        id: "designs",
+        path: "/designs",
+        iconName: "panel-top",
+        label: "Designs"
     },
+    // {
+    //     id: "projects",
+    //     path: "/projects",
+    //     iconName: "folder-kanban",
+    //     label: "Projects",
+    // },
     {
         id: "templates",
         path: "/templates",

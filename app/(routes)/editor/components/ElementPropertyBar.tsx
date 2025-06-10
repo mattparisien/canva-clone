@@ -1,6 +1,6 @@
 "use client"
 
-import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@components/atoms/popover"
 import type { Element } from "@/lib/types/canvas" // Update import to use types directly
 import {
   DEFAULT_FONT_SIZE,

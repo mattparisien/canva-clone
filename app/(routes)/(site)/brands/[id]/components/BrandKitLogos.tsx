@@ -1,6 +1,6 @@
 import { Logo } from "@/lib/types/brands"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/atoms/accordion"
+import { Button } from "@/components/atoms/button"
 import { Plus, Upload } from "lucide-react"
 
 interface BrandKitLogosProps {

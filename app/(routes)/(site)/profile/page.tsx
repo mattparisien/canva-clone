@@ -1,12 +1,12 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar"
-import { Button } from "@components/ui/button"
-import { Card, CardContent } from "@components/ui/card"
-import { Input } from "@components/ui/input"
-import { Label } from "@components/ui/label"
-import { Tabs, TabsList, TabsTrigger } from "@components/ui/tabs"
-import { useToast } from "@components/ui/use-toast"
+import { Avatar, AvatarFallback, AvatarImage } from "@components/atoms/avatar"
+import { Button } from "@components/atoms/button"
+import { Card, CardContent } from "@components/atoms/card"
+import { Input } from "@components/atoms/input"
+import { Label } from "@components/atoms/label"
+import { Tabs, TabsList, TabsTrigger } from "@components/atoms/tabs"
+import { useToast } from "@components/atoms/use-toast"
 import {
   Building,
   Calendar,

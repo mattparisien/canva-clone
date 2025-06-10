@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/atoms/button";
 import { Search, ChevronRight, Circle, Palette, ArrowRight } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/atoms/input";
 import useCanvasStore from "@/lib/stores/useCanvasStore";
 import { useQuery } from "@tanstack/react-query";
 import { Brand } from "@/lib/types/brands";

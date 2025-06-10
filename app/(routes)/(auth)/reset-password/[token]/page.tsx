@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@components/ui/button";
-import { Input } from "@components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/ui/card";
-import { Label } from "@components/ui/label";
-import { Alert, AlertDescription } from "@components/ui/alert";
+import { Button } from "@components/atoms/button";
+import { Input } from "@components/atoms/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/atoms/card";
+import { Label } from "@components/atoms/label";
+import { Alert, AlertDescription } from "@components/atoms/alert";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 

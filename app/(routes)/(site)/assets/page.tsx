@@ -1,23 +1,21 @@
 "use client"
 
-import { Section } from "@/components/ui/section"
-import { LazyGrid } from "@components/composite/LazyGrid"
-import { StickyControlsBar, ViewMode } from "@components/composite/StickyControlsBar"
-import { SelectionActions } from "@/components/composite/SelectionActions"
-import InteractiveCard from "@components/composite/InteractiveCard/InteractiveCard"
-import { Badge } from "@components/ui/badge"
-import { Button } from "@components/ui/button"
-import { Card, CardContent } from "@components/ui/card"
-import { Skeleton } from "@components/ui/skeleton"
-import EmptyState from "@/components/ui/empty-state"
-import { useToast } from "@components/ui/use-toast"
+import { Section } from "@/components/atoms/section"
+import EmptyState from "@/components/molecules/EmptyState"
+import { LazyGrid } from "@/components/organisms/LazyGrid/LazyGrid"
+import { SelectionActions } from "@/components/organisms/SelectionActions"
+import { Button } from "@components/atoms/button"
+import { Card, CardContent } from "@components/atoms/card"
+import { useToast } from "@components/atoms/use-toast"
+import InteractiveCard from "@components/organisms/InteractiveCard/InteractiveCard"
+import { StickyControlsBar } from "@components/organisms/StickyControlsBar"
+import { ViewMode } from "@/components/molecules"
 import { useAssets } from "@features/assets/use-assets"
+import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import { Asset } from "@lib/types/api"
 import { formatBytes, getRelativeTime } from "@lib/utils/utils"
-import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import {
     Download,
-    Eye,
     FileImage,
     FileText,
     FileVideo,
@@ -30,6 +28,7 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
+import { Heading } from "@/components/atoms"
 
 type AssetType = 'all' | 'image' | 'video' | 'document' | 'other'
 type SortBy = 'newest' | 'oldest' | 'name' | 'size' | 'type'
@@ -217,10 +216,10 @@ function AssetsPageContent() {
         try {
             // Delete all selected assets
             await Promise.all(selectedIds.map(id => deleteAsset(id)))
-            
+
             // Clear selection
             clearSelection()
-            
+
             toast({
                 title: "Assets deleted",
                 description: `${selectedIds.length} asset(s) deleted successfully.`
@@ -392,10 +391,10 @@ function AssetsPageContent() {
     return (
         <div
             {...getRootProps()}
-            // className="min-h-screen space-y-6"
+        // className="min-h-screen space-y-6"
         >
             <input {...getInputProps()} />
-            
+
             {/* Upload overlay */}
             {isDragActive && (
                 <div className="fixed inset-0 bg-blue-500/20 backdrop-blur-sm flex items-center justify-center z-50">
@@ -413,7 +412,10 @@ function AssetsPageContent() {
             />
 
             {/* All Assets */}
-            <Section heading="My Assets">
+            <Section>
+                <Heading level={2}>My Assets</Heading>
+            </Section>
+            <Section>
                 {/* Sticky Controls Bar */}
                 <StickyControlsBar
                     showCondition={assets && assets.length > 0}

@@ -13,7 +13,10 @@
   "aliases": {
     "components": "@components",
     "utils": "@/app/lib/utils",
-    "ui": "@components/ui",
+    "atoms": "@components/atoms",
+    "molecules": "@components/molecules",
+    "organisms": "@components/organisms",
+    "templates": "@components/templates",
     "lib": "@/app/lib",
     "hooks": "@/app/lib/hooks",
     "constants": "@/app/lib/constants",

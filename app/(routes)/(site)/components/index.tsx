@@ -1,13 +1,13 @@
 "use client"
 
-import { Section } from "@/components/ui/section"
-import { SelectionActions } from "@/components/composite/SelectionActions"
-import { StickyControlsBar, ViewMode } from "@/components/composite/StickyControlsBar"
-import { Button } from "@components/ui/button"
-import { Card } from "@components/ui/card"
-import { LazyGrid } from "@/components/composite/LazyGrid"
-import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveCard"
-import { useToast } from "@components/ui/use-toast"
+import { Section } from "@/components/atoms/section"
+import { SelectionActions } from "@/components/organisms/SelectionActions"
+import { StickyControlsBar, ViewMode } from "@/components/organisms/StickyControlsBar"
+import { Button } from "@components/atoms/button"
+import { Card } from "@components/atoms/card"
+import { LazyGrid } from "@/components/organisms/LazyGrid/LazyGrid"
+import InteractiveCard from "@/components/organisms/InteractiveCard/InteractiveCard"
+import { useToast } from "@components/atoms/use-toast"
 import { useInfiniteProjects } from "@features/projects/use-infinite-projects"
 import { useProjectQuery } from "@features/projects/use-projects"
 import { type Project } from "@/lib/types/api"
@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
 import ListView from "../components/list-view"
+import { Heading } from "@/components/atoms"
 
 // Main Dashboard component that wraps everything with SelectionProvider
 export default function Dashboard() {
@@ -253,8 +254,10 @@ function DashboardContent() {
   return (
     <>
       {/* All Designs */}
-      <Section heading="My Designs">
-
+      <Section>
+      <Heading level={2}>
+        My Designs
+      </Heading>
         {/* Sticky Controls Bar */}
         <StickyControlsBar
           showCondition={projects.length > 0}

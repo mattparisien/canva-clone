@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { brandsAPI } from '@/lib/api';
 import { Brand, CreateBrandRequest, GenerateBrandFromAssetsRequest } from '@/lib/types/brands';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/atoms/use-toast';
 
 export function useBrands() {
   const queryClient = useQueryClient();

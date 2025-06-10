@@ -1,4 +1,4 @@
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/atoms/use-toast';
 import { projectsAPI } from '@/lib/api';
 import { type Project } from '@/lib/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
