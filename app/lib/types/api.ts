@@ -366,11 +366,12 @@ export interface ChatHealthResponse {
  */
 export interface ChatAPIService extends APIServiceBase {
   /**
-   * Sends a message to the design assistant.
+   * Sends a message to the design assistant with optional streaming support.
    * @param request - The message request containing user input
+   * @param onChunk - Optional callback for streaming response chunks
    * @returns Promise resolving to the chat response
    */
-  sendMessage(request: SendMessageRequest): Promise<ChatResponse>;
+  sendMessage(request: SendMessageRequest, onChunk?: (content: string) => void): Promise<ChatResponse>;
 
   /**
    * Checks the health status of the chat service.

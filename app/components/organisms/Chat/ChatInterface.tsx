@@ -64,21 +64,40 @@ export function ChatInterface({
         setInputValue("")
         setIsLoading(true)
 
+        // Create a placeholder bot message for streaming
+        const botMessageId = (Date.now() + 1).toString()
+        const initialBotMessage: ChatMessage = {
+            id: botMessageId,
+            type: 'bot',
+            content: '',
+            timestamp: new Date()
+        }
+        setMessages(prev => [...prev, initialBotMessage])
+
         try {
-            // Use the proper chat API
+            // Use streaming chat API
             const response = await chatAPI.sendMessage({
                 message: messageText,
                 useOwnData: useOwnData
+            }, (chunk: string) => {
+                // Update the bot message content as chunks arrive
+                setMessages(prev => prev.map(msg => 
+                    msg.id === botMessageId 
+                        ? { ...msg, content: msg.content + chunk }
+                        : msg
+                ))
             })
             
-            const botResponse: ChatMessage = {
-                id: (Date.now() + 1).toString(),
-                type: 'bot',
-                content: response.response,
-                timestamp: new Date(response.timestamp)
-            }
-            
-            setMessages(prev => [...prev, botResponse])
+            // Update with final response data (for suggestions, etc.)
+            setMessages(prev => prev.map(msg => 
+                msg.id === botMessageId 
+                    ? { 
+                        ...msg, 
+                        content: response.response,
+                        timestamp: new Date(response.timestamp)
+                    }
+                    : msg
+            ))
             
             // If there's a custom onSendMessage handler, call it too
             if (onSendMessage) {

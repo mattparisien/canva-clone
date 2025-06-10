@@ -20,20 +20,10 @@ const getHeadersWithAuth = (req: NextRequest) => {
 // Send message to chat
 export async function POST(req: NextRequest) {
   try {
-    // Debug: Log all incoming headers
-    console.log('All incoming headers:');
-    req.headers.forEach((value, key) => {
-      console.log(`  ${key}: ${value}`);
-    });
-    
     const headers = getHeadersWithAuth(req);
     const body = await req.json();
     
     const backendUrl = `${BACKEND_URL}/api/chat/message`;
-    
-    console.log('Proxying chat message request to:', backendUrl);
-    console.log('Headers being sent to backend:', headers);
-    console.log('Request body:', body);
     
     const response = await fetch(backendUrl, {
       method: 'POST',
@@ -41,12 +31,54 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(body),
     });
 
-    const data = await response.json();
-    console.log('data from backend:', data);
+    if (!response.ok) {
+      // Try to get error message from response
+      let errorMessage = 'Server error';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        // If JSON parsing fails, use the response text
+        errorMessage = await response.text() || errorMessage;
+      }
+      
+      return NextResponse.json(
+        { message: errorMessage }, 
+        { status: response.status }
+      );
+    }
+
+    // Check if the response is a stream (SSE)
+    const contentType = response.headers.get('content-type');
     
-    return NextResponse.json(data, { 
-      status: response.status 
-    });
+    if (contentType?.includes('text/event-stream')) {
+      // Forward the stream response
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Cache-Control'
+        }
+      });
+    } else {
+      // Handle non-stream response (fallback)
+      try {
+        const data = await response.json();
+        return NextResponse.json(data, { 
+          status: response.status 
+        });
+      } catch (parseError) {
+        // If JSON parsing fails, return the response as text
+        const textData = await response.text();
+        return NextResponse.json(
+          { message: textData || 'Invalid response format' }, 
+          { status: 500 }
+        );
+      }
+    }
     
   } catch (error) {
     console.error('Chat message API error:', error);

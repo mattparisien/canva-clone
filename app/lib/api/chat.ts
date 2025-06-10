@@ -11,22 +11,98 @@ export class ChatAPI extends APIBase implements ChatAPIService {
     this.apiClient = apiClient;
   }
 
-  async sendMessage(request: SendMessageRequest): Promise<ChatResponse> {
+  async sendMessage(request: SendMessageRequest, onChunk?: (content: string) => void): Promise<ChatResponse> {
     try {
-      // Debug: Check if token exists
       const token = this.getAuthToken();
-      console.log('Token from localStorage:', token ? `EXISTS (${token.substring(0, 20)}...)` : 'MISSING');
-      console.log('All localStorage keys:', Object.keys(localStorage));
       
-      const response = await this.apiClient.post<ChatResponse>('/chat/message', {
-        message: request.message.trim(),
-        useOwnData: request.useOwnData || false
+      const response = await fetch('/api/chat/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({
+          message: request.message.trim(),
+          useOwnData: request.useOwnData || false
+        })
       });
-      return response.data;
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      // Check if response is streaming
+      const contentType = response.headers.get('content-type');
+      if (contentType?.includes('text/event-stream')) {
+        return this.handleStreamingResponse(response, onChunk);
+      } else {
+        // Handle regular JSON response
+        return await response.json();
+      }
+
     } catch (error: any) {
-      console.error('Error sending chat message:', error.response?.data || error.message);
-      throw error.response?.data || new Error('Failed to send message');
+      console.error('Error sending chat message:', error);
+      throw new Error('Failed to send message');
     }
+  }
+
+  private async handleStreamingResponse(response: Response, onChunk?: (content: string) => void): Promise<ChatResponse> {
+    return new Promise((resolve, reject) => {
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+      let finalData: ChatResponse | null = null;
+
+      if (!reader) {
+        reject(new Error('No response body reader available'));
+        return;
+      }
+
+      const readStream = async () => {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  
+                  if (data.type === 'chunk') {
+                    fullResponse += data.content;
+                    onChunk?.(data.content);
+                  } else if (data.type === 'complete') {
+                    finalData = data;
+                  }
+                } catch (parseError) {
+                  console.warn('Failed to parse SSE data:', parseError);
+                }
+              }
+            }
+          }
+
+          if (finalData) {
+            resolve(finalData);
+          } else {
+            resolve({
+              response: fullResponse,
+              timestamp: new Date().toISOString(),
+              useOwnData: false,
+              suggestions: []
+            });
+          }
+        } catch (streamError) {
+          reject(streamError);
+        }
+      };
+
+      readStream();
+    });
   }
 
   async healthCheck(): Promise<ChatHealthResponse> {
