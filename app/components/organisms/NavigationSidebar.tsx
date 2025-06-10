@@ -230,7 +230,7 @@ const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
   }: SidebarLinkProps, ref) => {
 
     return (
-      <div
+      <aside
         className={classNames("relative", className)} // Merge passed className
         {...rest} // Spread other HTML attributes
       >
@@ -258,7 +258,7 @@ const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
           </Link >
         </ConditionalPopoverTriggerWrapper>
 
-      </div>
+      </aside>
     );
   });
 SidebarLink.displayName = "SidebarLink"; // Good practice for forwardRef components

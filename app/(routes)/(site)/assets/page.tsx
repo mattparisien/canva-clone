@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
+import { Heading } from "@/components/atoms"
 
 type AssetType = 'all' | 'image' | 'video' | 'document' | 'other'
 type SortBy = 'newest' | 'oldest' | 'name' | 'size' | 'type'
@@ -411,7 +412,10 @@ function AssetsPageContent() {
             />
 
             {/* All Assets */}
-            <Section heading="My Assets">
+            <Section>
+                <Heading level={2}>My Assets</Heading>
+            </Section>
+            <Section>
                 {/* Sticky Controls Bar */}
                 <StickyControlsBar
                     showCondition={assets && assets.length > 0}

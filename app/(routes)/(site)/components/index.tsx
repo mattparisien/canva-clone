@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
 import ListView from "../components/list-view"
+import { Heading } from "@/components/atoms"
 
 // Main Dashboard component that wraps everything with SelectionProvider
 export default function Dashboard() {
@@ -253,8 +254,10 @@ function DashboardContent() {
   return (
     <>
       {/* All Designs */}
-      <Section heading="My Designs">
-
+      <Section>
+      <Heading level={2}>
+        My Designs
+      </Heading>
         {/* Sticky Controls Bar */}
         <StickyControlsBar
           showCondition={projects.length > 0}

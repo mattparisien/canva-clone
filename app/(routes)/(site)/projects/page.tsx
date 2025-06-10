@@ -7,6 +7,7 @@ import { useToast } from "@components/atoms/use-toast"
 import { projectsAPI } from "@lib/api"
 import { SelectionProvider } from "@lib/context/selection-context"
 import { useEffect, useState } from "react"
+import { Heading } from "@/components/atoms"
 
 // Mock project type for demonstration
 interface Project {
@@ -125,7 +126,7 @@ export default function ProjectsPage() {
     <SelectionProvider>
       <div className="p-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">My Projects</h1>
+          <Heading level={2}>My Projects</Heading>
           <Button>Create New Project</Button>
         </div>
 
