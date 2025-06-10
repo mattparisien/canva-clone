@@ -1,7 +1,6 @@
 
-import Dashboard from '@/(routes)/(site)/components'
 
 
 export default function Home() {
-  return <Dashboard />
+  return <div>Chatbot goes here!</div>
 }
