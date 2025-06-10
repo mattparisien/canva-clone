@@ -1,4 +1,4 @@
-import { type Project } from "@/lib/api";
+import { type Project } from "@/lib/types/api";
 import { getRelativeTime } from "@/lib/utils/utils";
 import { Button } from "@components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";

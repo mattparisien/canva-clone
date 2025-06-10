@@ -22,7 +22,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
-import ListView from "./list-view"
+import ListView from "../components/list-view"
 
 // Main Dashboard component that wraps everything with SelectionProvider
 export default function Dashboard() {

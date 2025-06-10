@@ -1,19 +1,17 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Switch } from "@/components/ui/switch"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
 import { Asset } from "@/lib/types/api"
-import { Search, Sparkles, Filter, X, Loader2, Zap } from "lucide-react"
 import { cn } from "@/lib/utils/utils"
+import { Filter, Loader2, Search, Sparkles, X, Zap } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
 
 interface HybridSearchProps {
   onSearchResults: (results: Asset[], isVectorSearch: boolean, query: string) => void
@@ -33,7 +31,7 @@ interface VectorSearchResponse {
 
 export function HybridSearch({ onSearchResults, onClearSearch, className }: HybridSearchProps) {
   const { toast } = useToast()
-  
+
   // Search state
   const [query, setQuery] = useState("")
   const [isSearching, setIsSearching] = useState(false)
@@ -42,7 +40,7 @@ export function HybridSearch({ onSearchResults, onClearSearch, className }: Hybr
   const [similarityThreshold, setSimilarityThreshold] = useState([0.78])
   const [maxResults, setMaxResults] = useState([20])
   const [showAdvanced, setShowAdvanced] = useState(false)
-  
+
   // Results state
   const [lastQuery, setLastQuery] = useState("")
   const [vectorResults, setVectorResults] = useState<VectorSearchResult[]>([])
@@ -64,14 +62,14 @@ export function HybridSearch({ onSearchResults, onClearSearch, className }: Hybr
       if (mode === "vector" || mode === "hybrid") {
         // Import the assets API for vector search
         const { assetsAPI } = await import("@/lib/api")
-        
+
         const vectorResponse: VectorSearchResponse = await assetsAPI.searchByVector(searchQuery, {
           limit: maxResults[0],
           threshold: similarityThreshold[0]
         })
 
         setVectorResults(vectorResponse.results)
-        
+
         if (mode === "vector") {
           // Pure vector search
           onSearchResults(vectorResponse.results, true, searchQuery)
@@ -141,11 +139,11 @@ export function HybridSearch({ onSearchResults, onClearSearch, className }: Hybr
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder={
-              searchMode === "vector" 
-                ? "Describe what you're looking for..." 
+              searchMode === "vector"
+                ? "Describe what you're looking for..."
                 : searchMode === "hybrid"
-                ? "Search by name, description, or visual similarity..."
-                : "Search assets by name or tag..."
+                  ? "Search by name, description, or visual similarity..."
+                  : "Search assets by name or tag..."
             }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -166,7 +164,7 @@ export function HybridSearch({ onSearchResults, onClearSearch, className }: Hybr
             <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin" />
           )}
         </div>
-        
+
         <Button
           type="button"
           variant={showAdvanced ? "default" : "outline"}
@@ -276,7 +274,7 @@ export function HybridSearch({ onSearchResults, onClearSearch, className }: Hybr
               </>
             )}
           </div>
-          
+
           {vectorResults.length > 0 && (
             <Badge variant="secondary" className="text-xs">
               {vectorResults.length} semantic matches
@@ -299,7 +297,7 @@ export function HybridSearch({ onSearchResults, onClearSearch, className }: Hybr
               {vectorResults.slice(0, 5).map((result) => (
                 <div key={result._id} className="flex items-center justify-between text-xs">
                   <span className="truncate flex-1 mr-2">{result.name}</span>
-                  <Badge 
+                  <Badge
                     variant={result.similarity > 0.8 ? "default" : "secondary"}
                     className="text-xs px-1 py-0"
                   >

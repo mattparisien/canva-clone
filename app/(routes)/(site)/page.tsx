@@ -1,5 +1,5 @@
 
-import Dashboard from '@/components/features/dashboard'
+import Dashboard from '@/(routes)/(site)/components'
 
 
 export default function Home() {

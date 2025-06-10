@@ -1,6 +1,6 @@
 import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid";
 import { getRelativeTime } from "@/lib/utils/utils";
-import { type Project } from "@lib/api/api";
+import { type Project } from "@/lib/types/api";
 import { upperFirst } from "lodash";
 import Image from "next/image";
 import Link from "next/link";
