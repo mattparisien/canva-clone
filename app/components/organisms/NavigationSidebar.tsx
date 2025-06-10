@@ -85,6 +85,8 @@ const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & 
     case 'message-circle':
       return <MessageCircle {...props} />
     default:
+    case 'panel-top':
+      return <PanelsTopLeft {...props} /> // Fallback icon if none match
       return <Home {...props} /> // Default fallback
   }
 };
