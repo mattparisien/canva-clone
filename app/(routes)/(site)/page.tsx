@@ -1,7 +1,5 @@
-
-import Dashboard from '@/(routes)/(site)/components'
-
+import { Chatbot } from "@/components/chatbot"
 
 export default function Home() {
-  return <Dashboard />
+  return <Chatbot />
 }
