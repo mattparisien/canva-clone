@@ -77,7 +77,15 @@ export class ChatAPI extends APIBase implements ChatAPIService {
                     fullResponse += data.content;
                     onChunk?.(data.content);
                   } else if (data.type === 'complete') {
-                    finalData = data;
+                    // Handle both JSON mode and legacy streaming mode
+                    finalData = {
+                      ...data,
+                      // Ensure we have the response text in the expected format
+                      response: data.assistant_text || data.response || fullResponse,
+                      assistant_text: data.assistant_text,
+                      suggestions: data.suggestions || [],
+                      action: data.action
+                    };
                   }
                 } catch (parseError) {
                   console.warn('Failed to parse SSE data:', parseError);
@@ -89,6 +97,7 @@ export class ChatAPI extends APIBase implements ChatAPIService {
           if (finalData) {
             resolve(finalData);
           } else {
+            // Legacy fallback for streaming mode
             resolve({
               response: fullResponse,
               timestamp: new Date().toISOString(),

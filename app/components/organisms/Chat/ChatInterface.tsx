@@ -93,7 +93,8 @@ export function ChatInterface({
                 msg.id === botMessageId 
                     ? { 
                         ...msg, 
-                        content: response.response,
+                        // Handle both JSON mode (assistant_text) and legacy mode (response)
+                        content: response.assistant_text || response.response || msg.content,
                         timestamp: new Date(response.timestamp)
                     }
                     : msg

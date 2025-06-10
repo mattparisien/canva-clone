@@ -337,10 +337,13 @@ export interface ChatMessage {
  * Response from the chat API when sending a message.
  */
 export interface ChatResponse {
-  response: string;            // The bot's response message
+  response?: string;           // The bot's response message (legacy streaming mode)
+  assistant_text?: string;     // The bot's response message (JSON mode)
   timestamp: string;           // ISO timestamp of the response
   useOwnData: boolean;         // Whether user's personal data was used
   suggestions?: string[];      // Optional suggested follow-up actions
+  action?: string;             // Optional action type (JSON mode)
+  type?: string;               // SSE event type (chunk/complete)
 }
 
 /**
