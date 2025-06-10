@@ -1,4 +1,4 @@
-import { NavigationSidebar } from "@/components/templates/navigation-sidebar";
+import { NavigationSidebar } from "@/components/organisms/NavigationSidebar";
 import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation";
 import useEditorStore from "@/lib/stores/useEditorStore";
 import { useCallback } from "react";

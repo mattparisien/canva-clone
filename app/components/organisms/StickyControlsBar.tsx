@@ -12,8 +12,6 @@ import {
 } from "@components/molecules"
 import React from "react"
 
-export type ViewMode = "grid" | "list"
-
 export interface ControlAction {
   icon: React.ComponentType<{ className?: string }>
   label: string

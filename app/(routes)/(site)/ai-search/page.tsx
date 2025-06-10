@@ -1,28 +1,26 @@
 "use client"
 
+import { HybridSearch } from "@/(routes)/(site)/assets/components/HybridSearch"
 import { Section } from "@/components/atoms/section"
 import { LazyGrid } from "@/components/organisms/LazyGrid/LazyGrid"
-import { StickyControlsBar, ViewMode } from "@components/organisms/StickyControlsBar"
 import { SelectionActions } from "@/components/organisms/SelectionActions"
-import InteractiveCard from "@components/organisms/InteractiveCard/InteractiveCard"
-import { HybridSearch } from "@/(routes)/(site)/assets/components/HybridSearch"
 import { Badge } from "@components/atoms/badge"
 import { Button } from "@components/atoms/button"
 import { Card, CardContent } from "@components/atoms/card"
-import { Skeleton } from "@components/atoms/skeleton"
 import { useToast } from "@components/atoms/use-toast"
+import InteractiveCard from "@components/organisms/InteractiveCard/InteractiveCard"
+import { StickyControlsBar } from "@components/organisms/StickyControlsBar"
+import { ViewMode } from "@components/molecules"
 import { useAssets } from "@features/assets/use-assets"
+import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import { Asset } from "@lib/types/api"
 import { formatBytes, getRelativeTime } from "@lib/utils/utils"
-import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import {
     Brain,
     Download,
-    File,
     FileImage,
     FileText,
     FileVideo,
-    Plus,
     Search,
     Sparkles,
     Table,
@@ -73,7 +71,7 @@ function AISearchPageContent() {
         setIsVectorSearch(isVector)
         setSearchQuery(query)
         setHasSearched(true)
-        
+
         // If it's a traditional search (not vector), we need to filter from all assets
         if (!isVector && assets) {
             const filteredAssets = assets.filter(asset =>
@@ -119,13 +117,13 @@ function AISearchPageContent() {
         try {
             // Delete all selected assets
             await Promise.all(selectedIds.map(id => deleteAsset(id)))
-            
+
             // Remove from search results
             setSearchResults(prev => prev.filter(asset => !selectedIds.includes(asset._id)))
-            
+
             // Clear selection
             clearSelection()
-            
+
             toast({
                 title: "Assets deleted",
                 description: `${selectedIds.length} asset(s) deleted successfully.`
@@ -159,7 +157,7 @@ function AISearchPageContent() {
         try {
             await updateAsset(assetId, { name: newTitle })
             // Update in search results
-            setSearchResults(prev => prev.map(asset => 
+            setSearchResults(prev => prev.map(asset =>
                 asset._id === assetId ? { ...asset, name: newTitle } : asset
             ))
             toast({
@@ -230,10 +228,10 @@ function AISearchPageContent() {
                         </div>
                     )}
                 </InteractiveCard>
-                
+
                 {/* Similarity badge for vector search results */}
                 {isVectorSearch && asset.similarity && (
-                    <Badge 
+                    <Badge
                         variant={asset.similarity > 0.8 ? "default" : "secondary"}
                         className="absolute top-2 right-2 text-xs"
                     >
@@ -277,7 +275,7 @@ function AISearchPageContent() {
                                     <span>{getRelativeTime(asset.createdAt)}</span>
                                 )}
                                 {isVectorSearch && asset.similarity && (
-                                    <Badge 
+                                    <Badge
                                         variant={asset.similarity > 0.8 ? "default" : "secondary"}
                                         className="text-xs"
                                     >
@@ -324,8 +322,8 @@ function AISearchPageContent() {
             />
 
             {/* AI Search */}
-            <Section 
-                heading="AI-Powered Asset Search" 
+            <Section
+                heading="AI-Powered Asset Search"
                 subHeading="Use natural language and semantic understanding to find your assets"
             >
                 {/* Hybrid Search Component */}
@@ -365,7 +363,7 @@ function AISearchPageContent() {
                                     )}
                                     {searchQuery && <span className="font-medium">for "{searchQuery}"</span>}
                                 </div>
-                                
+
                                 {isVectorSearch && (
                                     <Badge variant="secondary" className="flex items-center gap-1">
                                         <Sparkles className="h-3 w-3" />
@@ -414,7 +412,7 @@ function AISearchPageContent() {
                                 </div>
                                 <h3 className="text-xl font-medium mb-2">No results found</h3>
                                 <p className="text-gray-500 mb-4 max-w-sm">
-                                    {isVectorSearch 
+                                    {isVectorSearch
                                         ? "Try describing your asset differently or adjusting the similarity threshold in advanced settings."
                                         : "No assets match your search terms. Try different keywords or use AI search for semantic matching."
                                     }
@@ -435,30 +433,30 @@ function AISearchPageContent() {
                         </div>
                         <h2 className="text-2xl font-semibold mb-3">Smart Asset Discovery</h2>
                         <p className="text-gray-600 mb-6 max-w-lg">
-                            Search your assets using natural language descriptions, find visually similar content, 
+                            Search your assets using natural language descriptions, find visually similar content,
                             or combine traditional and AI-powered search for the best results.
                         </p>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl">
                             <Card className="p-4 text-center">
                                 <Search className="h-8 w-8 text-blue-500 mx-auto mb-2" />
                                 <h3 className="font-medium mb-1">Text Search</h3>
                                 <p className="text-sm text-gray-500">Search by filename, tags, and metadata</p>
                             </Card>
-                            
+
                             <Card className="p-4 text-center">
                                 <Sparkles className="h-8 w-8 text-purple-500 mx-auto mb-2" />
                                 <h3 className="font-medium mb-1">AI Search</h3>
                                 <p className="text-sm text-gray-500">Describe what you're looking for naturally</p>
                             </Card>
-                            
+
                             <Card className="p-4 text-center">
                                 <Zap className="h-8 w-8 text-orange-500 mx-auto mb-2" />
                                 <h3 className="font-medium mb-1">Hybrid</h3>
                                 <p className="text-sm text-gray-500">Combine both methods for comprehensive results</p>
                             </Card>
                         </div>
-                        
+
                         <p className="text-sm text-gray-400 mt-6">
                             Start typing in the search box above to begin discovering your assets
                         </p>

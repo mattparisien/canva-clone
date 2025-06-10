@@ -1,23 +1,21 @@
 "use client"
 
 import { Section } from "@/components/atoms/section"
+import EmptyState from "@/components/molecules/EmptyState"
 import { LazyGrid } from "@/components/organisms/LazyGrid/LazyGrid"
-import { StickyControlsBar, ViewMode } from "@components/organisms/StickyControlsBar"
 import { SelectionActions } from "@/components/organisms/SelectionActions"
-import InteractiveCard from "@components/organisms/InteractiveCard/InteractiveCard"
-import { Badge } from "@components/atoms/badge"
 import { Button } from "@components/atoms/button"
 import { Card, CardContent } from "@components/atoms/card"
-import { Skeleton } from "@components/atoms/skeleton"
-import EmptyState from "@/components/atoms/empty-state"
 import { useToast } from "@components/atoms/use-toast"
+import InteractiveCard from "@components/organisms/InteractiveCard/InteractiveCard"
+import { StickyControlsBar } from "@components/organisms/StickyControlsBar"
+import { ViewMode } from "@/components/molecules"
 import { useAssets } from "@features/assets/use-assets"
+import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import { Asset } from "@lib/types/api"
 import { formatBytes, getRelativeTime } from "@lib/utils/utils"
-import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import {
     Download,
-    Eye,
     FileImage,
     FileText,
     FileVideo,
@@ -217,10 +215,10 @@ function AssetsPageContent() {
         try {
             // Delete all selected assets
             await Promise.all(selectedIds.map(id => deleteAsset(id)))
-            
+
             // Clear selection
             clearSelection()
-            
+
             toast({
                 title: "Assets deleted",
                 description: `${selectedIds.length} asset(s) deleted successfully.`
@@ -392,10 +390,10 @@ function AssetsPageContent() {
     return (
         <div
             {...getRootProps()}
-            // className="min-h-screen space-y-6"
+        // className="min-h-screen space-y-6"
         >
             <input {...getInputProps()} />
-            
+
             {/* Upload overlay */}
             {isDragActive && (
                 <div className="fixed inset-0 bg-blue-500/20 backdrop-blur-sm flex items-center justify-center z-50">

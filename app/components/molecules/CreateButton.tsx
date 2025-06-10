@@ -1,5 +1,5 @@
-import { Button } from "./button"
-import { Popover, PopoverTrigger, PopoverContent } from "./popover"
+import { Button } from "@components/atoms/button"
+import { Popover, PopoverTrigger, PopoverContent } from "@components/atoms/popover"
 import { Plus } from "lucide-react"
 import { useState, useRef } from "react"
 
@@ -79,7 +79,7 @@ export function CreateButton({
                             {item.isFileUpload && (
                                 <input
                                     type="file"
-                                    ref={(el) => fileInputRefs.current[item.id] = el}
+                                    ref={(el) => { fileInputRefs.current[item.id] = el }}
                                     className="hidden"
                                     accept={item.acceptFileTypes || "*"}
                                     onChange={handleFileChange(item)}

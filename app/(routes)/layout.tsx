@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import "@styles/globals.css"
 import { Providers } from "@/components/providers"
-import { Header } from "@/components/templates/header"
+import { Header } from "@/components/organisms/Header"
 
 export const metadata: Metadata = {
   title: "Canvas - Create stunning designs",
