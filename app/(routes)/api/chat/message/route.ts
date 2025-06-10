@@ -20,6 +20,12 @@ const getHeadersWithAuth = (req: NextRequest) => {
 // Send message to chat
 export async function POST(req: NextRequest) {
   try {
+    // Debug: Log all incoming headers
+    console.log('All incoming headers:');
+    req.headers.forEach((value, key) => {
+      console.log(`  ${key}: ${value}`);
+    });
+    
     const headers = getHeadersWithAuth(req);
     const body = await req.json();
     

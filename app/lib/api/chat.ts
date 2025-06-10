@@ -13,6 +13,11 @@ export class ChatAPI extends APIBase implements ChatAPIService {
 
   async sendMessage(request: SendMessageRequest): Promise<ChatResponse> {
     try {
+      // Debug: Check if token exists
+      const token = this.getAuthToken();
+      console.log('Token from localStorage:', token ? `EXISTS (${token.substring(0, 20)}...)` : 'MISSING');
+      console.log('All localStorage keys:', Object.keys(localStorage));
+      
       const response = await this.apiClient.post<ChatResponse>('/chat/message', {
         message: request.message.trim(),
         useOwnData: request.useOwnData || false
