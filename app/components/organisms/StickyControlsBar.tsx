@@ -1,21 +1,15 @@
 "use client"
 
-import { Button } from "@components/atoms/button"
-import { Input } from "@components/atoms/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/atoms/select"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@components/atoms/tooltip"
-import {
-  Filter,
-  Grid3x3,
-  List,
-  Search,
-  SlidersHorizontal
-} from "lucide-react"
+import { 
+  SearchBar, 
+  FilterSelect, 
+  SortSelect, 
+  ViewToggle, 
+  ActionButton,
+  type FilterOption,
+  type SortOption,
+  type ViewMode
+} from "@components/molecules"
 import React from "react"
 
 export type ViewMode = "grid" | "list"
@@ -26,16 +20,6 @@ export interface ControlAction {
   onClick: () => void
   isActive?: boolean
   disabled?: boolean
-}
-
-export interface FilterOption {
-  value: string
-  label: string
-}
-
-export interface SortOption {
-  value: string
-  label: string
 }
 
 export interface StickyControlsBarProps {
@@ -125,15 +109,11 @@ export function StickyControlsBar({
             <div className="flex items-center gap-3">
               {/* Search */}
               {showSearch && onSearchChange && (
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder={searchPlaceholder}
-                    value={searchValue}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    className="pl-10 min-w-[200px]"
-                  />
-                </div>
+                <SearchBar
+                  value={searchValue}
+                  placeholder={searchPlaceholder}
+                  onChange={onSearchChange}
+                />
               )}
               
               {/* Custom left content */}
@@ -146,84 +126,43 @@ export function StickyControlsBar({
             <div className="flex items-center gap-3 ml-auto">
               
               {/* Filter */}
-              {showFilter && filterOptions.length > 0 && onFilterChange && (
-                <Select value={filterValue} onValueChange={onFilterChange}>
-                  <SelectTrigger className="w-[130px]">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder={filterLabel} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filterOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {showFilter && onFilterChange && (
+                <FilterSelect
+                  value={filterValue}
+                  options={filterOptions}
+                  onChange={onFilterChange}
+                  placeholder={filterLabel}
+                />
               )}
 
               {/* Sort */}
-              {showSort && sortOptions.length > 0 && onSortChange && (
-                <Select value={sortValue} onValueChange={onSortChange}>
-                  <SelectTrigger className="w-[130px]">
-                    <SlidersHorizontal className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder={sortLabel} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sortOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              {showSort && onSortChange && (
+                <SortSelect
+                  value={sortValue}
+                  options={sortOptions}
+                  onChange={onSortChange}
+                  placeholder={sortLabel}
+                />
               )}
 
               {/* View mode toggle */}
               {showViewToggle && onViewModeChange && (
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="rounded-xl transition-all duration-300"
-                        onClick={() => onViewModeChange(viewMode === "grid" ? "list" : "grid")}
-                      >
-                        {viewMode === "grid" ? (
-                          <Grid3x3 className="h-4 w-4" />
-                        ) : (
-                          <List className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <ViewToggle
+                  viewMode={viewMode}
+                  onChange={onViewModeChange}
+                />
               )}
 
               {/* Custom actions */}
               {customActions.map((action, index) => (
-                <TooltipProvider key={index} delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className={`rounded-xl transition-all duration-300 ${
-                          action.isActive ? 'bg-primary text-primary-foreground' : ''
-                        }`}
-                        onClick={action.onClick}
-                        disabled={action.disabled}
-                      >
-                        <action.icon className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>{action.label}</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <ActionButton
+                  key={index}
+                  icon={action.icon}
+                  label={action.label}
+                  onClick={action.onClick}
+                  isActive={action.isActive}
+                  disabled={action.disabled}
+                />
               ))}
 
               {/* Custom right content */}

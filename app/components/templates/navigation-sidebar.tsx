@@ -25,7 +25,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { forwardRef, ReactNode } from "react";
 import { v4 as uuid } from "uuid";
-import { Button } from "../ui/button";
+import { Button } from "../atoms/button";
 
 
 export type NavigationItemMouseEnterHandler = (itemId: string) => void;

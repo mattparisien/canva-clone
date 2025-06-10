@@ -1,7 +1,7 @@
 "use client"
 
 import { Section } from "@/components/atoms/section"
-import { LazyGrid } from "@components/organisms/LazyGrid"
+import { LazyGrid } from "@/components/organisms/LazyGrid/LazyGrid"
 import { StickyControlsBar, ViewMode } from "@components/organisms/StickyControlsBar"
 import { SelectionActions } from "@/components/organisms/SelectionActions"
 import InteractiveCard from "@components/organisms/InteractiveCard/InteractiveCard"
