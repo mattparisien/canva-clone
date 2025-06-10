@@ -1,4 +1,4 @@
-import type { BreadcrumbItem } from "@/components/ui/breadcrumbs";
+import type { BreadcrumbItem } from "@/components/atoms/breadcrumbs";
 import { FolderIcon } from "lucide-react";
 import React from "react";
 

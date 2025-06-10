@@ -1,6 +1,6 @@
 import React from 'react';
-import { Header } from '@components/layout/header';
-import { NavigationSidebar } from '@components/layout/navigation-sidebar';
+import { Header } from '@components/templates/header';
+import { NavigationSidebar } from '@components/templates/navigation-sidebar';
 import { GLOBAL_NAVIGATION_ITEMS } from '@lib/constants/navigation';
 
 export default function SiteLayout({

@@ -1,6 +1,6 @@
 "use client"
 
-import EditorNavbar from "@/components/layout/navbar"
+import EditorNavbar from "@/components/templates/navbar"
 import { createArrowElement, createCircleElement, createLineElement, createRectangleElement } from "@/lib/factories/element-factories"
 import useCanvasStore, { useCurrentCanvasSize } from "@/lib/stores/useCanvasStore"
 import useEditorStore from "@/lib/stores/useEditorStore"

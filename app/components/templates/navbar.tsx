@@ -1,10 +1,10 @@
 "use client"
 
-import AvatarWithFallback from "@/components/ui/avatar-with-fallback"
-import { Button } from "@components/ui/button"
+import AvatarWithFallback from "@/components/atoms/avatar-with-fallback"
+import { Button } from "@components/atoms/button"
 import { ArrowLeft, ArrowRight, ChevronDown, Save, Share2, Edit, Eye } from "lucide-react"
 import useEditorStore from "@lib/stores/useEditorStore"
-import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@components/atoms/popover"
 import { useCallback, useState, KeyboardEvent, useRef, useEffect } from "react"
 
 export default function EditorNavbar() {

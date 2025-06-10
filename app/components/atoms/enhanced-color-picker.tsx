@@ -1,6 +1,6 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/atoms/input"
 import { cn } from "@/lib/utils/utils"
 import { Edit3, Plus, Trash2 , Pipette} from "lucide-react"
 import React, { useEffect, useState } from "react"

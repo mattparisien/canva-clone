@@ -1,16 +1,16 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/atoms/button"
 import { Plus, Palette, AlertCircle } from "lucide-react"
 import { Brand } from "@/lib/types/brands"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/components/atoms/alert"
 import { useBrands } from "@/features/brands/use-brands"
-import { LazyGrid } from "@/components/composite/LazyGrid"
-import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveCard"
+import { LazyGrid } from "@/components/organisms/LazyGrid"
+import InteractiveCard from "@/components/organisms/InteractiveCard/InteractiveCard"
 import { SelectionProvider, useSelection } from "@/lib/context/selection-context"
-import { SelectionActions } from "@/components/composite/SelectionActions"
-import { useToast } from "@components/ui/use-toast"
+import { SelectionActions } from "@/components/organisms/SelectionActions"
+import { useToast } from "@components/atoms/use-toast"
 
 export function BrandList() {
   return (

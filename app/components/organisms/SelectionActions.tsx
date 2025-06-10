@@ -1,7 +1,7 @@
 "use client"
 
 import { useSelection } from "@lib/context/selection-context"
-import { Button } from "@components/ui/button"
+import { Button } from "@components/atoms/button"
 import { Folder, Loader2, Trash2, X } from "lucide-react"
 import { useState } from "react"
 

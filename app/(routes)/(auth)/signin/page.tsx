@@ -1,11 +1,11 @@
 "use client";
 
 import { authAPI } from "@/lib/api/";
-import { Alert, AlertDescription } from "@components/ui/alert";
-import { Button } from "@components/ui/button";
-import { Checkbox } from "@components/ui/checkbox";
-import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
+import { Alert, AlertDescription } from "@components/atoms/alert";
+import { Button } from "@components/atoms/button";
+import { Checkbox } from "@components/atoms/checkbox";
+import { Input } from "@components/atoms/input";
+import { Label } from "@components/atoms/label";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

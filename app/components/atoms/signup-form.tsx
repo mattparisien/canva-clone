@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { z } from "zod";
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/ui/card";
-import { Label } from "@components/ui/label";
-import { Input } from "@components/ui/input";
-import { Button } from "@components/ui/button";
-import { Alert, AlertDescription } from "@components/ui/alert";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/atoms/card";
+import { Label } from "@components/atoms/label";
+import { Input } from "@components/atoms/input";
+import { Button } from "@components/atoms/button";
+import { Alert, AlertDescription } from "@components/atoms/alert";
 import { Eye, EyeOff } from "lucide-react";
 import { authAPI } from "@/lib/api";
 

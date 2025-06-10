@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/atoms/skeleton"
 import { cn } from "@/lib/utils/utils"
 
 interface AssetLoadingCardProps {

@@ -1,13 +1,13 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@components/atoms/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from "@components/ui/dropdown-menu";
+} from "@components/atoms/dropdown-menu";
 import { getImageUrlWithSize } from "@lib/api"; // Fixed import path
 import Link from "next/link";
 import { useRouter } from "next/navigation";

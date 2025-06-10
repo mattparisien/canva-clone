@@ -1,10 +1,10 @@
 import { type Project } from "@/lib/types/api";
 import { getRelativeTime } from "@/lib/utils/utils";
-import { Button } from "@components/ui/button";
+import { Button } from "@components/atoms/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { upperFirst } from "lodash";
 import { MoreHorizontal, Share2, Star, StarOff } from "lucide-react";
-import { Badge } from "@components/ui/badge";
+import { Badge } from "@components/atoms/badge";
 
 interface ListViewProps {
     designs: Project[];

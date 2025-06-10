@@ -1,7 +1,7 @@
 "use client"
 
-import { Button } from "@components/ui/button"
-import { Input } from "@components/ui/input"
+import { Button } from "@components/atoms/button"
+import { Input } from "@components/atoms/input"
 import { cn } from "@/lib/utils/utils"
 import { AppWindow, Crown, Folder, LayoutGrid, Search, Settings, Shapes, Sparkles, Type, Upload } from "lucide-react"
 import { useEffect, useState } from "react"

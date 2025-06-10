@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef } from "react";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { AssetLoadingGrid } from "@/components/ui/asset-loading";
+import { LoadingSpinner } from "@/components/atoms/loading-spinner";
+import { AssetLoadingGrid } from "@/components/atoms/asset-loading";
 
 /**
  * LazyGrid

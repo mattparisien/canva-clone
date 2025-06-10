@@ -1,9 +1,9 @@
 "use client"
 
-import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveCard"
-import { SelectionActions } from "@/components/composite/SelectionActions"
-import { Button } from "@components/ui/button"
-import { useToast } from "@components/ui/use-toast"
+import InteractiveCard from "@/components/organisms/InteractiveCard/InteractiveCard"
+import { SelectionActions } from "@/components/organisms/SelectionActions"
+import { Button } from "@components/atoms/button"
+import { useToast } from "@components/atoms/use-toast"
 import { projectsAPI } from "@lib/api"
 import { SelectionProvider } from "@lib/context/selection-context"
 import { useEffect, useState } from "react"
