@@ -2,7 +2,7 @@
 
 import { Section } from "@/components/atoms/section"
 import { SelectionActions } from "@/components/organisms/SelectionActions"
-import { StickyControlsBar, ViewMode } from "@/components/organisms/StickyControlsBar"
+import { StickyControlsBar } from "@/components/organisms/StickyControlsBar"
 import { Button } from "@components/atoms/button"
 import { Card } from "@components/atoms/card"
 import { LazyGrid } from "@/components/organisms/LazyGrid/LazyGrid"
@@ -14,6 +14,7 @@ import { type Project } from "@/lib/types/api"
 import { SelectionProvider, useSelection } from "@lib/context/selection-context"
 import { getRelativeTime } from "@lib/utils/utils"
 import { upperFirst } from "lodash"
+import { type ViewMode } from "@/components/molecules"
 import {
   Filter,
   Plus,
@@ -21,7 +22,6 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
-import { v4 as uuidv4 } from 'uuid'
 import ListView from "../components/list-view"
 import { Heading } from "@/components/atoms"
 
@@ -40,7 +40,7 @@ function DashboardContent() {
   const { toast } = useToast()
   const { selectedIds, clearSelection } = useSelection();
   const {
-    createProject,
+    createSimpleProject,
     deleteProject,
     toggleStar,
     deleteMultipleProjects,
@@ -89,38 +89,17 @@ function DashboardContent() {
     try {
       setIsCreating(true)
 
-      // Create default presentation document
-      const newProject = {
+      // Create simplified project request using the new structure
+      const projectRequest = {
+        userId: "user123", // Replace with actual user ID from auth
         title: 'Untitled Project',
         description: "",
-        type: "presentation",
-        userId: "user123", // Replace with actual user ID from auth
-        canvasSize: {
-          name: "Presentation 16:9",
-          width: 1920,
-          height: 1080
-        },
-        pages: [
-          {
-            id: uuidv4(),
-            canvasSize: {
-              name: "Presentation 16:9",
-              width: 1920,
-              height: 1080
-            },
-            elements: [],
-            background: {
-              type: "color",
-              value: "#ffffff"
-            }
-          }
-        ],
-        starred: false,
-        shared: false
+        type: "presentation" as const,
+        category: "personal" as const
       }
 
-      // Now we can directly await the result since we're using mutateAsync
-      const project = await createProject(newProject)
+      // Use the simplified API that generates defaults on the backend
+      const project = await createSimpleProject(projectRequest)
 
       // Refresh the project list after creation
       refetch()

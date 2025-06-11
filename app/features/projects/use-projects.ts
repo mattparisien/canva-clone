@@ -1,6 +1,7 @@
 import { useToast } from '@/components/atoms/use-toast';
 import { projectsAPI } from '@/lib/api';
 import { type Project } from '@/lib/types/api';
+import { CreateProjectPayload } from '@canva-clone/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
@@ -39,6 +40,27 @@ export function useProjectQuery() {
     mutationFn: (newProject: Partial<Project>) => projectsAPI.create(newProject),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast({
+        title: "Success",
+        description: "Project created successfully!",
+        variant: "default"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Simplified mutation for creating a new project
+  const createSimpleProjectMutation = useMutation({
+    mutationFn: (projectData: CreateProjectPayload) => projectsAPI.createSimple(projectData),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
       toast({
         title: "Success",
         description: "Project created successfully!",
@@ -211,6 +233,7 @@ export function useProjectQuery() {
     isLoading: projectsQuery.isLoading,
     isError: projectsQuery.isError,
     createProject: createProjectMutation.mutateAsync,
+    createSimpleProject: createSimpleProjectMutation.mutateAsync,
     updateProject: updateProjectMutation.mutateAsync,
     deleteProject: deleteProjectMutation.mutateAsync,
     toggleStar: toggleStarMutation.mutateAsync,

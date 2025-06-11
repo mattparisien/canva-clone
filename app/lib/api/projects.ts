@@ -1,5 +1,6 @@
 import { Axios } from "axios";
 import { Project, ProjectsAPIService } from "../types/api";
+import { CreateProjectPayload } from "@canva-clone/shared-types";
 import { APIBase } from "./base";
 
 export class ProjectsAPI extends APIBase implements ProjectsAPIService {
@@ -48,6 +49,22 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
                 data
             );
             return response.data.data;
+        } catch (error: any) {
+            console.error(
+                "Error creating project:",
+                error.response?.data || error.message
+            );
+            throw error.response?.data || new Error("Failed to create project");
+        }
+    }
+
+    async createSimple(data: CreateProjectPayload): Promise<Project> {
+        try {
+            const response = await this.apiClient.post<Project>(
+                "/projects",
+                data
+            );
+            return response.data;
         } catch (error: any) {
             console.error(
                 "Error creating project:",
@@ -165,7 +182,7 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
             });
 
             const response = await this.apiClient.get<{
-                data: Project[];
+                projects: Project[];
                 totalProjects: number;
                 totalPages: number;
                 currentPage: number;
