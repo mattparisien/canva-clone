@@ -1,206 +1,258 @@
-"use client"
+"use client";
 
-import { Button } from "@components/atoms/button"
-import { Input } from "@components/atoms/input"
-import { cn } from "@/lib/utils/utils"
-import { AppWindow, Crown, Folder, LayoutGrid, Search, Settings, Shapes, Sparkles, Type, Upload } from "lucide-react"
-import { useEffect, useState } from "react"
-import useCanvasStore, { useCurrentCanvasSize } from "@lib/stores/useCanvasStore"
+import { useProjectQuery } from "@/features/projects/use-projects";
+import { NavigationIconName, NavigationItem } from "@/lib/types/navigation";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@components/atoms/tooltip";
+import * as Popover from "@radix-ui/react-popover";
+import classNames from "classnames";
+import {
+  Brain,
+  Component,
+  Database,
+  FolderKanban,
+  Home,
+  LayoutTemplate,
+  MessageCircle,
+  PanelsTopLeft,
+  Plus,
+  Shapes,
+  SquareKanban,
+  Type,
+  Upload
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { forwardRef, ReactNode } from "react";
+import { Button } from "../atoms/button";
 
-export default function Sidebar() {
-  // Use the Zustand store directly
-  const addElement = useCanvasStore(state => state.addElement)
-  // Use the selector for canvas size
-  const canvasSize = useCurrentCanvasSize()
 
-  const [activeTab, setActiveTab] = useState<string>("text")
-  const [textTabHovered, setTextTabHovered] = useState(false)
-  const [popoverHovered, setPopoverHovered] = useState(false)
+export type NavigationItemMouseEnterHandler = (itemId: string) => void;
+export type NavigationItemMouseLeaveHandler = (event: React.PointerEvent) => void;
 
-  const tabs = [
-    { id: "design", icon: LayoutGrid, label: "Design" },
-    { id: "elements", icon: Shapes, label: "Elements" },
-    { id: "text", icon: Type, label: "Text" },
-    { id: "brand", icon: Crown, label: "Brand" },
-    { id: "uploads", icon: Upload, label: "Uploads" },
-    { id: "tools", icon: Settings, label: "Tools" },
-    { id: "projects", icon: Folder, label: "Projects" },
-    { id: "apps", icon: AppWindow, label: "Apps" },
-  ]
 
-  // Find the sidebar's left offset for popover positioning
-  const [sidebarRef, setSidebarRef] = useState<HTMLDivElement | null>(null)
-  const [sidebarLeft, setSidebarLeft] = useState(0)
-  // Update sidebarLeft on mount and window resize
-  useEffect(() => {
-    if (!sidebarRef) return
-    const updateLeft = () => {
-      const rect = sidebarRef.getBoundingClientRect()
-      setSidebarLeft(rect.right)
-    }
-    updateLeft()
-    window.addEventListener('resize', updateLeft)
-    return () => window.removeEventListener('resize', updateLeft)
-  }, [sidebarRef])
+interface SidebarLinkProps {
+  href: string;
+  iconName: NavigationIconName;
+  label: string;
+  itemId: string;
+  onClick: (itemId: string) => void;
+  variant?: "global" | "editor";
+  isActive?: boolean;
+  className?: string; // Optional className prop
+}
 
-  // Update the estimateTextWidth function to be more accurate
-  const estimateTextWidth = (text: string, fontSize: number): number => {
-    // More accurate approximation based on character count and font size
-    // Different characters have different widths, but this is a reasonable average
-    return Math.max(text.length * fontSize * 0.5, fontSize * 2)
+interface SidebarProps {
+  items: NavigationItem[],
+  variant?: "global" | "editor";
+  onItemClick: (itemId: string) => void; // Callback for item click
+
+}
+
+interface ConditionalPopoverTriggerWrapperProps {
+  children: ReactNode;
+  condition: boolean;
+  itemId: string;
+  onClick: (itemId: string) => void; // Callback for item click
+}
+
+// Icon mapping component that converts string names to actual icons
+const IconMapping = ({ iconName, ...props }: { iconName: NavigationIconName } & React.SVGProps<SVGSVGElement>) => {
+  switch (iconName) {
+    case 'home':
+      return <Home {...props} />
+    case 'folder-kanban':
+      return <FolderKanban {...props} />
+    case 'square-kanban':
+      return <SquareKanban {...props} />
+    case 'panels-top-left':
+      return <PanelsTopLeft {...props} />
+    case 'layout-template':
+      return <LayoutTemplate {...props} />
+    case 'component':
+      return <Component {...props} />
+    case 'type':
+      return <Type {...props} />
+    case 'upload':
+      return <Upload {...props} />
+    case 'shapes':
+      return <Shapes {...props} />
+    case 'database':
+      return <Database {...props} />
+    case 'brain':
+      return <Brain {...props} />
+    case 'message-circle':
+      return <MessageCircle {...props} />
+    default:
+    case 'panel-top':
+      return <PanelsTopLeft {...props} /> // Fallback icon if none match
+      return <Home {...props} /> // Default fallback
   }
+};
 
-  // Update the handleAddText function to use a larger default font size
-  const handleAddText = (fontSize = 36, content = "Add your text here", fontWeight = "normal") => {
-    // Use the proper text measurement function from our utils
-    addElement({
-      type: "text",
-      x: 0, // Will be centered by the context
-      y: 0, // Will be centered by the context
-      width: 0, // Will be calculated by the factory using measureTextWidth
-      height: 0, // Will be calculated by the factory
-      content,
-      fontSize,
-      fontFamily: "Inter",
-      // textAlign is not needed as it will use DEFAULT_TEXT_ALIGN
-      isBold: fontWeight === "bold"
-    })
+
+export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(({ items, variant = "global", onItemClick }: SidebarProps, ref) => {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { createSimpleProject } = useProjectQuery();
+
+  // Fix the active state logic to prevent multiple selections
+  const getIsActive = (path: string): boolean => {
+
+    if (!path || path.trim() === "") return false;
+
+    // Exact match for home page
+    if (path === '/' && pathname === '/') {
+      return true;
+    }
+
+    // For other paths, check if it's an exact match or in the correct section
+    // But exclude the root path to prevent "/" matching with everything
+    if (path !== '/') {
+      // Match either exact path or path with trailing slash to prevent partial matches
+      return pathname === path ||
+        pathname === `${path}/` ||
+        (pathname.startsWith(`${path}/`) && !pathname.slice(path.length + 1).includes('/'));
+    }
+
+    return false;
+  };
+
+  // Create a new project using the simplified API
+  const handleCreateProject = async () => {
+    try {
+      const projectRequest = {
+        userId: "user123", // TODO: get from auth context
+        title: 'Untitled Design',
+        description: "",
+        type: "presentation" as const,
+        category: "personal" as const
+      };
+
+      const newProject = await createSimpleProject(projectRequest);
+      if (newProject) {
+        router.push(`/editor?id=${newProject._id}`);
+      }
+    } catch (error) {
+      console.error("Error creating project:", error);
+    }
   }
 
   return (
-    <div className="flex h-full">
-      {/* Main sidebar with icons */}
-      <div 
-        ref={setSidebarRef} 
-        className="flex h-full w-[72px] flex-col border-r border-gray-100 bg-white shadow-sm"
-      >
-        {tabs.map((tab) => (
-          <div
-            key={tab.id}
-            className={cn(
-              "flex cursor-pointer flex-col items-center justify-center py-4 text-xs transition-all group",
-              activeTab === tab.id
-                ? "text-brand-blue-dark"
-                : "text-gray-500 hover:text-brand-blue",
-            )}
-            onClick={() => setActiveTab(tab.id)}
-            onMouseEnter={tab.id === "text" ? () => setTextTabHovered(true) : undefined}
-            onMouseLeave={tab.id === "text" ? () => setTextTabHovered(false) : undefined}
-          >
-            <div className={cn(
-              "mb-1.5 flex items-center justify-center p-1.5 transition-all rounded-md",
-              activeTab === tab.id
-                ? "text-gray-500 shadow-[0_0_12px_rgba(0,0,0,0.15)]"
-                : "text-gray-500 group-hover:text-brand-blue group-hover:shadow-[0_0_12px_rgba(0,0,0,0.15)]"
-            )}>
-              <tab.icon className="h-5 w-5" />
-            </div>
-            <span className="text-[11px] font-medium">{tab.label}</span>
-          </div>
-        ))}
-
-        {/* Magic button at bottom */}
-        <div className="mt-auto mb-4 flex justify-center">
-          <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-blue to-brand-teal text-white shadow-md hover:shadow-lg transition-shadow duration-300">
-            <Sparkles className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-      {/* The popover is now absolutely positioned and overlays the canvas */}
-      {activeTab === "text" && (textTabHovered || popoverHovered) && (
-        <div
-          className="fixed z-[70] mt-4 mb-4 w-[320px] rounded-xl bg-white shadow-lg border border-gray-100 flex flex-col h-[calc(100vh-8rem)]"
-          style={{ left: sidebarLeft, top: '4rem' }} 
-          onMouseEnter={() => setPopoverHovered(true)}
-          onMouseLeave={() => setPopoverHovered(false)}
-        >
-          <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
-            <div className="mb-5">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search fonts and combinations"
-                  className="h-10 border-gray-100 bg-gray-50 pl-10 pr-4 text-sm rounded-lg focus-within:ring-brand-blue/20 focus-within:border-brand-blue-light transition-all"
-                />
-              </div>
-            </div>
-
-            <Button
-              className="mb-4 w-full bg-brand-blue hover:bg-brand-blue-dark text-white h-12 rounded-lg flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all duration-200 ease-in-out"
-              onClick={() => handleAddText(36, "Add a text box")}
-            >
-              <Type className="h-5 w-5" />
-              <span className="font-medium">Add a text box</span>
-            </Button>
-
-            <div className="mb-6 w-full">
+    <div className={classNames("h-screen w-sidebar z-sidebar flex flex-col fixed left-0 top-0", {
+      "bg-white": variant !== "editor",
+      "bg-editor": variant === "editor",
+      "shadow-[1px_0_10px_rgba(0,0,0,0.01),_3px_0_15px_rgba(0,0,0,0.05)]": variant !== "editor",
+      "pt-header": variant === "editor"
+    })}
+      ref={ref}
+      data-sidebar
+    >
+      {/* Create New Button */}
+      {variant === "global" && <div className="p-4 mt-2">
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button
-                variant="outline"
-                className="w-full border-gray-200 text-gray-700 h-12 rounded-lg flex items-center justify-center gap-2 hover:bg-brand-blue-light/30 hover:border-brand-blue-light hover:text-brand-blue transition-all duration-200 ease-in-out"
-                onClick={() => handleAddText(36, "Magic Write", "bold")}
+                className="group relative h-14 w-14 rounded-full shadow-lg shadow-brand-blue/30 hover:shadow-xl hover:shadow-brand-blue/40 transition-all duration-300 overflow-hidden"
+                onClick={handleCreateProject}
               >
-                <Sparkles className="h-5 w-5 text-brand-blue" />
-                <span className="font-medium">Magic Write</span>
+                <span className="absolute inset-0 bg-gradient-to-r from-brand-blue to-brand-teal transition-opacity duration-200 ease-in-out"></span>
+                <span className="absolute inset-0 bg-gradient-to-r from-brand-blue-dark to-brand-teal-dark opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"></span>
+                <span className="relative z-10">
+                  <Plus className="text-white transition-transform duration-300 group-hover:scale-110" style={{
+                    width: "1.3rem",
+                    height: "1.3rem",
+                  }} />
+                </span>
               </Button>
-            </div>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Create New</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>}
 
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-800">Brand Kit</h3>
-              <Button variant="ghost" className="h-8 text-xs text-brand-blue hover:bg-brand-blue-light/50 hover:text-brand-blue-dark transition-all duration-200 ease-in-out">
-                Edit
-              </Button>
-            </div>
-
-            <div className="space-y-3 mb-8">
-              <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
-                onClick={() => handleAddText(32, "Title", "bold")}
-              >
-                <p className="text-2xl font-bold">Title</p>
-              </div>
-
-              <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
-                onClick={() => handleAddText(24, "Heading", "semibold")}
-              >
-                <p className="text-xl font-semibold">Heading</p>
-              </div>
-            </div>
-
-            <div className="mt-6 mb-3">
-              <h3 className="text-sm font-semibold text-gray-800">Default text styles</h3>
-            </div>
-
-            <div className="space-y-3 mb-8">
-              <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
-                onClick={() => handleAddText(18, "Add a subheading")}
-              >
-                <p className="text-lg">Add a subheading</p>
-              </div>
-
-              <div
-                className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)]"
-                onClick={() => handleAddText(14, "Add a little bit of body text")}
-              >
-                <p className="text-sm">Add a little bit of body text</p>
-              </div>
-            </div>
-
-            <div className="mt-6 mb-3">
-              <h3 className="text-sm font-semibold text-gray-800">Dynamic text</h3>
-            </div>
-
-            <div className="cursor-pointer rounded-lg border border-gray-200 bg-white p-3 transition-all duration-200 ease-in-out hover:border-brand-blue/30 hover:shadow-[0_2px_12px_rgba(30,136,229,0.1)] flex items-center">
-              <div className="h-12 w-12 rounded bg-gradient-to-br from-brand-blue to-brand-teal flex items-center justify-center text-white font-bold mr-3">
-                1
-              </div>
-              <span className="text-sm font-medium">Page numbers</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Main Navigation */}
+      <nav className="flex-1 flex flex-col mt-4">
+        {items.map((item, idx) => (
+          <SidebarLink
+            key={idx}
+            href={item.path ?? "#"}
+            iconName={item.iconName}
+            label={item.label}
+            itemId={item.id} // Pass item.id to SidebarLink
+            isActive={getIsActive(item.path || "")}
+            onClick={onItemClick}
+            variant={variant}
+          // Pass the callback to the renamed prop 'onItemHover'
+          />
+        ))}
+      </nav>
     </div>
+  );
+});
+
+const SidebarLink = forwardRef<HTMLAnchorElement, SidebarLinkProps>(
+  ({
+    href,
+    iconName,
+    label,
+    itemId,
+    isActive,
+    variant,
+    className,
+    onClick,
+    ...rest       // Other HTML attributes
+  }: SidebarLinkProps, ref) => {
+
+    return (
+      <aside
+        className={classNames("relative", className)} // Merge passed className
+        {...rest} // Spread other HTML attributes
+      >
+        <ConditionalPopoverTriggerWrapper itemId={itemId} condition={variant === "editor"} onClick={onClick}>
+
+          <Link
+            href={href}
+            ref={ref}
+            className={classNames("flex flex-col items-center justify-center py-3 transition-colors group")}
+          >
+            <div className="relative flex flex-col items-center">
+              <div className={classNames("w-9 h-9 flex items-center justify-center rounded-xl mb-1 transition-all duration-200", {
+                "bg-neutral-200 text-black shadow-sm": isActive,
+                " group-hover:bg-neutral-100": !isActive && variant !== "editor",
+                "text-gray-500 group-hover:bg-white group-hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] group-hover:text-primary": !isActive && variant === "editor",
+              })} >
+                <IconMapping iconName={iconName} fill={isActive ? "black" : "none"} />
+              </div>
+              <span className={classNames("text-xs", {
+                "text-black": isActive,
+                "text-gray-500": !isActive,
+              })
+              }>{label}</span>
+            </div>
+          </Link >
+        </ConditionalPopoverTriggerWrapper>
+
+      </aside>
+    );
+  });
+SidebarLink.displayName = "SidebarLink"; // Good practice for forwardRef components
+
+
+
+function ConditionalPopoverTriggerWrapper({ children, condition, onClick, itemId }: ConditionalPopoverTriggerWrapperProps) {
+  if (!condition) {
+    return <>{children}</>; // Return children directly if condition is false
+  }
+  return (
+    <Popover.Trigger
+      asChild
+      onClick={() => onClick(itemId)}
+    >
+
+      {children}
+    </Popover.Trigger>
   )
 }

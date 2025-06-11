@@ -1,6 +1,6 @@
 'use client';
 
-import { NavigationSidebar } from '@/components/organisms/NavigationSidebar';
+import { Sidebar } from '@/components/organisms/Sidebar';
 import { GLOBAL_NAVIGATION_ITEMS } from '@lib/constants/navigation';
 import React, { useCallback } from 'react';
 
@@ -18,7 +18,7 @@ export default function SiteLayout({
 
     return (
         <>
-            <NavigationSidebar
+            <Sidebar
                 items={GLOBAL_NAVIGATION_ITEMS}
                 onItemClick={handleItemClick}
             />
