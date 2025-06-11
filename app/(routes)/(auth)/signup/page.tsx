@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
-import { Button } from "@components/atoms/button";
-import { Input } from "@components/atoms/input";
-import { Checkbox } from "@components/atoms/checkbox";
-import { Label } from "@components/atoms/label";
 import { Alert, AlertDescription } from "@components/atoms/alert";
-import { Eye, EyeOff } from "lucide-react";
-import { z } from "zod";
+import { Button } from "@components/atoms/button";
+import { Checkbox } from "@components/atoms/checkbox";
+import { Input } from "@components/atoms/input";
+import { Label } from "@components/atoms/label";
 import { authAPI } from "@lib/api";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { z } from "zod";
 
 // Schema for validation
 const SignupSchema = z.object({
@@ -29,7 +28,6 @@ type FormErrors = {
 
 export default function SignUp() {
   const router = useRouter();
-  const { status } = useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,13 +35,6 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [agreeToTerms, setAgreeToTerms] = useState(false);
-
-  // Redirect authenticated users away from signup page
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/");
-    }
-  }, [status, router]);
 
   // Get return URL from query parameter
   const searchParams = new URLSearchParams(
@@ -61,11 +52,11 @@ export default function SignUp() {
     if (!result.success) {
       const formattedErrors: FormErrors = {};
       result.error.issues.forEach(issue => {
-        const path = issue.path[0] as keyof FormErrors;
+        const path = issue.path[0] as keyof Omit<FormErrors, 'form'>;
         if (!formattedErrors[path]) {
           formattedErrors[path] = [];
         }
-        formattedErrors[path]?.push(issue.message);
+        (formattedErrors[path] as string[]).push(issue.message);
       });
       setErrors(formattedErrors);
       setIsLoading(false);
@@ -81,20 +72,9 @@ export default function SignUp() {
     try {
       // Register user with your API
       const response = await authAPI.register(name, email, password);
-      
-      // After successful registration, sign in with NextAuth
-      const signInResult = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
 
-      if (signInResult?.error) {
-        setErrors({ form: "Authentication failed after registration. Please try signing in manually." });
-      } else {
-        // Redirect to dashboard on successful sign-in
-        router.push(returnUrl);
-      }
+      // After successful registration, redirect to dashboard
+      router.push(returnUrl);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("already exists") || error.message.includes("duplicate")) {
@@ -262,7 +242,7 @@ export default function SignUp() {
             <button
               type="button"
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 rounded-2xl py-3 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-              onClick={() => signIn("google", { callbackUrl: returnUrl })}
+              onClick={() => console.log("Google sign-in disabled")}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"></path>

@@ -55,6 +55,9 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
       return lastPage.currentPage + 1;
     },
     initialPageParam: 1,
+    staleTime: 0, // Always consider data stale so it refetches on invalidation
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: true, // Always refetch when component mounts
   });
 
   // Flatten the projects from all pages into a single array for easier consumption

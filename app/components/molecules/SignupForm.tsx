@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { z } from "zod";
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@components/atoms/card";
@@ -46,11 +45,11 @@ export default function SignupForm() {
     if (!result.success) {
       const formattedErrors: FormErrors = {};
       result.error.issues.forEach(issue => {
-        const path = issue.path[0] as keyof FormErrors;
+        const path = issue.path[0] as keyof Omit<FormErrors, 'form'>;
         if (!formattedErrors[path]) {
           formattedErrors[path] = [];
         }
-        formattedErrors[path]?.push(issue.message);
+        (formattedErrors[path] as string[]).push(issue.message);
       });
       setErrors(formattedErrors);
       setIsLoading(false);
@@ -61,19 +60,8 @@ export default function SignupForm() {
       // Register user with your API
       const response = await authAPI.register(name, email, password);
       
-      // After successful registration, sign in with NextAuth
-      const signInResult = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        setErrors({ form: signInResult.error });
-      } else {
-        // Redirect to dashboard on successful sign-in
-        router.push("/");
-      }
+      // After successful registration, redirect to dashboard
+      router.push("/");
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("already exists") || error.message.includes("duplicate")) {

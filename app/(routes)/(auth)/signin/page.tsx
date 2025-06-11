@@ -20,13 +20,6 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Redirect authenticated users away from signin page
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.replace("/");
-    }
-  }, [status, router]);
-
   // Get return URL from query parameter
   const searchParams = new URLSearchParams(
     typeof window !== "undefined" ? window.location.search : ""
@@ -39,61 +32,17 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-
-        let msg;
-
-        switch (result.error) {
-          case "CredentialsSignin":
-            msg = "Invalid email or password";
-            break;
-          case "OAuthAccountNotLinked":
-            msg = "This account is linked to another provider. Please use that provider to sign in.";
-            break;
-          case "OAuthCallbackError":
-            msg = "An error occurred during the OAuth callback. Please try again.";
-            break;
-          case "OAuthCreateAccount":
-            msg = "An error occurred while creating the account. Please try again.";
-            break;
-          case "OAuthSignIn":
-            msg = "An error occurred during the OAuth sign-in. Please try again.";
-            break;
-          case "OAuthSignOut":
-            msg = "An error occurred during the OAuth sign-out. Please try again.";
-            break;
-          case "OAuthTokenError":
-            msg = "An error occurred while retrieving the OAuth token. Please try again.";
-            break;
-          default:
-            msg = "An unknown error occurred. Please try again.";
-        }
-
-
-        setError(msg || "Failed to sign in");
-      } else {
-        router.push(returnUrl);
-      }
+      // Use the custom auth API instead of NextAuth
+      const result = await authAPI.login(email, password);
+      
+      // Redirect to dashboard on successful sign-in
+      router.push(returnUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in");
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    const loginTemp = async () => {
-      const resp = await authAPI.login("matthewparisien4@gmail.com", "Chewing389389");
-    }
-
-    loginTemp();
-  }, [])
 
   return (
     <div className="flex h-screen">
@@ -231,7 +180,7 @@ export default function SignIn() {
             <button
               type="button"
               className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 rounded-2xl py-3 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-              onClick={() => signIn("google", { callbackUrl: returnUrl })}
+              onClick={() => console.log("Google sign-in disabled")}
             >
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"></path>

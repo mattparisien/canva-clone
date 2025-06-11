@@ -12,7 +12,6 @@ import { type Asset } from "@/lib/types/api"
 import { foldersAPI, type Folder as FolderType } from "@/lib/api/folders"
 import { pathToBreadcrumbs } from "@/lib/utils/folder-utils"
 import { ArrowLeft, File, Folder as FolderIcon, FolderOpen, Plus, Trash, Upload } from "lucide-react"
-import { useSession } from "next-auth/react"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
