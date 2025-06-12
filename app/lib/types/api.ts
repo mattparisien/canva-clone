@@ -96,6 +96,7 @@ export interface Project {
   isTemplate: boolean;         // Whether this project serves as a template
   description?: string;        // Optional project description
   dimensions?: { width: number; height: number; aspectRatio: string }; // Canvas dimensions using new structure
+  canvasSize?: { name?: string; width: number; height: number; aspectRatio?: string }; // Legacy canvas size format
   pages?: any[];               // Array of design pages/slides
   createdAt: string;           // Creation timestamp
   updatedAt: string;           // Last updated timestamp

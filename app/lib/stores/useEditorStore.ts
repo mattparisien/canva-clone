@@ -437,9 +437,61 @@ export const initializeDesign = async () => {
       });
 
       if (design.pages && design.pages.length > 0) {
+        // Check if pages have dimensions, if not, migrate from legacy canvasSize
+        const processedPages = design.pages.map((page: any) => {
+          // If page already has dimensions, use them
+          if (page.dimensions && page.dimensions.width && page.dimensions.height) {
+            return page;
+          }
+
+          // Otherwise, try to get dimensions from various sources
+          let dimensions = null;
+
+          // 1. Try page-level canvasSize (legacy format)
+          if (page.canvasSize && page.canvasSize.width && page.canvasSize.height) {
+            dimensions = {
+              width: page.canvasSize.width,
+              height: page.canvasSize.height,
+              aspectRatio: page.canvasSize.aspectRatio || `${page.canvasSize.width}:${page.canvasSize.height}`
+            };
+          }
+          // 2. Try project-level canvasSize (legacy format)
+          else if (design.canvasSize && design.canvasSize.width && design.canvasSize.height) {
+            dimensions = {
+              width: design.canvasSize.width,
+              height: design.canvasSize.height,
+              aspectRatio: design.canvasSize.aspectRatio || `${design.canvasSize.width}:${design.canvasSize.height}`
+            };
+          }
+          // 3. Try project-level dimensions (new format)
+          else if (design.dimensions && design.dimensions.width && design.dimensions.height) {
+            dimensions = {
+              width: design.dimensions.width,
+              height: design.dimensions.height,
+              aspectRatio: design.dimensions.aspectRatio || `${design.dimensions.width}:${design.dimensions.height}`
+            };
+          }
+          // 4. Fallback to default
+          else {
+            dimensions = {
+              width: DEFAULT_CANVAS_SIZE.width,
+              height: DEFAULT_CANVAS_SIZE.height,
+              aspectRatio: "16:9"
+            };
+          }
+
+          console.log('Migrated page dimensions:', page.id, dimensions);
+
+          // Return page with migrated dimensions
+          return {
+            ...page,
+            dimensions
+          };
+        });
+
         useEditorStore.setState({
-          pages: design.pages,
-          currentPageId: design.pages[0].id,
+          pages: processedPages,
+          currentPageId: processedPages[0].id,
           currentPageIndex: 0
         });
       }

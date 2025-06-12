@@ -62,6 +62,7 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     queryFn: async ({ pageParam = 1 }) => {
       // API call is untouched — still passes raw filters object
       const result = await projectsAPI.getPaginated(pageParam as number, limit, filters);
+      
       return result;
     },
     initialPageParam: 1,
