@@ -1,6 +1,7 @@
 import { Axios } from "axios";
 import { Brand } from "./brands";
 import { ChatConversation, ChatWithHistory } from "@shared/types/types/chat";
+import { GetProjectsResponse } from "@canva-clone/shared-types";
 
 /**
  * Represents a digital asset in the system.
@@ -257,12 +258,7 @@ export interface ProjectsAPIService extends APIService<Project> {
     page: number,
     limit: number,
     filters: Record<string, any>
-  ) => Promise<{
-    projects: Project[];       // Array of projects for current page
-    totalProjects: number;     // Total number of projects matching filters
-    totalPages: number;        // Total number of pages available
-    currentPage: number;       // Current page number
-  }>;
+  ) => Promise<GetProjectsResponse>;
 }
 
 /**

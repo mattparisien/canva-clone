@@ -12,13 +12,7 @@ import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import { projectsAPI } from "@lib/api";
 import type { Project } from "@/lib/types/api";
 import { useEffect, useMemo } from "react";
-
-interface ProjectsPageData {
-  projects: Project[];
-  totalProjects: number;
-  totalPages: number;
-  currentPage: number;
-}
+import { GetProjectsResponse } from "@canva-clone/shared-types";
 
 export interface UseInfiniteProjectsOptions {
   limit?: number;
@@ -57,18 +51,17 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     isError,
     error,
     refetch,
-  } = useInfiniteQuery<ProjectsPageData, Error, InfiniteData<ProjectsPageData>, readonly ["infiniteProjects", number, string], number>({
+  } = useInfiniteQuery<GetProjectsResponse, Error, InfiniteData<GetProjectsResponse>, readonly ["infiniteProjects", number, string], number>({
     queryKey: ["infiniteProjects", limit, filterKey],
     queryFn: async ({ pageParam = 1 }) => {
       // API call is untouched — still passes raw filters object
       const result = await projectsAPI.getPaginated(pageParam as number, limit, filters);
-      
       return result;
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) =>
-      lastPage.currentPage < lastPage.totalPages
-        ? lastPage.currentPage + 1
+      lastPage.pagination.page < lastPage.pagination.totalPages
+        ? lastPage.pagination.page + 1
         : undefined,
 
     // Always stale so an invalidate triggers a refetch immediately
@@ -80,10 +73,10 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
   // Flatten all pages into a single list (memoised)
   const projects = useMemo(() => {
     if (!data) return [] as Project[];
-    return data.pages.flatMap((p) => p.projects);
+    return data.pages.flatMap(page => page.data);
   }, [data]);
 
-  const totalProjects = data?.pages[0]?.totalProjects ?? 0;
+  const totalProjects = data?.pages[0]?.pagination.total ?? 0;
 
   return {
     projects,
@@ -108,14 +101,17 @@ export function prependProjectToCache(
   key: readonly ["infiniteProjects", number, string],
   project: Project,
 ) {
-  queryClient.setQueryData<InfiniteData<ProjectsPageData>>(key, (old) => {
+  queryClient.setQueryData<InfiniteData<GetProjectsResponse>>(key, (old) => {
     if (!old) return old;
 
     const firstPage = old.pages[0];
-    const updatedFirst: ProjectsPageData = {
+    const updatedFirst: GetProjectsResponse = {
       ...firstPage,
-      projects: [project, ...firstPage.projects],
-      totalProjects: firstPage.totalProjects + 1,
+      data: [project, ...firstPage.data],
+      pagination: {
+        ...firstPage.pagination,
+        total: firstPage.pagination.total + 1,
+      }
     };
 
     return { ...old, pages: [updatedFirst, ...old.pages.slice(1)] };

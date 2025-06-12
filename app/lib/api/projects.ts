@@ -1,6 +1,7 @@
 import { Axios } from "axios";
 import { Project, ProjectsAPIService } from "../types/api";
 import { CreateProjectPayload } from "@canva-clone/shared-types";
+import { GetProjectsResponse } from "@canva-clone/shared-types";
 import { APIBase } from "./base";
 
 export class ProjectsAPI extends APIBase implements ProjectsAPIService {
@@ -162,12 +163,7 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
         page: number = 1,
         limit: number = 10,
         filters: Record<string, any> = {},
-    ): Promise<{
-        projects: Project[];
-        totalProjects: number;
-        totalPages: number;
-        currentPage: number;
-    }> {
+    ): Promise<GetProjectsResponse> {
         try {
             
             const params = new URLSearchParams();
@@ -181,19 +177,8 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
                 }
             });
 
-            const response = await this.apiClient.get<{
-                projects: Project[];
-                totalProjects: number;
-                totalPages: number;
-                currentPage: number;
-            }>(`/projects/paginated?${params.toString()}`);
-            
-            return {
-                projects: response.data.projects,
-                totalProjects: response.data.totalProjects,
-                totalPages: response.data.totalPages,
-                currentPage: response.data.currentPage,
-            };
+            const response = await this.apiClient.get<GetProjectsResponse>(`/projects/paginated?${params.toString()}`);
+            return response.data;
         } catch (error: any) {
             console.error(
                 "Error fetching paginated projects:",
