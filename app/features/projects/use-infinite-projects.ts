@@ -11,7 +11,7 @@
 import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import { projectsAPI } from "@lib/api";
 import type { Project } from "@/lib/types/api";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 interface ProjectsPageData {
   projects: Project[];
@@ -75,7 +75,7 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });
-
+  
   // Flatten all pages into a single list (memoised)
   const projects = useMemo(() => {
     if (!data) return [] as Project[];

@@ -14,6 +14,7 @@ interface CardMediaProps {
 }
 
 export function CardMedia({ image, selected, children, dimensions }: CardMediaProps) {
+
     const aspectRatioClass = getAspectRatioClass(dimensions);
     const aspectRatioStyle = getAspectRatioStyle(dimensions);
     
