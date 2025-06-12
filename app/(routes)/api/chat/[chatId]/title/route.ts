@@ -18,9 +18,9 @@ const getHeadersWithAuth = (req: NextRequest) => {
 };
 
 // PATCH: Update chat title
-export async function PATCH(req: NextRequest, { params }: { params: { chatId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ chatId: string }> }) {
   try {
-    const { chatId } = params;
+    const { chatId } = await params;
     const body = await req.json();
     
     const headers = getHeadersWithAuth(req);
