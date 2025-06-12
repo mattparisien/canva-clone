@@ -114,7 +114,7 @@ export function EditableTitle({ id, title, onTitleChange }: EditableTitleProps) 
                 ) : (
                     <h3 
                         ref={titleRef}
-                        className="font-medium text-gray-900 truncate transition-colors duration-200 flex-1 cursor-pointer h-[1.5rem] py-0 m-0 box-border"
+                        className="text-sm md:text-base font-medium text-gray-900 truncate transition-colors duration-200 flex-1 cursor-pointer h-[1.5rem] py-0 m-0 box-border"
                         onClick={handleTitleClick}
                     >
                         {localTitle}

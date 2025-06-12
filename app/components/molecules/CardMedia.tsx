@@ -1,7 +1,8 @@
-import Image from "next/image";
+import { getAspectRatioClass, getScaleForAspectRatio } from "@/lib/utils/aspectRatio";
+import { Dimensions } from "@canva-clone/shared-types/dist/design/hierarchical";
 import classNames from "classnames";
+import Image from "next/image";
 import { ReactNode } from "react";
-import { getAspectRatioClass, getAspectRatioStyle, type Dimensions } from "@/lib/utils/aspectRatio";
 
 interface CardMediaProps {
     image?: {
@@ -14,10 +15,12 @@ interface CardMediaProps {
 }
 
 export function CardMedia({ image, selected, children, dimensions }: CardMediaProps) {
-    
+
+
+
     // Always use aspect-video for the container regardless of dimensions
     return (
-        <div 
+        <div
             className={classNames("relative bg-gray-100 overflow-hidden rounded-lg group-hover:bg-gray-200 transition-colors duration-200 border-2 aspect-video", {
                 'border-gray-100 hover:border-gray-200': !selected,
                 'border-primary': selected,
@@ -25,7 +28,7 @@ export function CardMedia({ image, selected, children, dimensions }: CardMediaPr
         >
             {image && (
                 <div className="w-full h-full absolute flex items-center justify-center">
-                    <div className={`${getAspectRatioClass(dimensions)} w-[80%] h-auto relative shadow-md`}>
+                    <div className={`${getAspectRatioClass(dimensions)} ${getScaleForAspectRatio(dimensions)} relative shadow-md`}>
                         <Image
                             src={image.src}
                             alt={image.alt}
