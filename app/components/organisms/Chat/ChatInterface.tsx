@@ -15,6 +15,9 @@ interface ChatInterfaceProps {
     title?: string
     quickPrompts?: string[]
     onSendMessage?: (message: string, useOwnData: boolean) => Promise<void>
+    userId?: string  // User ID for conversation management
+    chatId?: string  // Optional existing chat ID to continue
+    onChatIdChange?: (chatId: string) => void  // Callback when chat ID changes
 }
 
 export function ChatInterface({
@@ -26,7 +29,10 @@ export function ChatInterface({
         "Make a logo",
         "Create a flyer"
     ],
-    onSendMessage
+    onSendMessage,
+    userId = 'anonymous-user',  // Default user ID
+    chatId: initialChatId,      // Optional existing chat ID
+    onChatIdChange              // Callback for chat ID changes
 }: ChatInterfaceProps) {
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
@@ -39,6 +45,7 @@ export function ChatInterface({
     const [inputValue, setInputValue] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [useOwnData, setUseOwnData] = useState(false)
+    const [currentChatId, setCurrentChatId] = useState<string | undefined>(initialChatId)
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
     const scrollToBottom = () => {
@@ -48,6 +55,34 @@ export function ChatInterface({
     useEffect(() => {
         scrollToBottom()
     }, [messages])
+
+    // Load existing chat history if chatId is provided
+    useEffect(() => {
+        if (initialChatId && userId) {
+            loadChatHistory(initialChatId)
+        }
+    }, [initialChatId, userId])
+
+    const loadChatHistory = async (chatId: string) => {
+        try {
+            const response = await chatAPI.getChatById(chatId, userId)
+            if (response.success && response.chat.messages) {
+                // Convert backend message format to frontend format
+                const chatMessages: ChatMessage[] = response.chat.messages.map((msg: any, index: number) => ({
+                    id: `${chatId}-${index}`,
+                    type: msg.role === 'user' ? 'user' : 'bot',
+                    content: msg.content,
+                    timestamp: new Date(msg.timestamp)
+                }))
+                
+                // Replace messages with chat history
+                setMessages(chatMessages)
+            }
+        } catch (error) {
+            console.error('Failed to load chat history:', error)
+            // Keep default initial message on error
+        }
+    }
 
     const handleSendMessage = async () => {
         if (!inputValue.trim()) return
@@ -75,10 +110,12 @@ export function ChatInterface({
         setMessages(prev => [...prev, initialBotMessage])
 
         try {
-            // Use streaming chat API
+            // Use streaming chat API with conversation history support
             const response = await chatAPI.sendMessage({
                 message: messageText,
-                useOwnData: useOwnData
+                useOwnData: useOwnData,
+                chatId: currentChatId,    // Include current chat ID for conversation history
+                userId: userId           // Include user ID for conversation management
             }, (chunk: string) => {
                 // Update the bot message content as chunks arrive
                 setMessages(prev => prev.map(msg => 
@@ -88,7 +125,7 @@ export function ChatInterface({
                 ))
             })
             
-            // Update with final response data (for suggestions, etc.)
+            // Update with final response data and handle chat ID
             setMessages(prev => prev.map(msg => 
                 msg.id === botMessageId 
                     ? { 
@@ -99,6 +136,12 @@ export function ChatInterface({
                     }
                     : msg
             ))
+
+            // Update chat ID if this is a new conversation
+            if (response.chatId && response.chatId !== currentChatId) {
+                setCurrentChatId(response.chatId)
+                onChatIdChange?.(response.chatId)
+            }
             
             // If there's a custom onSendMessage handler, call it too
             if (onSendMessage) {

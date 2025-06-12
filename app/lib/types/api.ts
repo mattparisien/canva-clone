@@ -345,6 +345,11 @@ export interface ChatResponse {
   suggestions?: string[];      // Optional suggested follow-up actions
   action?: string;             // Optional action type (JSON mode)
   type?: string;               // SSE event type (chunk/complete)
+  chatId?: string;            // Chat conversation ID (from backend)
+  messageCount?: number;       // Total messages in conversation (from backend)
+  userId?: string;            // User ID (from backend)
+  success?: boolean;          // Success status (from backend)
+  toolOutputs?: any;          // Tool call results (from backend)
 }
 
 /**

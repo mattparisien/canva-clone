@@ -17,25 +17,20 @@ const getHeadersWithAuth = (req: NextRequest) => {
   return headers;
 };
 
-// GET: Get user's chat conversations
-export async function GET(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
+// POST: Create a new chat conversation
+export async function POST(req: NextRequest) {
   try {
-    const { userId } = await params;
-    const { searchParams } = new URL(req.url);
-    const limit = searchParams.get('limit');
-    
+    const body = await req.json();
     const headers = getHeadersWithAuth(req);
     
-    let backendUrl = `${BACKEND_URL}/api/chat/user/${userId}`;
-    if (limit) {
-      backendUrl += `?limit=${limit}`;
-    }
+    const backendUrl = `${BACKEND_URL}/api/chat/new`;
     
-    console.log('Proxying get user chats request to:', backendUrl);
+    console.log('Proxying create new chat request to:', backendUrl);
     
     const response = await fetch(backendUrl, {
-      method: 'GET',
+      method: 'POST',
       headers,
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -59,7 +54,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
     });
     
   } catch (error) {
-    console.error('Get user chats API error:', error);
+    console.error('Create new chat API error:', error);
     return NextResponse.json(
       { message: 'Internal server error' }, 
       { status: 500 }
