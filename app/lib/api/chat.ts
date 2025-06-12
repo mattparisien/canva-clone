@@ -1,5 +1,15 @@
 import { Axios } from "axios";
-import { ChatAPIService, ChatResponse, SendMessageRequest, ChatHealthResponse } from "../types/api";
+import { 
+  ChatAPIService, 
+  ChatResponse, 
+  SendMessageRequest, 
+  ChatHealthResponse,
+  GetUserChatsResponse,
+  GetChatResponse,
+  CreateChatRequest,
+  CreateChatResponse,
+  UpdateChatTitleRequest
+} from "../types/api";
 import { APIBase } from "./base";
 
 export class ChatAPI extends APIBase implements ChatAPIService {
@@ -23,7 +33,9 @@ export class ChatAPI extends APIBase implements ChatAPIService {
         },
         body: JSON.stringify({
           message: request.message.trim(),
-          useOwnData: request.useOwnData || false
+          useOwnData: request.useOwnData || false,
+          chatId: request.chatId,
+          userId: request.userId
         })
       });
 
@@ -121,6 +133,128 @@ export class ChatAPI extends APIBase implements ChatAPIService {
     } catch (error: any) {
       console.error('Error checking chat health:', error.response?.data || error.message);
       throw error.response?.data || new Error('Failed to check chat health');
+    }
+  }
+
+  async getUserChats(userId: string, limit?: number): Promise<GetUserChatsResponse> {
+    try {
+      const token = this.getAuthToken();
+      const queryParams = new URLSearchParams();
+      if (limit) queryParams.append('limit', limit.toString());
+      
+      const response = await fetch(`/api/chat/user/${userId}?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Error getting user chats:', error);
+      throw new Error('Failed to get user chats');
+    }
+  }
+
+  async getChatById(chatId: string, userId?: string): Promise<GetChatResponse> {
+    try {
+      const token = this.getAuthToken();
+      const queryParams = new URLSearchParams();
+      if (userId) queryParams.append('userId', userId);
+      
+      const response = await fetch(`/api/chat/${chatId}?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Error getting chat by ID:', error);
+      throw new Error('Failed to get chat');
+    }
+  }
+
+  async createNewChat(request: CreateChatRequest): Promise<CreateChatResponse> {
+    try {
+      const token = this.getAuthToken();
+      
+      const response = await fetch('/api/chat/new', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(request)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Error creating new chat:', error);
+      throw new Error('Failed to create new chat');
+    }
+  }
+
+  async updateChatTitle(chatId: string, request: UpdateChatTitleRequest): Promise<{ success: boolean; chat: any }> {
+    try {
+      const token = this.getAuthToken();
+      
+      const response = await fetch(`/api/chat/${chatId}/title`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify(request)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Error updating chat title:', error);
+      throw new Error('Failed to update chat title');
+    }
+  }
+
+  async deleteChat(chatId: string, userId?: string): Promise<{ success: boolean; message: string }> {
+    try {
+      const token = this.getAuthToken();
+      
+      const response = await fetch(`/api/chat/${chatId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        },
+        body: JSON.stringify({ userId })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Error deleting chat:', error);
+      throw new Error('Failed to delete chat');
     }
   }
 }

@@ -1,5 +1,6 @@
 import { Axios } from "axios";
 import { Brand } from "./brands";
+import { ChatConversation, ChatWithHistory } from "@shared/types/types/chat";
 
 /**
  * Represents a digital asset in the system.
@@ -352,6 +353,55 @@ export interface ChatResponse {
 export interface SendMessageRequest {
   message: string;             // The user's message
   useOwnData?: boolean;        // Whether to use user's personal assets/data
+  chatId?: string;            // Optional existing chat ID
+  userId?: string;            // User ID for the conversation
+}
+
+/**
+ * Request payload for creating a new chat conversation.
+ */
+export interface CreateChatRequest {
+  userId: string;
+  title?: string;
+}
+
+/**
+ * Request payload for updating chat title.
+ */
+export interface UpdateChatTitleRequest {
+  title: string;
+  userId?: string;
+}
+
+/**
+ * Response from getUserChats API
+ */
+export interface GetUserChatsResponse {
+  success: boolean;
+  chats: ChatConversation[];
+  count: number;
+}
+
+/**
+ * Response from getChatById API
+ */
+export interface GetChatResponse {
+  success: boolean;
+  chat: ChatWithHistory;
+}
+
+/**
+ * Response from createNewChat API
+ */
+export interface CreateChatResponse {
+  success: boolean;
+  chat: {
+    id: string;
+    title: string;
+    userId: string;
+    metadata: any;
+    createdAt: Date;
+  };
 }
 
 /**
@@ -375,6 +425,45 @@ export interface ChatAPIService extends APIServiceBase {
    * @returns Promise resolving to the chat response
    */
   sendMessage(request: SendMessageRequest, onChunk?: (content: string) => void): Promise<ChatResponse>;
+
+  /**
+   * Get user's chat conversations
+   * @param userId - User ID
+   * @param limit - Maximum number of chats to return
+   * @returns Promise resolving to user's chat conversations
+   */
+  getUserChats(userId: string, limit?: number): Promise<GetUserChatsResponse>;
+
+  /**
+   * Get specific chat conversation with full message history
+   * @param chatId - Chat conversation ID
+   * @param userId - User ID for access control
+   * @returns Promise resolving to chat with full history
+   */
+  getChatById(chatId: string, userId?: string): Promise<GetChatResponse>;
+
+  /**
+   * Create a new chat conversation
+   * @param request - Request payload with user ID and optional title
+   * @returns Promise resolving to new chat info
+   */
+  createNewChat(request: CreateChatRequest): Promise<CreateChatResponse>;
+
+  /**
+   * Update chat conversation title
+   * @param chatId - Chat conversation ID
+   * @param request - Request payload with new title
+   * @returns Promise resolving to updated chat info
+   */
+  updateChatTitle(chatId: string, request: UpdateChatTitleRequest): Promise<{ success: boolean; chat: any }>;
+
+  /**
+   * Delete a chat conversation
+   * @param chatId - Chat conversation ID
+   * @param userId - User ID for access control
+   * @returns Promise resolving to delete confirmation
+   */
+  deleteChat(chatId: string, userId?: string): Promise<{ success: boolean; message: string }>;
 
   /**
    * Checks the health status of the chat service.
