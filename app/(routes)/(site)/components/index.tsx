@@ -442,5 +442,22 @@ function buildProjectRequest() {
     description: "",
     type: "presentation" as const,
     category: "personal" as const,
+    // Add default page with required dimensions
+    pages: [
+      {
+        id: `page-${new Date().getTime()}`,
+        name: "Page 1",
+        dimensions: {
+          width: 1920,
+          height: 1080,
+          aspectRatio: "16:9"
+        },
+        elements: [],
+        background: {
+          type: "color",
+          value: "#ffffff"
+        }
+      }
+    ]
   };
 }
