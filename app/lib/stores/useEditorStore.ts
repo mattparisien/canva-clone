@@ -36,7 +36,11 @@ const useEditorStore = create<EditorState>((set, get) => ({
     {
       id: `page-${Date.now()}`,
       elements: [],
-      canvasSize: DEFAULT_CANVAS_SIZE
+      dimensions: {
+        width: DEFAULT_CANVAS_SIZE.width,
+        height: DEFAULT_CANVAS_SIZE.height,
+        aspectRatio: "16:9"
+      }
     }
   ],
   currentPageId: `page-${Date.now()}`,
@@ -58,10 +62,15 @@ const useEditorStore = create<EditorState>((set, get) => ({
   // Page management functions
   addPage: () => {
     const state = get();
+    const currentPage = state.pages.find(page => page.id === state.currentPageId);
     const newPage: Page = {
       id: `page-${Date.now()}`,
       elements: [],
-      canvasSize: state.pages.find(page => page.id === state.currentPageId)?.canvasSize || DEFAULT_CANVAS_SIZE
+      dimensions: currentPage?.dimensions || {
+        width: DEFAULT_CANVAS_SIZE.width,
+        height: DEFAULT_CANVAS_SIZE.height,
+        aspectRatio: "16:9"
+      }
     };
 
     set(state => ({
@@ -151,7 +160,7 @@ const useEditorStore = create<EditorState>((set, get) => ({
       const newPage: Page = {
         id: `page-${Date.now()}`,
         elements: duplicatedElements,
-        canvasSize: { ...currentPage.canvasSize }
+        dimensions: { ...currentPage.dimensions }
       };
 
       // Insert after current page
@@ -182,11 +191,11 @@ const useEditorStore = create<EditorState>((set, get) => ({
     }));
   },
 
-  updatePageCanvasSize: (pageId: string, canvasSize: CanvasSize) => {
+  updatePageDimensions: (pageId: string, dimensions: { width: number; height: number; aspectRatio: string }) => {
     set(state => ({
       pages: state.pages.map(page =>
         page.id === pageId
-          ? { ...page, canvasSize }
+          ? { ...page, dimensions }
           : page
       ),
       isDesignSaved: false

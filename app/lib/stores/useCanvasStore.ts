@@ -908,6 +908,15 @@ const useCanvasStore = create<CanvasState>((set, get) => {
       canRedo: false,
     }));
   },
+
+  // Text and shape styling handlers
+  handleTextColorChange: (color: string) => {
+    // This will be implemented by the canvas context
+  },
+
+  handleBackgroundColorChange: (color: string) => {
+    // This will be implemented by the canvas context  
+  },
   };
 });
 
@@ -926,7 +935,16 @@ export const useCurrentCanvasSize = () => {
     return state.pages.find(page => page.id === state.currentPageId);
   });
 
-  return currentPage?.canvasSize || DEFAULT_CANVAS_SIZE;
+  if (currentPage?.dimensions) {
+    return {
+      name: "Current Canvas",
+      width: currentPage.dimensions.width,
+      height: currentPage.dimensions.height,
+      aspectRatio: currentPage.dimensions.aspectRatio
+    };
+  }
+
+  return DEFAULT_CANVAS_SIZE;
 };
 
 export default useCanvasStore;
