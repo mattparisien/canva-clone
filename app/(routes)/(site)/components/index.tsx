@@ -229,6 +229,7 @@ function DashboardInner() {
         subtitleRight={`Last updated ${getRelativeTime(project.updatedAt)}`}
         onClick={() => handleOpenProject(project._id)}
         onTitleChange={handleTitleChange}
+        dimensions={project.dimensions}
       />
     ),
     [handleOpenProject, handleTitleChange],
