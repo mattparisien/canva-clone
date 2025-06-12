@@ -8,11 +8,11 @@
 //  • Keeps the public API identical to minimise breaking changes
 // -----------------------------------------------------------------------------
 
-import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
-import { projectsAPI } from "@lib/api";
 import type { Project } from "@/lib/types/api";
-import { useEffect, useMemo } from "react";
 import { GetProjectsResponse } from "@canva-clone/shared-types";
+import { projectsAPI } from "@lib/api";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 export interface UseInfiniteProjectsOptions {
   limit?: number;
@@ -69,10 +69,11 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });
-  
+
   // Flatten all pages into a single list (memoised)
   const projects = useMemo(() => {
     if (!data) return [] as Project[];
+    console.log(data);
     return data.pages.flatMap(page => page.data);
   }, [data]);
 
@@ -107,7 +108,7 @@ export function prependProjectToCache(
     const firstPage = old.pages[0];
     const updatedFirst: GetProjectsResponse = {
       ...firstPage,
-      data: [project, ...firstPage.data],
+      data: [project as any, ...firstPage.data],
       pagination: {
         ...firstPage.pagination,
         total: firstPage.pagination.total + 1,
