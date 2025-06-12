@@ -34,6 +34,7 @@ export default function InteractiveCard({
     const [isHovered, setIsHovered] = useState(false);
     const selected = isSelected(id);
 
+
     const handleCardClick = () => {
         onClick?.();
     };
