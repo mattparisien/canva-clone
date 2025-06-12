@@ -44,7 +44,7 @@ import { useProjectQuery } from "@features/projects/use-projects";
 import { upperFirst } from "lodash";
 import { getRelativeTime } from "@lib/utils/utils";
 import type { ViewMode } from "@/components/molecules";
-import type { Project } from "@/lib/types/api";
+import { Project } from "@canva-clone/shared-types";
 
 // -----------------------------------------------------------------------------
 //  Public wrapper (kept to avoid breaking call‑sites)
@@ -229,7 +229,7 @@ function DashboardInner() {
         subtitleRight={`Last updated ${getRelativeTime(project.updatedAt)}`}
         onClick={() => handleOpenProject(project._id)}
         onTitleChange={handleTitleChange}
-        dimensions={project.dimensions}
+        dimensions={project.designSpec?.dimensions}
       />
     ),
     [handleOpenProject, handleTitleChange],

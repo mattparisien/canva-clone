@@ -1,6 +1,7 @@
 import { Axios } from "axios";
 import { Brand } from "./brands";
 import { ChatConversation, ChatWithHistory } from "@shared/types/types/chat";
+import { Project } from "@canva-clone/shared-types";
 import { GetProjectsResponse } from "@canva-clone/shared-types";
 
 /**
@@ -85,23 +86,23 @@ export interface Presentation {
  * Represents a design project created by a user.
  * Projects can be presentations, social media graphics, print designs, etc.
  */
-export interface Project {
-  _id: string;                 // Unique identifier
-  title: string;               // Project title
-  type: string;                // Project type (e.g., 'presentation', 'social', 'print')
-  userId: string;              // Owner of the project
-  thumbnail?: string;          // Preview thumbnail URL
-  category?: string;           // Project category for organization
-  starred: boolean;            // Whether the project is starred by the user
-  shared: boolean;             // Whether the project is shared with other users
-  isTemplate: boolean;         // Whether this project serves as a template
-  description?: string;        // Optional project description
-  dimensions?: { width: number; height: number; aspectRatio: string }; // Canvas dimensions using new structure
-  canvasSize?: { name?: string; width: number; height: number; aspectRatio?: string }; // Legacy canvas size format
-  pages?: any[];               // Array of design pages/slides
-  createdAt: string;           // Creation timestamp
-  updatedAt: string;           // Last updated timestamp
-}
+// export interface Project {
+//   _id: string;                 // Unique identifier
+//   title: string;               // Project title
+//   type: string;                // Project type (e.g., 'presentation', 'social', 'print')
+//   userId: string;              // Owner of the project
+//   thumbnail?: string;          // Preview thumbnail URL
+//   category?: string;           // Project category for organization
+//   starred: boolean;            // Whether the project is starred by the user
+//   shared: boolean;             // Whether the project is shared with other users
+//   isTemplate: boolean;         // Whether this project serves as a template
+//   description?: string;        // Optional project description
+//   dimensions?: { width: number; height: number; aspectRatio: string }; // Canvas dimensions using new structure
+//   canvasSize?: { name?: string; width: number; height: number; aspectRatio?: string }; // Legacy canvas size format
+//   pages?: any[];               // Array of design pages/slides
+//   createdAt: string;           // Creation timestamp
+//   updatedAt: string;           // Last updated timestamp
+// }
 
 /**
  * Represents a design template that users can use as a starting point.

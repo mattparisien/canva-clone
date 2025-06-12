@@ -34,6 +34,9 @@ export default function InteractiveCard({
     dimensions,
 }: InteractiveCardProps) {
 
+
+    console.log(dimensions)
+
     const { isSelected, toggleSelection } = useSelection();
     const [isHovered, setIsHovered] = useState(false);
     const selected = isSelected(id);
