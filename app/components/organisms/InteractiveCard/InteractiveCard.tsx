@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useSelection } from "@lib/context/selection-context";
 import { SelectionCheckbox, CardMedia } from "@components/molecules";
 import { EditableTitle } from "./EditableTitle";
+import type { Dimensions } from "@/lib/utils/aspectRatio";
 
 interface InteractiveCardProps {
     id: string;
@@ -17,6 +18,7 @@ interface InteractiveCardProps {
     onSelect?: (id: string, isSelected: boolean) => void;
     onTitleChange?: (id: string, newTitle: string) => void;
     children?: React.ReactNode;
+    dimensions?: Dimensions;
 }
 
 export default function InteractiveCard({
@@ -29,6 +31,7 @@ export default function InteractiveCard({
     onSelect,
     onTitleChange,
     children,
+    dimensions,
 }: InteractiveCardProps) {
     const { isSelected, toggleSelection } = useSelection();
     const [isHovered, setIsHovered] = useState(false);
@@ -49,6 +52,7 @@ export default function InteractiveCard({
             <CardMedia
                 image={children ? undefined : image}
                 selected={selected}
+                dimensions={dimensions}
             >
                 {children}
             </CardMedia>

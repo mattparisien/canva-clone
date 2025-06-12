@@ -94,7 +94,7 @@ export interface Project {
   shared: boolean;             // Whether the project is shared with other users
   isTemplate: boolean;         // Whether this project serves as a template
   description?: string;        // Optional project description
-  canvasSize?: any;            // Canvas dimensions and properties
+  dimensions?: { width: number; height: number; aspectRatio: string }; // Canvas dimensions using new structure
   pages?: any[];               // Array of design pages/slides
   createdAt: string;           // Creation timestamp
   updatedAt: string;           // Last updated timestamp
