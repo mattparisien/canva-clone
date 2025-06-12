@@ -403,16 +403,28 @@ const useCanvasStore = create<CanvasState>((set, get) => {
 
     if (!currentPageId || !currentPage) return;
 
-    // Store the previous size for history
-    const before = { ...currentPage.canvasSize };
+    // Store the previous dimensions for history
+    const before = { ...currentPage.dimensions };
 
-    // Update the page canvas size
-    editor.updatePageCanvasSize(currentPageId, size);
+    // Convert CanvasSize to dimensions format
+    const newDimensions = {
+      width: size.width,
+      height: size.height,
+      aspectRatio: size.aspectRatio || `${size.width}:${size.height}`
+    };
 
-    // Add to history
+    // Update the page dimensions
+    editor.updatePageDimensions(currentPageId, newDimensions);
+
+    // Add to history  
     const historyAction: HistoryAction = {
       type: 'CHANGE_CANVAS_SIZE',
-      before,
+      before: {
+        name: "Previous Canvas",
+        width: before.width,
+        height: before.height,
+        aspectRatio: before.aspectRatio
+      },
       after: size,
       pageId: currentPageId
     };
@@ -542,8 +554,13 @@ const useCanvasStore = create<CanvasState>((set, get) => {
 
         if (!currentPage) break;
 
-        // Revert to previous canvas size
-        editor.updatePageCanvasSize(action.pageId, action.before);
+        // Revert to previous dimensions
+        const beforeDimensions = {
+          width: action.before.width,
+          height: action.before.height,
+          aspectRatio: action.before.aspectRatio
+        };
+        editor.updatePageDimensions(action.pageId, beforeDimensions);
         break;
       }
 
@@ -650,7 +667,12 @@ const useCanvasStore = create<CanvasState>((set, get) => {
         if (!currentPage) break;
 
         // Apply the canvas size change
-        editor.updatePageCanvasSize(action.pageId, action.after);
+        const afterDimensions = {
+          width: action.after.width,
+          height: action.after.height,
+          aspectRatio: action.after.aspectRatio || `${action.after.width}:${action.after.height}`
+        };
+        editor.updatePageDimensions(action.pageId, afterDimensions);
         break;
       }
 

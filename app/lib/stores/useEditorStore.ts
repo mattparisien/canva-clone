@@ -352,7 +352,7 @@ export const setupAutoSave = () => {
   // Subscribe to changes in the store
   useEditorStore.subscribe(
     (state) => [state.pages, state.isDesignSaved, state.designId],
-    ([pages, isDesignSaved, designId]) => {
+    ([pages, isDesignSaved, designId]: [any, boolean, string | null]) => {
       if (!isDesignSaved && designId) {
         // Clear any existing timer
         if (autoSaveTimer) {

@@ -36,6 +36,7 @@ export type CanvasSize = {
   name: string;
   width: number;
   height: number;
+  aspectRatio?: string;
   category?: string;
 };
 
@@ -83,7 +84,7 @@ export type HistoryAction =
   | { type: "ADD_ELEMENT"; element: Element; pageId: string }
   | { type: "UPDATE_ELEMENT"; id: string; before: Partial<Element>; after: Partial<Element>; pageId: string }
   | { type: "DELETE_ELEMENT"; element: Element; pageId: string }
-  | { type: "CHANGE_CANVAS_SIZE"; before: CanvasSize; after: CanvasSize; pageId: string }
+  | { type: "CHANGE_CANVAS_SIZE"; before: { width: number; height: number; aspectRatio: string; name?: string }; after: { width: number; height: number; aspectRatio?: string; name?: string }; pageId: string }
   | { type: "ADD_PAGE"; page: Page }
   | { type: "DELETE_PAGE"; page: Page }
   | { type: "REORDER_PAGES"; before: string[]; after: string[] }
