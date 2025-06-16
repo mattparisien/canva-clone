@@ -59,10 +59,12 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
       return result;
     },
     initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.pagination.page < lastPage.pagination.totalPages
-        ? lastPage.pagination.page + 1
-        : undefined,
+    getNextPageParam: (lastPage) => {
+      console.log(lastPage);
+      return lastPage.currentPage < lastPage.totalPages
+        ? lastPage.currentPage + 1
+        : undefined
+    },
 
     // Always stale so an invalidate triggers a refetch immediately
     staleTime: 0,
@@ -73,11 +75,11 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
   // Flatten all pages into a single list (memoised)
   const projects = useMemo(() => {
     if (!data) return [] as Project[];
-    console.log(data);
-    return data.pages.flatMap(page => page.data);
+    return data.pages.flatMap(page => page.projects);
   }, [data]);
 
-  const totalProjects = data?.pages[0]?.pagination.total ?? 0;
+
+  const totalProjects = data?.pages[0]?.totalProjects ?? 0;
 
   return {
     projects,
