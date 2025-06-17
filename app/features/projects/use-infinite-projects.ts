@@ -8,8 +8,8 @@
 //  • Keeps the public API identical to minimise breaking changes
 // -----------------------------------------------------------------------------
 
-import type { Project } from "@/lib/types/api";
-import { GetProjectsResponse } from "@canva-clone/shared-types";
+import { ProjectListResponse } from "@canva-clone/shared-types/dist/api"
+import { Project } from "@canva-clone/shared-types/dist/models/project"
 import { projectsAPI } from "@lib/api";
 import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -51,7 +51,7 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     isError,
     error,
     refetch,
-  } = useInfiniteQuery<GetProjectsResponse, Error, InfiniteData<GetProjectsResponse>, readonly ["infiniteProjects", number, string], number>({
+  } = useInfiniteQuery<ProjectListResponse, Error, InfiniteData<ProjectListResponse>, readonly ["infiniteProjects", number, string], number>({
     queryKey: ["infiniteProjects", limit, filterKey],
     queryFn: async ({ pageParam = 1 }) => {
       // API call is untouched — still passes raw filters object
@@ -61,8 +61,9 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       console.log(lastPage);
-      return lastPage.currentPage < lastPage.totalPages
-        ? lastPage.currentPage + 1
+      const totalPages = Math.ceil(lastPage.total / lastPage.pageSize);
+      return lastPage.page < totalPages
+        ? lastPage.page + 1
         : undefined
     },
 
@@ -79,7 +80,7 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
   }, [data]);
 
 
-  const totalProjects = data?.pages[0]?.totalProjects ?? 0;
+  const totalProjects = data?.pages[0]?.total ?? 0;
 
   return {
     projects,
@@ -104,17 +105,14 @@ export function prependProjectToCache(
   key: readonly ["infiniteProjects", number, string],
   project: Project,
 ) {
-  queryClient.setQueryData<InfiniteData<GetProjectsResponse>>(key, (old) => {
+  queryClient.setQueryData<InfiniteData<ProjectListResponse>>(key, (old) => {
     if (!old) return old;
 
     const firstPage = old.pages[0];
-    const updatedFirst: GetProjectsResponse = {
+    const updatedFirst: ProjectListResponse = {
       ...firstPage,
-      data: [project as any, ...firstPage.data],
-      pagination: {
-        ...firstPage.pagination,
-        total: firstPage.pagination.total + 1,
-      }
+      projects: [project, ...firstPage.projects],
+      total: firstPage.total + 1,
     };
 
     return { ...old, pages: [updatedFirst, ...old.pages.slice(1)] };

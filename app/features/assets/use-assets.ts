@@ -1,18 +1,53 @@
-import { useState, useCallback } from "react"
-import { Asset } from "@lib/types/api"
+import {
+  AssetListResponse,
+  AssetResponse,
+  DeleteAssetResponse,
+  FindSimilarAssetsResponse,
+  SearchAssetsByVectorResponse,
+  UpdateAssetResponse,
+  UploadAssetResponse
+} from "@canva-clone/shared-types/dist/api/asset/asset.responses"
+import { Asset } from "@canva-clone/shared-types/dist/models/asset"
 import { assetsAPI } from "@lib/api"
+import { Asset as LegacyAsset } from "@lib/types/api"
+import { useCallback, useState } from "react"
+
+// Helper function to convert legacy Asset format to shared Asset format
+const convertLegacyAsset = (legacyAsset: LegacyAsset): Asset => {
+  const { _id, ...rest } = legacyAsset;
+  return {
+    ...rest,
+    id: _id,
+    fileSize: rest.fileSize || rest.size || 0,
+  } as Asset;
+};
+
+// Helper function to convert vector search results
+const convertVectorSearchResult = (result: LegacyAsset & { similarity: number }): Asset & { similarity: number } => {
+  const { similarity, ...asset } = result;
+  return {
+    ...convertLegacyAsset(asset as LegacyAsset),
+    similarity
+  };
+};
 
 export function useAssets() {
   const [assets, setAssets] = useState<Asset[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   // Get all assets for a user
-  const getAssets = useCallback(async (userId?: string, folderId?: string): Promise<Asset[]> => {
+  const getAssets = useCallback(async (userId?: string, folderId?: string): Promise<AssetListResponse> => {
     setIsLoading(true)
     try {
-      const fetchedAssets = await assetsAPI.getAll(userId, folderId)
-      setAssets(fetchedAssets)
-      return fetchedAssets
+      const legacyAssets = await assetsAPI.getAll(userId, folderId)
+      const convertedAssets = legacyAssets.map(convertLegacyAsset)
+      setAssets(convertedAssets)
+
+      const response: AssetListResponse = {
+        success: true,
+        data: convertedAssets
+      }
+      return response
     } catch (error) {
       console.error("Failed to fetch assets:", error)
       throw error
@@ -22,9 +57,16 @@ export function useAssets() {
   }, [])
 
   // Get asset by ID
-  const getAssetById = useCallback(async (assetId: string): Promise<Asset> => {
+  const getAssetById = useCallback(async (assetId: string): Promise<AssetResponse> => {
     try {
-      return await assetsAPI.getById(assetId)
+      const legacyAsset = await assetsAPI.getById(assetId)
+      const convertedAsset = convertLegacyAsset(legacyAsset)
+
+      const response: AssetResponse = {
+        success: true,
+        data: convertedAsset
+      }
+      return response
     } catch (error) {
       console.error(`Failed to fetch asset ${assetId}:`, error)
       throw error
@@ -38,11 +80,17 @@ export function useAssets() {
     folderId?: string
     name?: string
     tags?: string[]
-  }): Promise<Asset> => {
+  }): Promise<UploadAssetResponse> => {
     try {
-      const uploadedAsset = await assetsAPI.upload(params)
-      setAssets(prev => [uploadedAsset, ...prev])
-      return uploadedAsset
+      const legacyAsset = await assetsAPI.upload(params)
+      const convertedAsset = convertLegacyAsset(legacyAsset)
+      setAssets(prev => [convertedAsset, ...prev])
+
+      const response: UploadAssetResponse = {
+        success: true,
+        data: convertedAsset
+      }
+      return response
     } catch (error) {
       console.error("Failed to upload asset:", error)
       throw error
@@ -51,13 +99,19 @@ export function useAssets() {
 
   // Upload multiple assets
   const uploadMultipleAssets = useCallback(async (
-    files: File[], 
+    files: File[],
     tags: string[] = []
-  ): Promise<Asset[]> => {
+  ): Promise<AssetListResponse> => {
     try {
-      const uploadedAssets = await assetsAPI.uploadMultiple(files, tags)
-      setAssets(prev => [...uploadedAssets, ...prev])
-      return uploadedAssets
+      const legacyAssets = await assetsAPI.uploadMultiple(files, tags)
+      const convertedAssets = legacyAssets.map(convertLegacyAsset)
+      setAssets(prev => [...convertedAssets, ...prev])
+
+      const response: AssetListResponse = {
+        success: true,
+        data: convertedAssets
+      }
+      return response
     } catch (error) {
       console.error("Failed to upload multiple assets:", error)
       throw error
@@ -66,15 +120,21 @@ export function useAssets() {
 
   // Update asset
   const updateAsset = useCallback(async (
-    assetId: string, 
+    assetId: string,
     updateData: { name?: string; tags?: string[] }
-  ): Promise<Asset> => {
+  ): Promise<UpdateAssetResponse> => {
     try {
-      const updatedAsset = await assetsAPI.update(assetId, updateData)
-      setAssets(prev => prev.map(asset => 
-        asset._id === assetId ? updatedAsset : asset
+      const legacyAsset = await assetsAPI.update(assetId, updateData)
+      const convertedAsset = convertLegacyAsset(legacyAsset)
+      setAssets(prev => prev.map(asset =>
+        asset.id === assetId ? convertedAsset : asset
       ))
-      return updatedAsset
+
+      const response: UpdateAssetResponse = {
+        success: true,
+        data: convertedAsset
+      }
+      return response
     } catch (error) {
       console.error(`Failed to update asset ${assetId}:`, error)
       throw error
@@ -82,10 +142,17 @@ export function useAssets() {
   }, [])
 
   // Delete asset
-  const deleteAsset = useCallback(async (assetId: string): Promise<void> => {
+  const deleteAsset = useCallback(async (assetId: string): Promise<DeleteAssetResponse> => {
     try {
       await assetsAPI.delete(assetId)
-      setAssets(prev => prev.filter(asset => asset._id !== assetId))
+      setAssets(prev => prev.filter(asset => asset.id !== assetId))
+
+      const response: DeleteAssetResponse = {
+        success: true,
+        id: assetId as any,
+        message: "Asset deleted successfully"
+      }
+      return response
     } catch (error) {
       console.error(`Failed to delete asset ${assetId}:`, error)
       throw error
@@ -93,9 +160,16 @@ export function useAssets() {
   }, [])
 
   // Get assets by tags
-  const getAssetsByTags = useCallback(async (tags: string[]): Promise<Asset[]> => {
+  const getAssetsByTags = useCallback(async (tags: string[]): Promise<AssetListResponse> => {
     try {
-      return await assetsAPI.getByTags(tags)
+      const legacyAssets = await assetsAPI.getByTags(tags)
+      const convertedAssets = legacyAssets.map(convertLegacyAsset)
+
+      const response: AssetListResponse = {
+        success: true,
+        data: convertedAssets
+      }
+      return response
     } catch (error) {
       console.error("Failed to fetch assets by tags:", error)
       throw error
@@ -108,7 +182,7 @@ export function useAssets() {
     if (!query.trim()) return searchIn
 
     const lowerQuery = query.toLowerCase()
-    return searchIn.filter(asset => 
+    return searchIn.filter(asset =>
       asset.name.toLowerCase().includes(lowerQuery) ||
       asset.originalFilename?.toLowerCase().includes(lowerQuery) ||
       asset.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
@@ -128,7 +202,7 @@ export function useAssets() {
     assetsToSort?: Asset[]
   ): Asset[] => {
     const sorted = [...(assetsToSort || assets)]
-    
+
     return sorted.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
@@ -149,15 +223,24 @@ export function useAssets() {
 
   // Vector search assets
   const vectorSearchAssets = useCallback(async (
-    query: string, 
+    query: string,
     options?: { userId?: string; limit?: number; threshold?: number }
-  ): Promise<{ 
-    query: string; 
-    results: (Asset & { similarity: number })[]; 
-    total: number; 
-  }> => {
+  ): Promise<SearchAssetsByVectorResponse> => {
     try {
-      return await assetsAPI.searchByVector(query, options)
+      const legacyResult = await assetsAPI.searchByVector(query, options)
+      const convertedResults = legacyResult.results.map(convertVectorSearchResult)
+
+      const response: SearchAssetsByVectorResponse = {
+        success: true,
+        data: convertedResults.map(result => ({
+          asset: result,
+          score: result.similarity,
+          similarity: result.similarity
+        })),
+        query: legacyResult.query,
+        totalResults: legacyResult.total
+      }
+      return response
     } catch (error) {
       console.error("Failed to search assets by vector:", error)
       throw error
@@ -166,15 +249,24 @@ export function useAssets() {
 
   // Find similar assets
   const findSimilarAssets = useCallback(async (
-    assetId: string, 
+    assetId: string,
     options?: { limit?: number; threshold?: number }
-  ): Promise<{
-    originalAsset: Asset;
-    similarAssets: (Asset & { similarity: number })[];
-    total: number;
-  }> => {
+  ): Promise<FindSimilarAssetsResponse> => {
     try {
-      return await assetsAPI.findSimilar(assetId, options)
+      const legacyResult = await assetsAPI.findSimilar(assetId, options)
+      const convertedSimilarAssets = legacyResult.similarAssets.map(convertVectorSearchResult)
+
+      const response: FindSimilarAssetsResponse = {
+        success: true,
+        data: convertedSimilarAssets.map(result => ({
+          asset: result,
+          score: result.similarity,
+          similarity: result.similarity
+        })),
+        sourceAssetId: assetId as any,
+        totalResults: legacyResult.total
+      }
+      return response
     } catch (error) {
       console.error(`Failed to find similar assets for ${assetId}:`, error)
       throw error
