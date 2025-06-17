@@ -12,7 +12,7 @@ import { StickyControlsBar } from "@components/organisms/StickyControlsBar"
 import { ViewMode } from "@/components/molecules"
 import { useAssets } from "@features/assets/use-assets"
 import { SelectionProvider, useSelection } from "@lib/context/selection-context"
-import { Asset } from "@lib/types/api"
+import { Asset } from "@canva-clone/shared-types/dist/models/asset"
 import { formatBytes, getRelativeTime } from "@lib/utils/utils"
 import {
     Download,
@@ -305,8 +305,8 @@ function AssetsPageContent() {
 
         return (
             <InteractiveCard
-                key={asset._id}
-                id={asset._id}
+                key={asset.id}
+                id={asset.id}
                 image={image}
                 title={asset.name}
                 subtitleLeft={asset.type}
@@ -328,7 +328,7 @@ function AssetsPageContent() {
     const renderAssetRow = useCallback((asset: Asset, index: number) => {
         return (
             <Card
-                key={asset._id}
+                key={asset.id}
                 className="cursor-pointer transition-all hover:shadow-sm"
                 onClick={() => handleOpenAsset(asset)}
             >
@@ -376,7 +376,7 @@ function AssetsPageContent() {
                                 size="sm"
                                 onClick={(e) => {
                                     e.stopPropagation()
-                                    handleDeleteAsset(asset._id)
+                                    handleDeleteAsset(asset.id)
                                 }}
                             >
                                 <Trash2 className="h-4 w-4" />
