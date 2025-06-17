@@ -274,7 +274,7 @@ export function useAssets() {
   }, [])
 
   // Get vector statistics
-  const getVectorStats = useCallback(async (userId?: string) => {
+  const getVectorStats = useCallback(async (userId?: string): Promise<GetVectorStatsResponse> => {
     try {
       return await assetsAPI.getVectorStats(userId)
     } catch (error) {

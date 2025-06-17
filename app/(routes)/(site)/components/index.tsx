@@ -44,7 +44,8 @@ import { useProjectQuery } from "@features/projects/use-projects";
 import { upperFirst } from "lodash";
 import { getRelativeTime } from "@lib/utils/utils";
 import type { ViewMode } from "@/components/molecules";
-import { Project } from "@canva-clone/shared-types";
+import { Project } from "@canva-clone/shared-types/dist/models/project";
+import { ProjectListResponse } from "@canva-clone/shared-types/dist/api/project/project.responses";
 
 // -----------------------------------------------------------------------------
 //  Public wrapper (kept to avoid breaking call‑sites)
@@ -133,19 +134,30 @@ function DashboardInner() {
       const newProject = await createSimpleProject(req);
 
       // Optimistically prepend to first page of current list
-      queryClient.setQueryData<InfiniteData<Project[]>>(
-        ["projects", filterKey],
+      queryClient.setQueryData<InfiniteData<ProjectListResponse>>(
+        ["infiniteProjects", 12, filterKey],
         (old) => {
           if (!old) return old;
-          const first = old.pages[0] ?? [];
-          return { ...old, pages: [[newProject, ...first], ...old.pages.slice(1)] };
+          const firstPage = old.pages[0];
+          if (!firstPage) return old;
+          
+          const updatedFirstPage: ProjectListResponse = {
+            ...firstPage,
+            projects: [newProject, ...firstPage.projects],
+            total: firstPage.total + 1
+          };
+          
+          return { 
+            ...old, 
+            pages: [updatedFirstPage, ...old.pages.slice(1)]
+          };
         },
       );
 
       // Mark *all* projects queries stale so next focus refetches
       queryClient.invalidateQueries({ queryKey: ["projects"], exact: false });
 
-      router.push(`/editor?id=${newProject._id}`);
+      router.push(`/editor?id=${newProject.id}`);
     } catch (err) {
       console.error("create project", err);
       toast({
@@ -174,7 +186,7 @@ function DashboardInner() {
   const handleToggleStar = useCallback(
     async (id: string, e: React.MouseEvent) => {
       e.stopPropagation();
-      const p = projects.find((x) => x._id === id);
+      const p = projects.find((x) => x.id === id);
       if (p) await toggleStar({ id, starred: !p.starred });
     },
     [projects, toggleStar],
@@ -216,8 +228,8 @@ function DashboardInner() {
   const renderGridItem = useCallback(
     (project: Project) => (
       <InteractiveCard
-        key={project._id}
-        id={project._id}
+        key={project.id}
+        id={project.id}
         image={
           project.thumbnail ? {
             src: project.thumbnail,
@@ -225,11 +237,11 @@ function DashboardInner() {
           } : undefined
         }
         title={project.title || "Untitled Design"}
-        subtitleLeft={upperFirst(project.type)}
+        subtitleLeft="Design" // fallback since type property doesn't exist in shared types
         subtitleRight={`Last updated ${getRelativeTime(project.updatedAt)}`}
-        onClick={() => handleOpenProject(project._id)}
+        onClick={() => handleOpenProject(project.id)}
         onTitleChange={handleTitleChange}
-        dimensions={project.designSpec?.dimensions}
+        dimensions={undefined} // designSpec doesn't exist in shared types
       />
     ),
     [handleOpenProject, handleTitleChange],

@@ -1,4 +1,4 @@
-import { type Project } from "@/lib/types/api";
+import { Project } from "@canva-clone/shared-types/dist/models/project";
 import { getRelativeTime } from "@/lib/utils/utils";
 import { Button } from "@components/atoms/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
@@ -51,9 +51,9 @@ export default function ListView({
                 <tbody className="bg-white divide-y divide-gray-200">
                     {getVisibleDesigns().map((design, index) => (
                         <tr
-                            key={design._id}
+                            key={design.id}
                             className="hover:bg-brand-blue-light/5 cursor-pointer transition-colors"
-                            onClick={() => handleOpenDesign(design._id)}
+                            onClick={() => handleOpenDesign(design.id)}
                         >
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
@@ -67,7 +67,7 @@ export default function ListView({
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <Badge variant="outline" className="bg-brand-teal-light/10 border-brand-teal-light/20">
-                                    {upperFirst(design.category) || upperFirst(design.type) || "Design"}
+                                    Design
                                 </Badge>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -89,7 +89,7 @@ export default function ListView({
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                                    <Button variant="ghost" size="sm" className="h-8" onClick={(e) => toggleStar(design._id, e)}>
+                                    <Button variant="ghost" size="sm" className="h-8" onClick={(e) => toggleStar(design.id, e)}>
                                         {design.starred ? (
                                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                                         ) : (
@@ -112,7 +112,7 @@ export default function ListView({
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem
                                                 className="cursor-pointer text-red-500 focus:text-red-500"
-                                                onClick={(e) => handleDeleteDesign(design._id, e)}
+                                                onClick={(e) => handleDeleteDesign(design.id, e)}
                                             >
                                                 Delete
                                             </DropdownMenuItem>
