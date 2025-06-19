@@ -427,6 +427,8 @@ export const initializeDesign = async () => {
 
     // Load the design data
     const design = await projectsAPI.getById(id);
+    console.log(id);
+    console.log('the design', design);
 
     if (design) {
       console.log('Design loaded:', design.title);
