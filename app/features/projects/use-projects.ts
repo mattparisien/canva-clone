@@ -1,6 +1,7 @@
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/atoms/use-toast';
 import { projectsAPI } from '@/lib/api';
 import { type Project } from '@/lib/types/api';
+import { CreateProjectPayload } from '@canva-clone/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
@@ -20,7 +21,8 @@ export function useProjectQuery() {
         return []; // Return empty array on error
       }
     },
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always consider data stale so it refetches on invalidation
+    gcTime: 5 * 60 * 1000, // 5 minutes garbage collection time
   });
 
   // Handle error with useEffect to prevent render-time state updates
@@ -54,12 +56,62 @@ export function useProjectQuery() {
     }
   });
 
+  // Simplified mutation for creating a new project
+  const createSimpleProjectMutation = useMutation({
+    mutationFn: (projectData: CreateProjectPayload) => projectsAPI.createSimple(projectData),
+    onMutate: async (newProjectData) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['infiniteProjects'] });
+      await queryClient.cancelQueries({ queryKey: ['projects'] });
+
+      // Snapshot the previous value
+      const previousInfiniteProjects = queryClient.getQueryData(['infiniteProjects']);
+      const previousProjects = queryClient.getQueryData(['projects']);
+
+      // Return a context object with the snapshotted value
+      return { previousInfiniteProjects, previousProjects };
+    },
+    onSuccess: (data) => {
+      // Invalidate all project-related queries
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
+      // Also invalidate templates in case the new project affects template queries
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
+      toast({
+        title: "Success",
+        description: "Project created successfully!",
+        variant: "default"
+      });
+    },
+    onError: (err, newProjectData, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousInfiniteProjects) {
+        queryClient.setQueryData(['infiniteProjects'], context.previousInfiniteProjects);
+      }
+      if (context?.previousProjects) {
+        queryClient.setQueryData(['projects'], context.previousProjects);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to create project. Please try again.",
+        variant: "destructive"
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    }
+  });
+
   // Mutation for updating a project
   const updateProjectMutation = useMutation({
     mutationFn: ({ id, data }: { id: string, data: Partial<Project> }) =>
       projectsAPI.update(id, data),
     onSuccess: (data) => {
+      // Invalidate all project-related queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
       toast({
         title: "Success",
         description: "Project updated successfully!",
@@ -79,9 +131,10 @@ export function useProjectQuery() {
   const deleteProjectMutation = useMutation({
     mutationFn: (id: string) => projectsAPI.delete(id),
     onSuccess: () => {
-      // Invalidate both standard project queries and infinite project queries
+      // Invalidate all project-related queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
 
       toast({
         title: "Success",
@@ -103,7 +156,9 @@ export function useProjectQuery() {
     mutationFn: ({ id, starred }: { id: string, starred: boolean }) =>
       projectsAPI.update(id, { starred }),
     onSuccess: () => {
+      // Invalidate all project-related queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
     },
     onError: (error) => {
       toast({
@@ -178,9 +233,10 @@ export function useProjectQuery() {
       return { successful, failed, total: ids.length };
     },
     onSuccess: (result) => {
-      // Invalidate both standard project queries and infinite project queries
+      // Invalidate all project-related queries
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['infiniteProjects'] });
+      queryClient.invalidateQueries({ queryKey: ['templates'] });
 
       // Show appropriate message based on partial or complete success
       if (result.failed > 0) {
@@ -211,6 +267,7 @@ export function useProjectQuery() {
     isLoading: projectsQuery.isLoading,
     isError: projectsQuery.isError,
     createProject: createProjectMutation.mutateAsync,
+    createSimpleProject: createSimpleProjectMutation.mutateAsync,
     updateProject: updateProjectMutation.mutateAsync,
     deleteProject: deleteProjectMutation.mutateAsync,
     toggleStar: toggleStarMutation.mutateAsync,

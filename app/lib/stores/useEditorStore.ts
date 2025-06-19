@@ -36,7 +36,11 @@ const useEditorStore = create<EditorState>((set, get) => ({
     {
       id: `page-${Date.now()}`,
       elements: [],
-      canvasSize: DEFAULT_CANVAS_SIZE
+      dimensions: {
+        width: DEFAULT_CANVAS_SIZE.width,
+        height: DEFAULT_CANVAS_SIZE.height,
+        aspectRatio: "16:9"
+      }
     }
   ],
   currentPageId: `page-${Date.now()}`,
@@ -58,10 +62,15 @@ const useEditorStore = create<EditorState>((set, get) => ({
   // Page management functions
   addPage: () => {
     const state = get();
+    const currentPage = state.pages.find(page => page.id === state.currentPageId);
     const newPage: Page = {
       id: `page-${Date.now()}`,
       elements: [],
-      canvasSize: state.pages.find(page => page.id === state.currentPageId)?.canvasSize || DEFAULT_CANVAS_SIZE
+      dimensions: currentPage?.dimensions || {
+        width: DEFAULT_CANVAS_SIZE.width,
+        height: DEFAULT_CANVAS_SIZE.height,
+        aspectRatio: "16:9"
+      }
     };
 
     set(state => ({
@@ -151,7 +160,7 @@ const useEditorStore = create<EditorState>((set, get) => ({
       const newPage: Page = {
         id: `page-${Date.now()}`,
         elements: duplicatedElements,
-        canvasSize: { ...currentPage.canvasSize }
+        dimensions: { ...currentPage.dimensions }
       };
 
       // Insert after current page
@@ -182,11 +191,11 @@ const useEditorStore = create<EditorState>((set, get) => ({
     }));
   },
 
-  updatePageCanvasSize: (pageId: string, canvasSize: CanvasSize) => {
+  updatePageDimensions: (pageId: string, dimensions: { width: number; height: number; aspectRatio: string }) => {
     set(state => ({
       pages: state.pages.map(page =>
         page.id === pageId
-          ? { ...page, canvasSize }
+          ? { ...page, dimensions }
           : page
       ),
       isDesignSaved: false
@@ -343,7 +352,7 @@ export const setupAutoSave = () => {
   // Subscribe to changes in the store
   useEditorStore.subscribe(
     (state) => [state.pages, state.isDesignSaved, state.designId],
-    ([pages, isDesignSaved, designId]) => {
+    ([pages, isDesignSaved, designId]: [any, boolean, string | null]) => {
       if (!isDesignSaved && designId) {
         // Clear any existing timer
         if (autoSaveTimer) {
@@ -418,6 +427,8 @@ export const initializeDesign = async () => {
 
     // Load the design data
     const design = await projectsAPI.getById(id);
+    console.log(id);
+    console.log('the design', design);
 
     if (design) {
       console.log('Design loaded:', design.title);
@@ -428,9 +439,61 @@ export const initializeDesign = async () => {
       });
 
       if (design.pages && design.pages.length > 0) {
+        // Check if pages have dimensions, if not, migrate from legacy canvasSize
+        const processedPages = design.pages.map((page: any) => {
+          // If page already has dimensions, use them
+          if (page.dimensions && page.dimensions.width && page.dimensions.height) {
+            return page;
+          }
+
+          // Otherwise, try to get dimensions from various sources
+          let dimensions = null;
+
+          // 1. Try page-level canvasSize (legacy format)
+          if (page.canvasSize && page.canvasSize.width && page.canvasSize.height) {
+            dimensions = {
+              width: page.canvasSize.width,
+              height: page.canvasSize.height,
+              aspectRatio: page.canvasSize.aspectRatio || `${page.canvasSize.width}:${page.canvasSize.height}`
+            };
+          }
+          // 2. Try project-level canvasSize (legacy format)
+          else if (design.canvasSize && design.canvasSize.width && design.canvasSize.height) {
+            dimensions = {
+              width: design.canvasSize.width,
+              height: design.canvasSize.height,
+              aspectRatio: design.canvasSize.aspectRatio || `${design.canvasSize.width}:${design.canvasSize.height}`
+            };
+          }
+          // 3. Try project-level dimensions (new format)
+          else if (design.dimensions && design.dimensions.width && design.dimensions.height) {
+            dimensions = {
+              width: design.dimensions.width,
+              height: design.dimensions.height,
+              aspectRatio: design.dimensions.aspectRatio || `${design.dimensions.width}:${design.dimensions.height}`
+            };
+          }
+          // 4. Fallback to default
+          else {
+            dimensions = {
+              width: DEFAULT_CANVAS_SIZE.width,
+              height: DEFAULT_CANVAS_SIZE.height,
+              aspectRatio: "16:9"
+            };
+          }
+
+          console.log('Migrated page dimensions:', page.id, dimensions);
+
+          // Return page with migrated dimensions
+          return {
+            ...page,
+            dimensions
+          };
+        });
+
         useEditorStore.setState({
-          pages: design.pages,
-          currentPageId: design.pages[0].id,
+          pages: processedPages,
+          currentPageId: processedPages[0].id,
           currentPageIndex: 0
         });
       }

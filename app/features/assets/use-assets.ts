@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import { Asset } from "@lib/types/api"
+import { Asset } from "@canva-clone/shared-types/dist/models/asset"
 import { assetsAPI } from "@lib/api"
 
 export function useAssets() {
@@ -51,7 +51,7 @@ export function useAssets() {
 
   // Upload multiple assets
   const uploadMultipleAssets = useCallback(async (
-    files: File[], 
+    files: File[],
     tags: string[] = []
   ): Promise<Asset[]> => {
     try {
@@ -66,13 +66,13 @@ export function useAssets() {
 
   // Update asset
   const updateAsset = useCallback(async (
-    assetId: string, 
+    assetId: string,
     updateData: { name?: string; tags?: string[] }
   ): Promise<Asset> => {
     try {
       const updatedAsset = await assetsAPI.update(assetId, updateData)
-      setAssets(prev => prev.map(asset => 
-        asset._id === assetId ? updatedAsset : asset
+      setAssets(prev => prev.map(asset =>
+        asset.id === assetId ? updatedAsset : asset
       ))
       return updatedAsset
     } catch (error) {
@@ -85,7 +85,7 @@ export function useAssets() {
   const deleteAsset = useCallback(async (assetId: string): Promise<void> => {
     try {
       await assetsAPI.delete(assetId)
-      setAssets(prev => prev.filter(asset => asset._id !== assetId))
+      setAssets(prev => prev.filter(asset => asset.id !== assetId))
     } catch (error) {
       console.error(`Failed to delete asset ${assetId}:`, error)
       throw error
@@ -108,7 +108,7 @@ export function useAssets() {
     if (!query.trim()) return searchIn
 
     const lowerQuery = query.toLowerCase()
-    return searchIn.filter(asset => 
+    return searchIn.filter(asset =>
       asset.name.toLowerCase().includes(lowerQuery) ||
       asset.originalFilename?.toLowerCase().includes(lowerQuery) ||
       asset.tags?.some(tag => tag.toLowerCase().includes(lowerQuery))
@@ -128,7 +128,7 @@ export function useAssets() {
     assetsToSort?: Asset[]
   ): Asset[] => {
     const sorted = [...(assetsToSort || assets)]
-    
+
     return sorted.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
@@ -149,7 +149,7 @@ export function useAssets() {
 
   // Vector search assets
   const vectorSearchAssets = useCallback(async (
-    query: string, 
+    query: string,
     options?: { userId?: string; limit?: number; threshold?: number }
   ): Promise<{ 
     query: string; 
@@ -166,7 +166,7 @@ export function useAssets() {
 
   // Find similar assets
   const findSimilarAssets = useCallback(async (
-    assetId: string, 
+    assetId: string,
     options?: { limit?: number; threshold?: number }
   ): Promise<{
     originalAsset: Asset;
@@ -182,7 +182,17 @@ export function useAssets() {
   }, [])
 
   // Get vector statistics
-  const getVectorStats = useCallback(async (userId?: string) => {
+  const getVectorStats = useCallback(async (userId?: string): Promise<{
+    user: string;
+    assets: {
+      total: number;
+      vectorized: number;
+      pending: number;
+      vectorizationRate: string;
+    };
+    vectorStore: any;
+    queueStats: any;
+  }> => {
     try {
       return await assetsAPI.getVectorStats(userId)
     } catch (error) {

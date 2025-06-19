@@ -1,5 +1,6 @@
-import { SelectableGrid, SelectableGridItem } from "@/components/ui/selectable-grid";
+import { SelectableGrid, SelectableGridItem } from "@/components/atoms/selectable-grid";
 import { getRelativeTime } from "@/lib/utils/utils";
+import { getAspectRatioClass, getAspectRatioStyle } from "@/lib/utils/aspectRatio";
 import { type Project } from "@/lib/types/api";
 import { upperFirst } from "lodash";
 import Image from "next/image";
@@ -21,7 +22,10 @@ export default function GridView({
                     <SelectableGridItem item={design} key={design._id}>
                         <Link href={`/editor?id=${design._id}`} target="_blank" key={design._id}>
                             <div className="flex flex-col space-y-2">
-                                <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-gray-100 group-hover:bg-gray-200 transition-colors duration-200">
+                                <div 
+                                    className={`relative w-full overflow-hidden rounded-md border bg-gray-100 group-hover:bg-gray-200 transition-colors duration-200 ${getAspectRatioClass(design.dimensions)}`}
+                                    style={getAspectRatioStyle(design.dimensions)}
+                                >
                                     {design.thumbnail && (
                                         <Image
                                             src={design.thumbnail}

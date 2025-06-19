@@ -1,4 +1,4 @@
-import { NavigationSidebar } from "@/components/layout/navigation-sidebar";
+import { Sidebar } from "@/components/organisms/Sidebar";
 import { EDITOR_NAVIGATION_ITEMS } from "@/lib/constants/navigation";
 import useEditorStore from "@/lib/stores/useEditorStore";
 import { useCallback } from "react";
@@ -18,7 +18,7 @@ const EditorSidebar = ({ onTextColorChange, onBackgroundColorChange }: EditorSid
 
     return (
         <>
-            <NavigationSidebar
+            <Sidebar
                 items={EDITOR_NAVIGATION_ITEMS}
                 variant="editor"
                 onItemClick={handleItemClick}

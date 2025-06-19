@@ -1,5 +1,8 @@
 import { Axios } from "axios";
 import { Brand } from "./brands";
+import { ChatConversation, ChatWithHistory } from "@shared/types/types/chat";
+import { Project } from "@canva-clone/shared-types";
+import { GetProjectsResponse } from "@canva-clone/shared-types";
 
 /**
  * Represents a digital asset in the system.
@@ -83,22 +86,23 @@ export interface Presentation {
  * Represents a design project created by a user.
  * Projects can be presentations, social media graphics, print designs, etc.
  */
-export interface Project {
-  _id: string;                 // Unique identifier
-  title: string;               // Project title
-  type: string;                // Project type (e.g., 'presentation', 'social', 'print')
-  userId: string;              // Owner of the project
-  thumbnail?: string;          // Preview thumbnail URL
-  category?: string;           // Project category for organization
-  starred: boolean;            // Whether the project is starred by the user
-  shared: boolean;             // Whether the project is shared with other users
-  isTemplate: boolean;         // Whether this project serves as a template
-  description?: string;        // Optional project description
-  canvasSize?: any;            // Canvas dimensions and properties
-  pages?: any[];               // Array of design pages/slides
-  createdAt: string;           // Creation timestamp
-  updatedAt: string;           // Last updated timestamp
-}
+// export interface Project {
+//   _id: string;                 // Unique identifier
+//   title: string;               // Project title
+//   type: string;                // Project type (e.g., 'presentation', 'social', 'print')
+//   userId: string;              // Owner of the project
+//   thumbnail?: string;          // Preview thumbnail URL
+//   category?: string;           // Project category for organization
+//   starred: boolean;            // Whether the project is starred by the user
+//   shared: boolean;             // Whether the project is shared with other users
+//   isTemplate: boolean;         // Whether this project serves as a template
+//   description?: string;        // Optional project description
+//   dimensions?: { width: number; height: number; aspectRatio: string }; // Canvas dimensions using new structure
+//   canvasSize?: { name?: string; width: number; height: number; aspectRatio?: string }; // Legacy canvas size format
+//   pages?: any[];               // Array of design pages/slides
+//   createdAt: string;           // Creation timestamp
+//   updatedAt: string;           // Last updated timestamp
+// }
 
 /**
  * Represents a design template that users can use as a starting point.
@@ -255,12 +259,7 @@ export interface ProjectsAPIService extends APIService<Project> {
     page: number,
     limit: number,
     filters: Record<string, any>
-  ) => Promise<{
-    projects: Project[];       // Array of projects for current page
-    totalProjects: number;     // Total number of projects matching filters
-    totalPages: number;        // Total number of pages available
-    currentPage: number;       // Current page number
-  }>;
+  ) => Promise<GetProjectsResponse>;
 }
 
 /**
@@ -321,4 +320,157 @@ export interface AuthAPIService {
    */
 
   logout: () => Promise<void>;
+}
+
+/**
+ * Represents a chat message in the design assistant conversation.
+ */
+export interface ChatMessage {
+  id: string;                  // Unique identifier for the message
+  type: 'user' | 'bot';        // Type of message (user input or bot response)
+  content: string;             // The message content
+  timestamp: Date;             // When the message was created
+}
+
+/**
+ * Response from the chat API when sending a message.
+ */
+export interface ChatResponse {
+  response?: string;           // The bot's response message (legacy streaming mode)
+  assistant_text?: string;     // The bot's response message (JSON mode)
+  timestamp: string;           // ISO timestamp of the response
+  useOwnData: boolean;         // Whether user's personal data was used
+  suggestions?: string[];      // Optional suggested follow-up actions
+  action?: string;             // Optional action type (JSON mode)
+  type?: string;               // SSE event type (chunk/complete)
+  chatId?: string;            // Chat conversation ID (from backend)
+  messageCount?: number;       // Total messages in conversation (from backend)
+  userId?: string;            // User ID (from backend)
+  success?: boolean;          // Success status (from backend)
+  toolOutputs?: any;          // Tool call results (from backend)
+}
+
+/**
+ * Request payload for sending a message to the chat API.
+ */
+export interface SendMessageRequest {
+  message: string;             // The user's message
+  useOwnData?: boolean;        // Whether to use user's personal assets/data
+  chatId?: string;            // Optional existing chat ID
+  userId?: string;            // User ID for the conversation
+}
+
+/**
+ * Request payload for creating a new chat conversation.
+ */
+export interface CreateChatRequest {
+  userId: string;
+  title?: string;
+}
+
+/**
+ * Request payload for updating chat title.
+ */
+export interface UpdateChatTitleRequest {
+  title: string;
+  userId?: string;
+}
+
+/**
+ * Response from getUserChats API
+ */
+export interface GetUserChatsResponse {
+  success: boolean;
+  chats: ChatConversation[];
+  count: number;
+}
+
+/**
+ * Response from getChatById API
+ */
+export interface GetChatResponse {
+  success: boolean;
+  chat: ChatWithHistory;
+}
+
+/**
+ * Response from createNewChat API
+ */
+export interface CreateChatResponse {
+  success: boolean;
+  chat: {
+    id: string;
+    title: string;
+    userId: string;
+    metadata: any;
+    createdAt: Date;
+  };
+}
+
+/**
+ * Health check response from the chat API.
+ */
+export interface ChatHealthResponse {
+  status: string;              // Service status
+  service: string;             // Service name
+  timestamp: string;           // ISO timestamp
+  version: string;             // API version
+}
+
+/**
+ * Chat API service interface for design assistant functionality.
+ */
+export interface ChatAPIService extends APIServiceBase {
+  /**
+   * Sends a message to the design assistant with optional streaming support.
+   * @param request - The message request containing user input
+   * @param onChunk - Optional callback for streaming response chunks
+   * @returns Promise resolving to the chat response
+   */
+  sendMessage(request: SendMessageRequest, onChunk?: (content: string) => void): Promise<ChatResponse>;
+
+  /**
+   * Get user's chat conversations
+   * @param userId - User ID
+   * @param limit - Maximum number of chats to return
+   * @returns Promise resolving to user's chat conversations
+   */
+  getUserChats(userId: string, limit?: number): Promise<GetUserChatsResponse>;
+
+  /**
+   * Get specific chat conversation with full message history
+   * @param chatId - Chat conversation ID
+   * @param userId - User ID for access control
+   * @returns Promise resolving to chat with full history
+   */
+  getChatById(chatId: string, userId?: string): Promise<GetChatResponse>;
+
+  /**
+   * Create a new chat conversation
+   * @param request - Request payload with user ID and optional title
+   * @returns Promise resolving to new chat info
+   */
+  createNewChat(request: CreateChatRequest): Promise<CreateChatResponse>;
+
+  /**
+   * Update chat conversation title
+   * @param chatId - Chat conversation ID
+   * @param request - Request payload with new title
+   * @returns Promise resolving to updated chat info
+   */
+  updateChatTitle(chatId: string, request: UpdateChatTitleRequest): Promise<{ success: boolean; chat: any }>;
+
+  /**
+   * Delete a chat conversation
+   * @param chatId - Chat conversation ID
+   * @param userId - User ID for access control
+   * @returns Promise resolving to delete confirmation
+   */
+  deleteChat(chatId: string, userId?: string): Promise<{ success: boolean; message: string }>;
+
+  /**
+   * Checks the health status of the chat service.
+   * @returns Promise resolving to health status information
+   */
+  healthCheck(): Promise<ChatHealthResponse>;
 }

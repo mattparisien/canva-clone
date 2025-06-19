@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
+import { Badge } from "@/components/atoms/badge"
+import { Button } from "@/components/atoms/button"
+import { Slider } from "@/components/atoms/slider"
 import { MAX_ZOOM, MIN_ZOOM } from "@/lib/constants/editor"
 import { Maximize, Minus, Plus } from "lucide-react"
 

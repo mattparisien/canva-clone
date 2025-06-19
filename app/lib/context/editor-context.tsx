@@ -63,7 +63,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     
     // Page content updates
     updatePageElements: store.updatePageElements,
-    updatePageCanvasSize: store.updatePageCanvasSize,
+    updatePageDimensions: store.updatePageDimensions,
   };
 
   return (

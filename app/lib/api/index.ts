@@ -6,6 +6,7 @@ import { ProjectsAPI } from "./projects";
 import { UsersAPI } from "./user";
 import { TemplatesAPI } from "./templates";
 import { AuthAPI } from "./auth";
+import { ChatAPI } from "./chat";
 
 function createAPIService<T, S extends APIService<T>>(
   ctor: new (client: Axios) => S,
@@ -47,5 +48,6 @@ const projectsAPI = createAPIService(ProjectsAPI, apiClient);
 const usersAPI = createAPIService(UsersAPI, apiClient);
 const templatesAPI = createAPIService(TemplatesAPI, apiClient);
 const authAPI = new AuthAPI(apiClient);
+const chatAPI = new ChatAPI(apiClient);
 
-export { assetsAPI, brandsAPI, projectsAPI, templatesAPI, usersAPI, authAPI };
+export { assetsAPI, brandsAPI, projectsAPI, templatesAPI, usersAPI, authAPI, chatAPI };

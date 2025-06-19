@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { type Project, projectsAPI } from '@lib/api';
-import { useToast } from '@components/ui/use-toast';
+import { useToast } from '@components/atoms/use-toast';
 
 export function useProjectQuery() {
   const queryClient = useQueryClient();

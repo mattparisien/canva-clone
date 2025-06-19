@@ -1,8 +1,8 @@
 import { Axios } from "axios";
-import { APIService, Asset } from "../types/api";
+import { Asset } from "@canva-clone/shared-types/dist/models/asset";
 import { APIBase } from "./base";
 
-export class AssetsAPI extends APIBase implements APIService<Asset> {
+export class AssetsAPI extends APIBase {
     API_URL: string = "/assets";
     apiClient: Axios;
 
@@ -31,7 +31,7 @@ export class AssetsAPI extends APIBase implements APIService<Asset> {
             }
             
             const response = await this.apiClient.get<{ data: Asset[] }>(url);
-            return response.data;
+            return response.data.data;
         } catch (error: any) {
             console.error(
                 "Error fetching assets:",

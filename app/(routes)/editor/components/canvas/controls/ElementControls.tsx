@@ -195,8 +195,8 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
         const currentPageId = editor.currentPageId;
         const currentPage = editor.pages.find(page => page.id === currentPageId);
         const allElements = currentPage ? currentPage.elements : [];
-        const canvasWidth = currentPage ? currentPage.canvasSize.width : 800;
-        const canvasHeight = currentPage ? currentPage.canvasSize.height : 600;
+        const canvasWidth = currentPage ? currentPage.dimensions.width : 800;
+        const canvasHeight = currentPage ? currentPage.dimensions.height : 600;
 
         let animationFrameId: number | null = null;
         let lastEvent: MouseEvent | null = null;
@@ -287,8 +287,8 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
         const currentPageId = editor.currentPageId;
         const currentPage = editor.pages.find(page => page.id === currentPageId);
         const allElements = currentPage ? currentPage.elements : [];
-        const canvasWidth = currentPage ? currentPage.canvasSize.width : 800;
-        const canvasHeight = currentPage ? currentPage.canvasSize.height : 600;
+        const canvasWidth = currentPage ? currentPage.dimensions.width : 800;
+        const canvasHeight = currentPage ? currentPage.dimensions.height : 600;
 
         let animationFrameId: number | null = null;
         let lastEvent: MouseEvent | null = null;

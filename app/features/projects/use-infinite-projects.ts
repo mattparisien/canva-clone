@@ -1,16 +1,18 @@
 "use client";
 
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { projectsAPI } from "@lib/api";
-import { type Project } from "@/lib/types/api";
-import { useMemo } from "react";
+// -----------------------------------------------------------------------------
+//  useInfiniteProjects — v2
+//  Fixes
+//  • Stable query key (stringified filters) → mutation invalidations work
+//  • Helper export buildFilterKey() so other hooks/mutations can reuse the same logic
+//  • Keeps the public API identical to minimise breaking changes
+// -----------------------------------------------------------------------------
 
-interface ProjectsPageData {
-  projects: Project[];
-  totalProjects: number;
-  totalPages: number;
-  currentPage: number;
-}
+import { ProjectListResponse } from "@canva-clone/shared-types/dist/api"
+import { Project } from "@canva-clone/shared-types/dist/models/project"
+import { projectsAPI } from "@lib/api";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
+import { useMemo } from "react";
 
 export interface UseInfiniteProjectsOptions {
   limit?: number;
@@ -23,13 +25,23 @@ export interface UseInfiniteProjectsOptions {
   };
 }
 
+// -----------------------------------------------------------------------------
+//  Helper — stringify filters deterministically so React‑Query keys stay stable
+// -----------------------------------------------------------------------------
+export function buildFilterKey(filters: UseInfiniteProjectsOptions["filters"]) {
+  return JSON.stringify(filters ?? {});
+}
+
 /**
- * Custom hook for infinite loading of projects with pagination
+ * Infinite loader for projects with pagination.
+ * Returns a flattened array of projects + query helpers.
  */
 export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
   const { limit = 12, filters = {} } = options;
 
-  // Use the InfiniteQuery hook to handle pagination
+  // Stable string key — memoised so it only changes when filters truly change
+  const filterKey = useMemo(() => buildFilterKey(filters), [filters]);
+
   const {
     data,
     fetchNextPage,
@@ -38,33 +50,37 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     isLoading,
     isError,
     error,
-    refetch
-  } = useInfiniteQuery({
-    queryKey: ['infiniteProjects', limit, filters],
+    refetch,
+  } = useInfiniteQuery<ProjectListResponse, Error, InfiniteData<ProjectListResponse>, readonly ["infiniteProjects", number, string], number>({
+    queryKey: ["infiniteProjects", limit, filterKey],
     queryFn: async ({ pageParam = 1 }) => {
-      // Call the API with the current page and filters
-      const result = await projectsAPI.getPaginated(pageParam, limit, filters);
+      // API call is untouched — still passes raw filters object
+      const result = await projectsAPI.getPaginated(pageParam as number, limit, filters);
       return result;
     },
-    getNextPageParam: (lastPage: ProjectsPageData) => {
-      // If we're on the last page, return undefined to indicate there's no more data
-      if (lastPage.currentPage >= lastPage.totalPages) {
-        return undefined;
-      }
-      // Otherwise, return the next page number
-      return lastPage.currentPage + 1;
-    },
     initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      console.log(lastPage);
+      const totalPages = Math.ceil(lastPage.total / lastPage.pageSize);
+      return lastPage.page < totalPages
+        ? lastPage.page + 1
+        : undefined
+    },
+
+    // Always stale so an invalidate triggers a refetch immediately
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
   });
 
-  // Flatten the projects from all pages into a single array for easier consumption
+  // Flatten all pages into a single list (memoised)
   const projects = useMemo(() => {
-    if (!data) return [];
+    if (!data) return [] as Project[];
     return data.pages.flatMap(page => page.projects);
   }, [data]);
 
-  // Calculate total count from the most recent page
-  const totalProjects = data?.pages[0]?.totalProjects || 0;
+
+  const totalProjects = data?.pages[0]?.total ?? 0;
 
   return {
     projects,
@@ -75,6 +91,30 @@ export function useInfiniteProjects(options: UseInfiniteProjectsOptions = {}) {
     isLoading,
     isError,
     error,
-    refetch
+    refetch,
+    // Expose the key so mutation files can invalidate easily
+    queryKey: ["infiniteProjects", limit, filterKey] as const,
   };
+}
+
+// -----------------------------------------------------------------------------
+//  Utility — manual optimistic prepend (can be used in mutation onSuccess)
+// -----------------------------------------------------------------------------
+export function prependProjectToCache(
+  queryClient: import("@tanstack/react-query").QueryClient,
+  key: readonly ["infiniteProjects", number, string],
+  project: Project,
+) {
+  queryClient.setQueryData<InfiniteData<ProjectListResponse>>(key, (old) => {
+    if (!old) return old;
+
+    const firstPage = old.pages[0];
+    const updatedFirst: ProjectListResponse = {
+      ...firstPage,
+      projects: [project, ...firstPage.projects],
+      total: firstPage.total + 1,
+    };
+
+    return { ...old, pages: [updatedFirst, ...old.pages.slice(1)] };
+  });
 }
