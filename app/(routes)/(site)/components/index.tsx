@@ -23,12 +23,21 @@ import { useRouter } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 import { v4 as uuidv4 } from 'uuid'
 import ListView from "../components/list-view"
+import { EnhancedChatbot } from "@/components/ui/enhanced-chatbot"
 
 // Main Dashboard component that wraps everything with SelectionProvider
 export default function Dashboard() {
   return (
     <SelectionProvider>
       <DashboardContent />
+      <EnhancedChatbot 
+        enableWebSearch={true}
+        enableProjectCreation={true}
+        onProjectCreated={(projectData) => {
+          console.log('New project created via chatbot:', projectData)
+          // You could redirect to the editor or show a success message
+        }}
+      />
     </SelectionProvider>
   )
 }
