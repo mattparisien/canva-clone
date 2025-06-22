@@ -88,6 +88,7 @@ export function Chatbot({ trigger, className }: ChatbotProps) {
       }
 
       const data = await response.json()
+      console.log('the data', data);
       
       // Remove typing indicator and add actual response
       setMessages(prev => prev.filter(msg => msg.id !== 'typing'))
@@ -95,7 +96,7 @@ export function Chatbot({ trigger, className }: ChatbotProps) {
       const assistantMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: data.response || 'I apologize, but I couldn\'t generate a response. Please try again.',
+        content: data.answer || 'I apologize, but I couldn\'t generate a response. Please try again.',
         timestamp: new Date()
       }
 
@@ -184,7 +185,7 @@ export function Chatbot({ trigger, className }: ChatbotProps) {
       const assistantMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: data.response || 'I apologize, but I couldn\'t generate a response. Please try again.',
+        content: data.answer || 'I apologize, but I couldn\'t generate a response. Please try again.',
         timestamp: new Date()
       }
 

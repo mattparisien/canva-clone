@@ -100,6 +100,7 @@ export function useChatbot(options: UseChatbotOptions = {}) {
       }
 
       const data = await response.json()
+      console.log('the data', data);
       
       // Remove typing indicator
       removeMessage(typingMessageId)
@@ -107,7 +108,7 @@ export function useChatbot(options: UseChatbotOptions = {}) {
       // Add assistant response
       const assistantMessageId = addMessage({
         role: 'assistant',
-        content: data.response || 'I apologize, but I couldn\'t generate a response. Please try again.'
+        content: data.answer || 'I apologize, but I couldn\'t generate a response. Please try again.'
       })
 
       return {

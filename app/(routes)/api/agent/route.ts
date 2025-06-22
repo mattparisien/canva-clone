@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const headers = getHeadersWithAuth(req);
     
-    const response = await axios.post(`${BACKEND_URL}/api/agent/generate`, body, { headers });
+    const response = await axios.post(`${BACKEND_URL}/api/agent/ask`, body, { headers });
     return NextResponse.json(response.data);
   } catch (error: any) {
     console.error('Error calling agent:', error.response?.data || error.message);
