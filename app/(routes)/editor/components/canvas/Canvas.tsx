@@ -38,7 +38,6 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   // Alignment guides from canvas store
   const alignmentGuides = useCanvasStore(state => state.alignmentGuides)
   const isDragging = useCanvasStore(state => state.isDragging)
-  const activeDragElement = useCanvasStore(state => state.activeDragElement)
   const setDragState = useCanvasStore(state => state.setDragState)
   const clearAlignmentGuides = useCanvasStore(state => state.clearAlignmentGuides)
 
@@ -227,6 +226,7 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
         // "border-4 border-brand-blue": isBorderActive,
         isBorderActive && "is-highlighted"
       )}
+      data-canvas
       style={{
         width: canvasSize.width,
         height: canvasSize.height,

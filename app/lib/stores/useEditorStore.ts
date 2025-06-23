@@ -252,8 +252,8 @@ const useEditorStore = create<EditorState>((set, get) => ({
         // Use a longer delay to ensure all rendering and text calculations are complete
         setTimeout(async () => {
           // Find the canvas element in the DOM - targeting the specific canvas element
-          const canvasElement = document.querySelector('.canvas-wrapper');
-
+          const canvasElement = document.querySelector('[data-canvas]');
+          console.log(canvasElement)
           if (!canvasElement) {
             console.error('Canvas element not found for screenshot');
             resolve(undefined);
