@@ -16,6 +16,7 @@ export default function MarqueeSelection({ canvasRef }: MarqueeSelectionProps) {
   const elements = useCurrentPageElements();
   const selectMultipleElements = useCanvasStore(state => state.selectMultipleElements);
   const selectedElementIds = useCanvasStore(state => state.selectedElementIds);
+  const isDragging = useCanvasStore(state => state.isDragging);
   const isEditMode = useEditorStore(state => state.isEditMode);
 
   // Helper function to check if click is in an excluded area (sidebar, navbar, etc.)
@@ -138,6 +139,7 @@ export default function MarqueeSelection({ canvasRef }: MarqueeSelectionProps) {
     const handleMouseDown = (e: MouseEvent) => {
       if (!isEditMode) return;
       if (e.button !== 0) return; // Only left mouse button
+      if (isDragging) return; // Don't start marquee selection if an element is being dragged
       
       // Check if click is in an excluded area
       if (isInExcludedArea(e.target)) return;
@@ -157,7 +159,7 @@ export default function MarqueeSelection({ canvasRef }: MarqueeSelectionProps) {
     return () => {
       document.removeEventListener('mousedown', handleMouseDown);
     };
-  }, [isEditMode]);
+  }, [isEditMode, isDragging]);
 
   // Get viewport style for displaying the marquee selection rectangle
   const getViewportStyle = () => {
