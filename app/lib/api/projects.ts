@@ -165,7 +165,7 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
             });
 
             const response = await this.apiClient.get<{
-                data: Project[];
+                projects: Project[];
                 totalProjects: number;
                 totalPages: number;
                 currentPage: number;
