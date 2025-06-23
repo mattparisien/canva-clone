@@ -128,29 +128,25 @@ export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarPro
         title: 'Untitled Design',
         description: "",
         type: "presentation",
-        userId: "1234",
-        canvasSize: {
-          name: "Presentation 16:9",
-          width: 1920,
-          height: 1080
-        },
-        pages: [
-          {
-            id: uuid(),
-            canvasSize: {
-              name: "Presentation 16:9",
-              width: 1920,
-              height: 1080
-            },
-            elements: [],
-            background: {
-              type: "color",
-              value: "#ffffff"
-            }
-          }
-        ],
+        ownerId: "1234", // Replace with actual user ID from auth
         starred: false,
-        shared: false
+        tags: [],
+        layout: {
+          pages: [
+            {
+              name: "Page 1",
+              canvas: {
+                width: 1920,
+                height: 1080
+              },
+              elements: [],
+              background: {
+                type: "color",
+                value: "#ffffff"
+              }
+            }
+          ]
+        }
       }
 
       const newProject = await createProject(project);

@@ -140,8 +140,8 @@ export function useProjectQuery() {
 
   // Clone project
   const cloneProjectMutation = useMutation({
-    mutationFn: ({ id, userId }: { id: string, userId: string }) =>
-      projectsAPI.clone(id, userId),
+    mutationFn: ({ id, ownerId }: { id: string, ownerId: string }) =>
+      projectsAPI.clone(id, ownerId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast({
@@ -258,8 +258,8 @@ export function useTemplatesQuery(category?: string, type?: string) {
 
   // Use a template to create a new project
   const useTemplateMutation = useMutation({
-    mutationFn: ({ templateId, userId }: { templateId: string, userId: string }) =>
-      projectsAPI.clone(templateId, userId),
+    mutationFn: ({ templateId, ownerId }: { templateId: string, ownerId: string }) =>
+      projectsAPI.clone(templateId, ownerId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast({

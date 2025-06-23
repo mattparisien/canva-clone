@@ -87,15 +87,15 @@ export interface Project {
   _id: string;                 // Unique identifier
   title: string;               // Project title
   type: string;                // Project type (e.g., 'presentation', 'social', 'print')
-  userId: string;              // Owner of the project
+  ownerId: string;             // Owner of the project (updated from userId)
+  layoutId?: string;           // Reference to Layout document
   thumbnail?: string;          // Preview thumbnail URL
-  category?: string;           // Project category for organization
+  tags?: string[];             // Tags array for organization
   starred: boolean;            // Whether the project is starred by the user
-  shared: boolean;             // Whether the project is shared with other users
+  sharedWith?: string[];       // Array of user IDs this project is shared with
   isTemplate: boolean;         // Whether this project serves as a template
   description?: string;        // Optional project description
-  canvasSize?: any;            // Canvas dimensions and properties
-  pages?: any[];               // Array of design pages/slides
+  layout?: any;                // Layout data (used when creating projects)
   createdAt: string;           // Creation timestamp
   updatedAt: string;           // Last updated timestamp
 }
@@ -223,10 +223,10 @@ export interface ProjectsAPIService extends APIService<Project> {
   /**
    * Creates a copy of an existing project.
    * @param id - ID of the project to clone
-   * @param userId - ID of the user who will own the cloned project
+   * @param ownerId - ID of the user who will own the cloned project
    * @returns Promise resolving to the cloned Project object
    */
-  clone: (id: string, userId: string) => Promise<Project>;
+  clone: (id: string, ownerId: string) => Promise<Project>;
 
   /**
    * Toggles whether a project is a template.

@@ -97,8 +97,8 @@ export function useTemplatesQuery(props?: UseTemplatesQueryProps) {
   
   // Use a template to create a project
   const useTemplateMutation = useMutation({
-    mutationFn: ({ templateId, userId }: { templateId: string, userId: string }) => 
-      templatesAPI.use(templateId, userId),
+    mutationFn: ({ templateId, ownerId }: { templateId: string, ownerId: string }) => 
+      templatesAPI.use(templateId, ownerId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast({

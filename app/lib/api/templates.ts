@@ -99,9 +99,9 @@ export class TemplatesAPI extends APIBase implements APIService<Template> {
   }
 
   // Use a template to create a project
-  async use(templateId: string, userId: string): Promise<any> {
+  async use(templateId: string, ownerId: string): Promise<any> {
     try {
-      const response = await this.apiClient.post(`/templates/${templateId}/use`, { userId });
+      const response = await this.apiClient.post(`/templates/${templateId}/use`, { ownerId });
       return response.data;
     } catch (error: any) {
       console.error(`Error using template ${templateId}:`, error.response?.data || error.message);

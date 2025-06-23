@@ -85,11 +85,11 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
         }
     }
 
-    async clone(projectId: string, userId: string): Promise<Project> {
+    async clone(projectId: string, ownerId: string): Promise<Project> {
         try {
             const response = await this.apiClient.post<{ data: Project }>(
                 `/projects/${projectId}/clone`,
-                { userId }
+                { ownerId }
             );
             return response.data.data;
         } catch (error: any) {

@@ -102,29 +102,25 @@ function DashboardContent() {
         title: 'Untitled Project',
         description: "",
         type: "presentation",
-        userId: "user123", // Replace with actual user ID from auth
-        canvasSize: {
-          name: "Presentation 16:9",
-          width: 1920,
-          height: 1080
-        },
-        pages: [
-          {
-            id: uuidv4(),
-            canvasSize: {
-              name: "Presentation 16:9",
-              width: 1920,
-              height: 1080
-            },
-            elements: [],
-            background: {
-              type: "color",
-              value: "#ffffff"
-            }
-          }
-        ],
+        ownerId: "user123", // Replace with actual user ID from auth
         starred: false,
-        shared: false
+        tags: [],
+        layout: {
+          pages: [
+            {
+              name: "Page 1",
+              canvas: {
+                width: 1920,
+                height: 1080
+              },
+              elements: [],
+              background: {
+                type: "color",
+                value: "#ffffff"
+              }
+            }
+          ]
+        }
       }
 
       // Now we can directly await the result since we're using mutateAsync
