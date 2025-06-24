@@ -88,9 +88,9 @@ export class TemplatesAPI extends APIBase implements APIService<Template> {
   }
 
   // Create template from existing project
-  async createFromProject(projectId: string, category: string, author: string): Promise<Template> {
+  async createFromProject(projectId: string, data: { slug: string, categories?: string[], tags?: string[] }): Promise<Template> {
     try {
-      const response = await this.apiClient.post<Template>(`/templates/from-project/${projectId}`, { category, author });
+      const response = await this.apiClient.post<Template>(`/templates/from-project/${projectId}`, data);
       return response.data;
     } catch (error: any) {
       console.error('Error creating template from project:', error.response?.data || error.message);

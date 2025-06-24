@@ -121,13 +121,11 @@ export function useTemplatesQuery(props?: UseTemplatesQueryProps) {
   const createFromProjectMutation = useMutation({
     mutationFn: ({ 
       projectId, 
-      category, 
-      author 
+      data
     }: { 
       projectId: string, 
-      category: string, 
-      author: string 
-    }) => templatesAPI.createFromProject(projectId, category, author),
+      data: { slug: string, categories?: string[], tags?: string[] }
+    }) => templatesAPI.createFromProject(projectId, data),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['templates'] });
       toast({
