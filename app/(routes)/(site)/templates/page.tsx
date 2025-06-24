@@ -4,7 +4,7 @@ import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveC
 import { SelectionActions } from "@/components/composite/SelectionActions"
 import { Button } from "@components/ui/button"
 import { useToast } from "@components/ui/use-toast"
-import { templatesAPI, projectsAPI } from "@lib/api"
+import { templatesAPI } from "@lib/api"
 import { SelectionProvider } from "@lib/context/selection-context"
 import { useTemplatesQuery } from "@/features/templates/use-templates"
 import { useRouter } from "next/navigation"
@@ -30,43 +30,30 @@ export default function TemplatesPage() {
 
   const handleCreateTemplate = async () => {
     try {
-      // Step 1: Create a new blank project first
-      const projectData = {
-        title: "New Template Design",
-        ownerId: "current-user-id", // You'll need to get this from auth context
+      // Create a new template directly using the templates API
+      const templateData = {
+        title: "New Template",
+        description: "A new blank template",
         type: "custom" as const,
-        layout: {
-          pages: [{
-            name: "Page 1",
-            canvas: { width: 800, height: 600 },
-            background: {
-              type: "color",
-              value: "#ffffff"
-            },
-            elements: []
-          }]
-        }
+        category: "General",
+        author: "current-user", // You'll need to get this from auth context
+        featured: false,
+        popular: false,
+        canvasSize: {
+          name: "Custom",
+          width: 800,
+          height: 600
+        },
+        tags: ["blank", "custom"]
+        // layoutId will be created automatically by the backend
       };
 
-      const project = await projectsAPI.create(projectData);
-      
-      // Step 2: Create a template from the project using the templates API
-      const templateSlug = `template-${Date.now()}`; // Generate unique slug
-      const template = await templatesAPI.createFromProject(project._id, {
-        slug: templateSlug,
-        categories: ["General"],
-        tags: ["blank", "custom"]
-      });
+      createTemplate(templateData);
       
       toast({
-        title: "Success", 
-        description: "New template created! Redirecting to editor...",
+        title: "Success",
+        description: "New template created successfully!",
       });
-
-      // Redirect to editor with the project for designing the template
-      setTimeout(() => {
-        router.push(`/editor/${project._id}?mode=template&templateId=${template._id}`);
-      }, 1000);
 
     } catch (error) {
       console.error("Failed to create template:", error);
