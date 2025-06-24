@@ -13,7 +13,6 @@ import {
 import { cn } from "@/lib/utils/utils"
 import {
   AlignCenter,
-  AlignJustify,
   AlignLeft,
   AlignRight,
   Bold,

@@ -8,7 +8,7 @@ interface TextElementProps {
   updateElement: (id: string, updates: Partial<CanvasElement>) => void;
   clearNewElementFlag: (id: string) => void;
   handleHeightChange: (newHeight: number) => void;
-  handleTextAlignChange: (align: "left" | "center" | "right" | "justify") => void;
+  handleTextAlignChange: (align: "left" | "center" | "right") => void;
   isEditMode: boolean;
 }
 

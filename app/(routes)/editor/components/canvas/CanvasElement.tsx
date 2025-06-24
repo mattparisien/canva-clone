@@ -87,27 +87,27 @@ export function CanvasElement({
 
   // Handle text height change
   const handleHeightChange = useCallback((newHeight: number) => {
-    if (element.type === "text") {
+    if (element.kind === "text") {
       updateElementWithRect({ height: newHeight });
     }
   }, [element, updateElementWithRect]);
 
   // Handle text alignment change
-  const handleTextAlignChange = useCallback((align: "left" | "center" | "right" | "justify") => {
-    if (element.type !== "text") return;
+  const handleTextAlignChange = useCallback((align: "left" | "center" | "right") => {
+    if (element.kind !== "text") return;
     updateElement(element.id, { textAlign: align });
   }, [element, updateElement]);
 
   // Track width and fontSize for text elements to trigger height recalculation
   useEffect(() => {
-    if (element.type === "text") {
+    if (element.kind === "text") {
       setTextEditorKey((k) => k + 1);
     }
-  }, [element.width, element.fontSize, element.type]);
+  }, [element.width, element.fontSize, element.kind]);
 
   // Update height when fontSize changes
   useEffect(() => {
-    if (element.type === "text" && element.content && element.fontSize) {
+    if (element.kind === "text" && element.content && element.fontSize) {
       const measuredHeight = measureElementHeight(element);
 
       if (measuredHeight && measuredHeight !== element.height) {
@@ -150,7 +150,7 @@ export function CanvasElement({
   return (
     <>
       {/* Hidden measurer for text height calculation */}
-      {element.type === 'text' && renderMeasurer()}
+      {element.kind === 'text' && renderMeasurer()}
 
       {/* Main element container */}
       <div
@@ -167,7 +167,7 @@ export function CanvasElement({
           transform: "none",
           borderRadius: "2px",
           // Fixed stacking order based only on element type
-          zIndex: element.type === "text" ? 1 : 0,
+          zIndex: element.kind === "text" ? 1 : 0,
         }}
         onMouseEnter={() => onHover?.(element.id)}
         onMouseLeave={() => onHover?.(null)}
