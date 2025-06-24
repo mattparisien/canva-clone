@@ -20,14 +20,9 @@ export default function TemplatesPage() {
   }
 
   const handleOpenTemplate = (id: string) => {
-    console.log(`Using template ${id}`)
-    // Use the template to create a new project
-    // Generate a valid ObjectId for demo purposes (24 hex characters)
-    const demoUserId = "507f1f77bcf86cd799439011"; // Valid ObjectId format
-    useTemplate({ 
-      templateId: id, 
-      ownerId: demoUserId
-    })
+    console.log(`Opening template ${id} for editing`)
+    // Navigate directly to the editor with the template ID
+    router.push(`/editor?templateId=${id}`)
   }
 
   const handleCreateTemplate = async () => {
