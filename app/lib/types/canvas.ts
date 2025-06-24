@@ -1,4 +1,4 @@
-export type ElementType = "text" | "rectangle" | "circle" | "line" | "arrow"
+export type ElementType = "text" | "image" | "shape"
 
 export type CanvasSize = {
   name: string
@@ -9,41 +9,59 @@ export type CanvasSize = {
 
 export interface Element {
   id: string
-  type: ElementType
+  kind: ElementType // Changed from 'type' to match backend discriminator
   x: number
   y: number
   width: number
   height: number
-  rect?: { // Viewport-relative position and dimensions
+  rotation?: number // For element rotation
+  opacity?: number // Element opacity
+  zIndex?: number // Element z-index for layering
+  rect?: { // Viewport-relative position and dimensions (frontend-only)
     x: number
     y: number
     width: number
     height: number
   }
+  // Text-specific properties
   content?: string
   fontSize?: number
   fontFamily?: string
-  textAlign?: "left" | "center" | "right" | "justify"
-  textColor?: string // Text color for text elements
-  isNew?: boolean // Track if element was just created
-  isBold?: boolean // Bold formatting
-  isItalic?: boolean // Italic formatting
-  isUnderlined?: boolean // Underline formatting
-  isStrikethrough?: boolean // Strikethrough formatting
+  textAlign?: "left" | "center" | "right"
+  bold?: boolean // Bold formatting (renamed from isBold)
+  italic?: boolean // Italic formatting (renamed from isItalic)
+  underline?: boolean // Underline formatting (renamed from isUnderlined)
+  color?: string // Text color (renamed from textColor)
+  // Image-specific properties
+  src?: string // Image source URL
+  alt?: string // Image alt text
+  // Shape-specific properties
+  shapeType?: "rect" | "circle" | "triangle" // Shape type (updated values)
   backgroundColor?: string // For shapes with background
   borderWidth?: number // For shapes with borders
   borderColor?: string // For shape borders
-  borderStyle?: "solid" | "dashed" | "dotted" // For shape borders
-  rotation?: number // For element rotation
+  borderStyle?: "solid" | "dashed" | "dotted" // For shape borders (frontend-only)
+  // Frontend-only properties
+  isNew?: boolean // Track if element was just created
   locked?: boolean // Whether the element is locked for editing
   isEditable?: boolean // Whether the element can be edited
+  isStrikethrough?: boolean // Strikethrough formatting (frontend-only)
 }
 
 export interface Page {
-  id: string
+  id?: string // Optional for compatibility (frontend-generated)
+  name?: string // Page name
+  canvas: { // Canvas size (matches backend structure)
+    width: number
+    height: number
+  }
+  background?: { // Page background
+    type: 'color' | 'image' | 'gradient'
+    value?: string
+  }
   elements: Element[]
-  canvasSize: CanvasSize
-  thumbnail?: string // Optional thumbnail for page preview
+  thumbnail?: string // Optional thumbnail for page preview (frontend-only)
+  canvasSize?: CanvasSize // For backward compatibility (frontend-only)
 }
 
 // Define the types of actions that can be performed

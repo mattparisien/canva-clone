@@ -153,7 +153,7 @@ export default function Editor() {
 
     // Text editing handlers
     const handleFontSizeChange = useCallback((size: number) => {
-        if (selectedElement && selectedElement.type === "text") {
+        if (selectedElement && selectedElement.kind === "text") {
             updateElement(selectedElement.id, { fontSize: size })
         }
     }, [selectedElement, updateElement]);
@@ -184,23 +184,23 @@ export default function Editor() {
     }, [selectedElementIds, deleteSelectedElements]);
 
     const handleFontFamilyChange = useCallback((family: string) => {
-        if (selectedElement && selectedElement.type === "text") {
+        if (selectedElement && selectedElement.kind === "text") {
             updateElement(selectedElement.id, { fontFamily: family })
         }
     }, [selectedElement, updateElement]);
 
-    const handleTextAlignChange = useCallback((align: "left" | "center" | "right" | "justify") => {
-        if (selectedElement && selectedElement.type === "text") {
+    const handleTextAlignChange = useCallback((align: "left" | "center" | "right") => {
+        if (selectedElement && selectedElement.kind === "text") {
             updateElement(selectedElement.id, { textAlign: align })
         }
     }, [selectedElement, updateElement]);
 
     const handleFormatChange = useCallback((format: { bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean }) => {
-        if (selectedElement && selectedElement.type === "text") {
+        if (selectedElement && selectedElement.kind === "text") {
             const updates: any = {};
-            if (format.bold !== undefined) updates.isBold = format.bold;
-            if (format.italic !== undefined) updates.isItalic = format.italic;
-            if (format.underline !== undefined) updates.isUnderlined = format.underline;
+            if (format.bold !== undefined) updates.bold = format.bold;
+            if (format.italic !== undefined) updates.italic = format.italic;
+            if (format.underline !== undefined) updates.underline = format.underline;
             if (format.strikethrough !== undefined) updates.isStrikethrough = format.strikethrough;
             updateElement(selectedElement.id, updates);
         }
@@ -254,7 +254,7 @@ export default function Editor() {
 
                 // Create a new text element at the center of the canvas
                 const newTextElement = {
-                    type: "text" as const,
+                    kind: "text" as const,
                     x: (canvasSize.width - 300) / 2, // Center horizontally with default width
                     y: (canvasSize.height - 100) / 2, // Center vertically with default height
                     width: 300, // Default width
@@ -270,9 +270,9 @@ export default function Editor() {
                     fontFamily: "Inter", // Default font
                     textAlign: "center" as const,
                     isNew: true, // Flag as new for immediate editing
-                    isBold: false,
-                    isItalic: false,
-                    isUnderlined: false,
+                    bold: false,
+                    italic: false,
+                    underline: false,
                     isStrikethrough: false,
                     isEditable: true // Start in editable mode
                 };
@@ -318,7 +318,7 @@ export default function Editor() {
 
             // Exit text editing mode for all elements when clicking outside
             elements.forEach(element => {
-                if (element.type === "text" && element.isEditable) {
+                if (element.kind === "text" && element.isEditable) {
                     updateElement(element.id, { isEditable: false });
                 }
             });

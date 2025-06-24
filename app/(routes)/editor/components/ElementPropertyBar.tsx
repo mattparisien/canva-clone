@@ -96,9 +96,9 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
     selectedElement?.textAlign || DEFAULT_TEXT_ALIGN
   )
   // Add text formatting states
-  const [isBold, setIsBold] = useState(selectedElement?.isBold || false)
-  const [isItalic, setIsItalic] = useState(selectedElement?.isItalic || false)
-  const [isUnderlined, setIsUnderlined] = useState(selectedElement?.isUnderlined || false)
+  const [isBold, setIsBold] = useState(selectedElement?.bold || false)
+  const [isItalic, setIsItalic] = useState(selectedElement?.italic || false)
+  const [isUnderlined, setIsUnderlined] = useState(selectedElement?.underline || false)
   const [isStrikethrough, setIsStrikethrough] = useState(selectedElement?.isStrikethrough || false)
   // Add position state
 
@@ -122,13 +122,13 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
 
   // Update local state when selected element changes
   useEffect(() => {
-    if (selectedElement?.type === "text") {
+    if (selectedElement?.kind === "text") {
       setFontSize(selectedElement.fontSize || DEFAULT_FONT_SIZE)
       setFontFamily(selectedElement.fontFamily || FONT_FAMILIES[0])
       setTextAlign(selectedElement.textAlign || DEFAULT_TEXT_ALIGN)
-      setIsBold(selectedElement.isBold || false)
-      setIsItalic(selectedElement.isItalic || false)
-      setIsUnderlined(selectedElement.isUnderlined || false)
+      setIsBold(selectedElement.bold || false)
+      setIsItalic(selectedElement.italic || false)
+      setIsUnderlined(selectedElement.underline || false)
       setIsStrikethrough(selectedElement.isStrikethrough || false)
     }
   }, [selectedElement])
@@ -258,7 +258,7 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   }, [])
 
   // Determine if we're dealing with a text element or shape element
-  const isTextElement = selectedElement?.type === "text";
+  const isTextElement = selectedElement?.kind === "text";
   const isShapeElement = selectedElement && !isTextElement;
 
   return (
@@ -409,16 +409,6 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
               rounded="lg"
             >
               <AlignRight className="h-4 w-4" />
-            </ToolbarButton>
-            <ToolbarButton
-              onClick={(e) => {
-                e.stopPropagation();
-                handleTextAlignChange("justify");
-              }}
-              isActive={textAlign === "justify"}
-              rounded="lg"
-            >
-              <AlignJustify className="h-4 w-4" />
             </ToolbarButton>
           </div>
 

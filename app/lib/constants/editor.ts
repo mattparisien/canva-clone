@@ -34,5 +34,5 @@ export const FONT_FAMILIES = [
 ];
 
 // Text alignment options
-export type TextAlignment = "left" | "center" | "right" | "justify";
+export type TextAlignment = "left" | "center" | "right";
 export const DEFAULT_TEXT_ALIGN: TextAlignment = "center";

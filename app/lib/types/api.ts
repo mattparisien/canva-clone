@@ -80,22 +80,77 @@ export interface Presentation {
 }
 
 /**
+ * Layout document structure containing pages
+ */
+export interface Layout {
+  _id?: string;
+  pages: Page[];
+}
+
+/**
+ * Page structure within a layout
+ */
+export interface Page {
+  name?: string;
+  canvas: {
+    width: number;
+    height: number;
+  };
+  background?: {
+    type: 'color' | 'image' | 'gradient';
+    value?: string;
+  };
+  elements: Element[];
+}
+
+/**
+ * Element structure within a page
+ */
+export interface Element {
+  id: string;
+  kind: 'text' | 'image' | 'shape'; // discriminator field
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation?: number;
+  opacity?: number;
+  zIndex?: number;
+  // Text-specific properties
+  content?: string;
+  fontSize?: number;
+  fontFamily?: string;
+  textAlign?: 'left' | 'center' | 'right';
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  color?: string;
+  // Image-specific properties
+  src?: string;
+  alt?: string;
+  // Shape-specific properties
+  shapeType?: 'rect' | 'circle' | 'triangle';
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+}
+
+/**
  * Represents a design project created by a user.
  * Projects can be presentations, social media graphics, print designs, etc.
  */
 export interface Project {
   _id: string;                 // Unique identifier
   title: string;               // Project title
-  type: string;                // Project type (e.g., 'presentation', 'social', 'print')
-  ownerId: string;             // Owner of the project (updated from userId)
-  layoutId?: string;           // Reference to Layout document
+  description?: string;        // Optional project description
+  type: 'presentation' | 'social' | 'print' | 'custom'; // Project type
   thumbnail?: string;          // Preview thumbnail URL
   tags?: string[];             // Tags array for organization
+  ownerId: string;             // Owner of the project (updated from userId)
   starred: boolean;            // Whether the project is starred by the user
   sharedWith?: string[];       // Array of user IDs this project is shared with
-  isTemplate: boolean;         // Whether this project serves as a template
-  description?: string;        // Optional project description
-  layout?: any;                // Layout data (used when creating projects)
+  layoutId: string | Layout;   // Reference to Layout document (string) or populated Layout object
+  sourceTemplateId?: string;   // Reference to source template if cloned
   createdAt: string;           // Creation timestamp
   updatedAt: string;           // Last updated timestamp
 }

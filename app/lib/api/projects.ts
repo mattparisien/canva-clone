@@ -13,10 +13,10 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
 
     async getAll(): Promise<Project[]> {
         try {
-            const response = await this.apiClient.get<{ data: Project[] }>(
+            const response = await this.apiClient.get<Project[]>(
                 "/projects"
             );
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 "Error fetching projects:",
@@ -28,10 +28,10 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
 
     async getById(projectId: string): Promise<Project> {
         try {
-            const response = await this.apiClient.get<{ data: Project }>(
+            const response = await this.apiClient.get<Project>(
                 `/projects/${projectId}`
             );
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 `Error fetching project ${projectId}:`,
@@ -43,11 +43,11 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
 
     async create(data: Partial<Project>): Promise<Project> {
         try {
-            const response = await this.apiClient.post<{ data: Project }>(
+            const response = await this.apiClient.post<Project>(
                 "/projects",
                 data
             );
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 "Error creating project:",
@@ -59,11 +59,11 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
 
     async update(projectId: string, data: Partial<Project>): Promise<Project> {
         try {
-            const response = await this.apiClient.put<{ data: Project }>(
+            const response = await this.apiClient.put<Project>(
                 `/projects/${projectId}`,
                 data
             );
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 `Error updating project ${projectId}:`,
@@ -87,11 +87,11 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
 
     async clone(projectId: string, ownerId: string): Promise<Project> {
         try {
-            const response = await this.apiClient.post<{ data: Project }>(
+            const response = await this.apiClient.post<Project>(
                 `/projects/${projectId}/clone`,
                 { ownerId }
             );
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 `Error cloning project ${projectId}:`,
@@ -106,11 +106,11 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
         isTemplate: boolean
     ): Promise<Project> {
         try {
-            const response = await this.apiClient.put<{ data: Project }>(
+            const response = await this.apiClient.put<Project>(
                 `/projects/${projectId}/toggle-template`,
                 { isTemplate }
             );
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 `Error updating template status for project ${projectId}:`,
@@ -128,10 +128,10 @@ export class ProjectsAPI extends APIBase implements ProjectsAPIService {
             if (category) params.append("category", category);
             if (type) params.append("type", type);
 
-            const response = await this.apiClient.get<{ data: Project[] }>(
+            const response = await this.apiClient.get<Project[]>(
                 `/projects/templates?${params.toString()}`
             );
-            return response.data.data;
+            return response.data;
         } catch (error: any) {
             console.error(
                 "Error fetching templates:",

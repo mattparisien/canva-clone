@@ -120,14 +120,10 @@ export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarPro
   // Move handleCreateProject to an event handler instead of render-time execution
   const handleCreateProject = async () => {
     try {
-      const project: Project = {
-        _id: uuid(),
-        isTemplate: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      const projectData = {
         title: 'Untitled Design',
         description: "",
-        type: "presentation",
+        type: "presentation" as const,
         ownerId: "1234", // Replace with actual user ID from auth
         starred: false,
         tags: [],
@@ -141,7 +137,7 @@ export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarPro
               },
               elements: [],
               background: {
-                type: "color",
+                type: "color" as const,
                 value: "#ffffff"
               }
             }
@@ -149,7 +145,7 @@ export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarPro
         }
       }
 
-      const newProject = await createProject(project);
+      const newProject = await createProject(projectData);
       if (newProject) router.push(`/editor?id=${newProject._id}`);
     } catch (error) {
       console.error("Error creating project:", error);

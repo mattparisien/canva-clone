@@ -20,14 +20,14 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
   
   // Text color change handler
   const handleTextColorChange = useCallback((color: string) => {
-    if (store.selectedElement && store.selectedElement.type === "text") {
-      store.updateElement(store.selectedElement.id, { textColor: color });
+    if (store.selectedElement && store.selectedElement.kind === "text") {
+      store.updateElement(store.selectedElement.id, { color: color });
     }
   }, [store.selectedElement, store.updateElement]);
   
   // Background color change handler for shapes
   const handleBackgroundColorChange = useCallback((color: string) => {
-    if (store.selectedElement && store.selectedElement.type !== "text") {
+    if (store.selectedElement && store.selectedElement.kind !== "text") {
       store.updateElement(store.selectedElement.id, { backgroundColor: color });
     }
   }, [store.selectedElement, store.updateElement]);

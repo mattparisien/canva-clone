@@ -2,6 +2,47 @@ import { projectsAPI } from "@/lib/api";
 import { create } from "zustand";
 import { DEFAULT_CANVAS_SIZE } from "../constants/canvas";
 import { CanvasSize, EditorContextType, Element, Page } from "../types/canvas";
+import { Project, Layout } from "../types/api";
+
+// Helper function to convert API Page to frontend Page
+const convertAPIPageToFrontend = (apiPage: any): Page => {
+  return {
+    id: `page-${Date.now()}-${Math.random()}`, // Generate frontend ID
+    name: apiPage.name,
+    canvas: apiPage.canvas || { width: 800, height: 600 },
+    background: apiPage.background || { type: 'color', value: '#ffffff' },
+    elements: (apiPage.elements || []).map((el: any) => ({
+      ...el,
+      // Ensure frontend-specific properties exist
+      isNew: false,
+      locked: false,
+      isEditable: true,
+    })),
+    // Convert canvas to canvasSize for backward compatibility
+    canvasSize: {
+      name: 'Custom',
+      width: apiPage.canvas?.width || 800,
+      height: apiPage.canvas?.height || 600,
+    }
+  };
+};
+
+// Helper function to convert frontend Page to API Page
+const convertFrontendPageToAPI = (frontendPage: Page): any => {
+  return {
+    name: frontendPage.name,
+    canvas: frontendPage.canvas || {
+      width: frontendPage.canvasSize?.width || 800,
+      height: frontendPage.canvasSize?.height || 600,
+    },
+    background: frontendPage.background || { type: 'color', value: '#ffffff' },
+    elements: frontendPage.elements.map(el => {
+      // Remove frontend-specific properties
+      const { rect, isNew, locked, isEditable, isStrikethrough, borderStyle, ...apiElement } = el;
+      return apiElement;
+    }),
+  };
+};
 
 // Define the store state interface
 interface EditorState extends Omit<EditorContextType, "currentPage"> {
@@ -35,6 +76,9 @@ const useEditorStore = create<EditorState>((set, get) => ({
   pages: [
     {
       id: `page-${Date.now()}`,
+      name: 'Page 1',
+      canvas: { width: DEFAULT_CANVAS_SIZE.width, height: DEFAULT_CANVAS_SIZE.height },
+      background: { type: 'color', value: '#ffffff' },
       elements: [],
       canvasSize: DEFAULT_CANVAS_SIZE
     }
@@ -58,10 +102,14 @@ const useEditorStore = create<EditorState>((set, get) => ({
   // Page management functions
   addPage: () => {
     const state = get();
+    const currentPageCanvasSize = state.pages.find(page => page.id === state.currentPageId)?.canvasSize || DEFAULT_CANVAS_SIZE;
     const newPage: Page = {
       id: `page-${Date.now()}`,
+      name: `Page ${state.pages.length + 1}`,
+      canvas: { width: currentPageCanvasSize.width, height: currentPageCanvasSize.height },
+      background: { type: 'color', value: '#ffffff' },
       elements: [],
-      canvasSize: state.pages.find(page => page.id === state.currentPageId)?.canvasSize || DEFAULT_CANVAS_SIZE
+      canvasSize: currentPageCanvasSize
     };
 
     set(state => ({
@@ -150,8 +198,15 @@ const useEditorStore = create<EditorState>((set, get) => ({
 
       const newPage: Page = {
         id: `page-${Date.now()}`,
+        name: `${currentPage.name || 'Page'} Copy`,
+        canvas: { ...currentPage.canvas },
+        background: currentPage.background ? { ...currentPage.background } : { type: 'color', value: '#ffffff' },
         elements: duplicatedElements,
-        canvasSize: { ...currentPage.canvasSize }
+        canvasSize: currentPage.canvasSize ? { ...currentPage.canvasSize } : { 
+          name: 'Custom', 
+          width: currentPage.canvas.width, 
+          height: currentPage.canvas.height 
+        }
       };
 
       // Insert after current page
@@ -221,7 +276,9 @@ const useEditorStore = create<EditorState>((set, get) => ({
       // Prepare the data to be saved
       const designData = {
         title: state.designName,
-        pages: state.pages,
+        layout: {
+          pages: state.pages.map(convertFrontendPageToAPI)
+        },
         updatedAt: new Date().toISOString(),
         thumbnail: thumbnailImage // Add the thumbnail data
       };
@@ -343,7 +400,7 @@ export const setupAutoSave = () => {
   // Subscribe to changes in the store
   useEditorStore.subscribe(
     (state) => [state.pages, state.isDesignSaved, state.designId],
-    ([pages, isDesignSaved, designId]) => {
+    (pages: any, isDesignSaved: boolean, designId: string | null) => {
       if (!isDesignSaved && designId) {
         // Clear any existing timer
         if (autoSaveTimer) {
@@ -427,10 +484,40 @@ export const initializeDesign = async () => {
         isDesignSaved: true
       });
 
-      if (design.pages && design.pages.length > 0) {
+      // Handle layout data - check if layoutId is populated with actual layout data
+      let layoutData: any = null;
+      
+      if (typeof design.layoutId === 'object' && design.layoutId !== null) {
+        // layoutId is populated with Layout object
+        layoutData = design.layoutId;
+      } else if (typeof design.layoutId === 'string') {
+        // layoutId is just a string reference - this shouldn't happen with proper population
+        console.warn('Layout data not populated, using default page');
+      }
+
+      if (layoutData && layoutData.pages && layoutData.pages.length > 0) {
+        // Convert API pages to frontend format
+        const frontendPages = layoutData.pages.map(convertAPIPageToFrontend);
+        
         useEditorStore.setState({
-          pages: design.pages,
-          currentPageId: design.pages[0].id,
+          pages: frontendPages,
+          currentPageId: frontendPages[0].id,
+          currentPageIndex: 0
+        });
+      } else {
+        // Fallback to default page structure
+        const defaultPage: Page = {
+          id: `page-${Date.now()}`,
+          name: 'Page 1',
+          canvas: { width: 800, height: 600 },
+          background: { type: 'color', value: '#ffffff' },
+          elements: [],
+          canvasSize: DEFAULT_CANVAS_SIZE
+        };
+        
+        useEditorStore.setState({
+          pages: [defaultPage],
+          currentPageId: defaultPage.id,
           currentPageIndex: 0
         });
       }
