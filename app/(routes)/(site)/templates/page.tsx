@@ -22,9 +22,11 @@ export default function TemplatesPage() {
   const handleOpenTemplate = (id: string) => {
     console.log(`Using template ${id}`)
     // Use the template to create a new project
+    // Generate a valid ObjectId for demo purposes (24 hex characters)
+    const demoUserId = "507f1f77bcf86cd799439011"; // Valid ObjectId format
     useTemplate({ 
       templateId: id, 
-      ownerId: "current-user-id" // You'll need to get this from auth context
+      ownerId: demoUserId
     })
   }
 
@@ -41,7 +43,7 @@ export default function TemplatesPage() {
         description: "A new blank template",
         type: "custom" as const,
         category: "General", // Required field
-        author: "current-user-id", // Required field - you'll need to get this from auth context
+        author: "507f1f77bcf86cd799439011", // Valid ObjectId format for demo
         featured: false,
         popular: false,
         canvasSize: { // Required field

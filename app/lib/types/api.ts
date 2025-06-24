@@ -176,6 +176,7 @@ export interface Template {
     width: number;             // Width in pixels
     height: number;            // Height in pixels
   };
+  layoutId?: string;           // Reference to layout document  
   pages: any[];                // Template pages/slides
   metadata?: any;              // Additional metadata
   createdAt: string;           // Creation timestamp
