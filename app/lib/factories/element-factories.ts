@@ -33,12 +33,12 @@ export function createTextElement(
     height?: number
     fontSize?: number
     fontFamily?: string
-    textAlign?: "left" | "center" | "right" | "justify"
+    textAlign?: "left" | "center" | "right"
     isBold?: boolean
     isItalic?: boolean
     isUnderlined?: boolean
     isStrikethrough?: boolean
-    textColor?: string
+    color?: string
     isEditable?: boolean // Whether the text can be edited
   } = {},
   canvasWidth: number,
@@ -57,7 +57,7 @@ export function createTextElement(
   const y = options.y !== undefined ? options.y : (canvasHeight - height) / 2
 
   return {
-    type: "text" as ElementType,
+    kind: "text" as ElementType,
     x,
     y,
     width,
@@ -68,11 +68,11 @@ export function createTextElement(
     fontFamily,
     textAlign: options.textAlign || DEFAULT_TEXT_ALIGN,
     isNew: true,
-    isBold: options.isBold || false,
-    isItalic: options.isItalic || false,
-    isUnderlined: options.isUnderlined || false,
+    bold: options.isBold || false,
+    italic: options.isItalic || false,
+    underline: options.isUnderlined || false,
     isStrikethrough: options.isStrikethrough || false,
-    textColor: options.textColor || "#000000",
+    color: options.color || "#000000",
     isEditable: options.isEditable !== undefined ? options.isEditable : true, // Default to editable
   }
 }
@@ -107,7 +107,8 @@ export function createRectangleElement(
   const y = options.y !== undefined ? options.y : (canvasHeight - size) / 2;
 
   return {
-    type: "rectangle",
+    kind: "shape",
+    shapeType: "rect",
     x,
     y,
     width: size,
@@ -152,7 +153,8 @@ export function createCircleElement(
   const y = options.y !== undefined ? options.y : (canvasHeight - size) / 2;
 
   return {
-    type: "circle",
+    kind: "shape",
+    shapeType: "circle",
     x,
     y,
     width: size,
@@ -197,7 +199,7 @@ export function createLineElement(
   const y = options.y !== undefined ? options.y : (canvasHeight - height) / 2
 
   return {
-    type: "line",
+    kind: "line",
     x,
     y,
     width,
@@ -241,7 +243,7 @@ export function createArrowElement(
   const y = options.y !== undefined ? options.y : (canvasHeight - height) / 2
 
   return {
-    type: "arrow",
+    kind: "arrow",
     x,
     y,
     width,

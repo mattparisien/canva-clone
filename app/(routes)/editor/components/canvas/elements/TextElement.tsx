@@ -30,11 +30,11 @@ export const TextElement = ({
       onChange={(content) => updateElement(element.id, { content })}
       onHeightChange={handleHeightChange}
       textAlign={element.textAlign || "center"}
-      isBold={element.isBold}
-      isItalic={element.isItalic}
-      isUnderlined={element.isUnderlined}
+      isBold={element.bold}
+      isItalic={element.italic}
+      isUnderlined={element.underline}
       isStrikethrough={element.isStrikethrough}
-      textColor={element.textColor}
+      textColor={element.color}
       isEditable={element.isEditable || false}
       onEditingEnd={() => updateElement(element.id, { isEditable: false })}
     />

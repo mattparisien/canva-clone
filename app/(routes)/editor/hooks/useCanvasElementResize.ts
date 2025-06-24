@@ -138,7 +138,7 @@ export function useCanvasElementResize() {
       // Determine resize behavior based on element type
       // Text elements should always maintain aspect ratio (constrained)
       // Shape elements (rectangle, circle, line, arrow) can resize freely
-      const shouldMaintainAspectRatio = element.type === "text";
+      const shouldMaintainAspectRatio = element.kind === "text";
 
       // Calculate the total delta from the initial mouse position
       // This approach provides smoother resizing by avoiding accumulated errors
@@ -297,7 +297,7 @@ export function useCanvasElementResize() {
         }
 
         // Scale the font size proportionally for text elements when using corner handles
-        if (element.type === "text" && element.fontSize) {
+        if (element.kind === "text" && element.fontSize) {
           // Always use width scaling for text elements to keep font size consistent with width changes
           const scaleFactor = newWidth / origWidth;
           newFontSize = Math.max(8, Math.round(origFontSize * scaleFactor));

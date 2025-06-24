@@ -42,7 +42,7 @@ export const measureTextWidth = (text: string, fontSize: number, fontFamily: str
  * @returns A new element with updated font size
  */
 export const scaleElement = (element: Element, scaleFactor: number): Element => {
-  if (element.type === "text" && element.fontSize) {
+  if (element.kind === "text" && element.fontSize) {
     const newFontSize = Math.max(8, Math.round((element.fontSize || 36) * scaleFactor))
     return {
       ...element,

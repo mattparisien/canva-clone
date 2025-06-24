@@ -1,4 +1,4 @@
-export type ElementType = "text" | "image" | "shape"
+export type ElementType = "text" | "image" | "shape" | "line" | "arrow"
 
 export type CanvasSize = {
   name: string

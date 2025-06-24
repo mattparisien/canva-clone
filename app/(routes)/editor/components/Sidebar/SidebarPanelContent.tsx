@@ -235,7 +235,7 @@ export const TextPanelContent = () => (
 export const TextColorPanelContent = ({ onTextColorChange }: { onTextColorChange?: (color: string) => void }) => {
     // Get the currently selected element to show which color is active
     const selectedElement = useCanvasStore(state => state.selectedElement);
-    const currentTextColor = selectedElement?.type === "text" ? selectedElement.textColor : null;
+    const currentTextColor = selectedElement?.kind === "text" ? selectedElement.color : null;
     const { data: brands } = useQuery<Brand[]>({
         queryKey: ["editor-brands"],
         queryFn: () => brandsAPI.getAll(),

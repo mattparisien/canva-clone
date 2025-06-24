@@ -39,7 +39,7 @@ const ElementRenderer = memo(({
     isEditMode,
 }: ElementRendererProps) => {
     // Use a simple switch to route to the appropriate component
-    switch (element.type) {
+    switch (element.kind) {
         case "text":
             return (
                 <TextElement
@@ -53,10 +53,16 @@ const ElementRenderer = memo(({
                     isEditMode={isEditMode}
                 />
             );
-        case "rectangle":
-            return <RectangleElement element={element} />;
-        case "circle":
-            return <CircleElement element={element} />;
+        case "shape":
+            // Handle different shape types
+            switch (element.shapeType) {
+                case "rect":
+                    return <RectangleElement element={element} />;
+                case "circle":
+                    return <CircleElement element={element} />;
+                default:
+                    return <RectangleElement element={element} />;
+            }
         case "line":
             return <LineElement element={element} />;
         case "arrow":

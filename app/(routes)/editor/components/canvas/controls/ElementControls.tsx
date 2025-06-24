@@ -195,8 +195,8 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
         const currentPageId = editor.currentPageId;
         const currentPage = editor.pages.find(page => page.id === currentPageId);
         const allElements = currentPage ? currentPage.elements : [];
-        const canvasWidth = currentPage ? currentPage.canvasSize.width : 800;
-        const canvasHeight = currentPage ? currentPage.canvasSize.height : 600;
+        const canvasWidth = currentPage?.canvasSize?.width || currentPage?.canvas?.width || 800;
+        const canvasHeight = currentPage?.canvasSize?.height || currentPage?.canvas?.height || 600;
 
         let animationFrameId: number | null = null;
         let lastEvent: MouseEvent | null = null;
@@ -287,8 +287,8 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
         const currentPageId = editor.currentPageId;
         const currentPage = editor.pages.find(page => page.id === currentPageId);
         const allElements = currentPage ? currentPage.elements : [];
-        const canvasWidth = currentPage ? currentPage.canvasSize.width : 800;
-        const canvasHeight = currentPage ? currentPage.canvasSize.height : 600;
+        const canvasWidth = currentPage?.canvasSize?.width || currentPage?.canvas?.width || 800;
+        const canvasHeight = currentPage?.canvasSize?.height || currentPage?.canvas?.height || 600;
 
         let animationFrameId: number | null = null;
         let lastEvent: MouseEvent | null = null;
@@ -338,11 +338,11 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                 height: newHeight,
                 x: newX,
                 y: newY,
-                ...(element.type === "text" ? { fontSize: newFontSize } : {}),
+                ...(element.kind === "text" ? { fontSize: newFontSize } : {}),
             });
 
             // If resizing a text element horizontally, measure and update height immediately
-            if (element.type === "text" && widthChanged) {
+            if (element.kind === "text" && widthChanged) {
                 const measuredHeight = measurementHook.measureElementHeight(element);
 
                 if (measuredHeight && measuredHeight !== newHeight) {
@@ -413,10 +413,10 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                 cursor: isEditMode && !element.locked ? (isDragging ? "grabbing" : "grab") : "default",
                 pointerEvents: 'auto',
                 transform: 'translate3d(0, 0, 0)',// Force hardware acceleration for smoother rendering
-                zIndex: element.type === "text" ? 1 : 0, // Ensure text elements are always on top
+                zIndex: element.kind === "text" ? 1 : 0, // Ensure text elements are always on top
             }}
             onClick={e => handleClick(e, element, (id: string) => {
-                if (element.type === "text") {
+                if (element.kind === "text") {
                     updateElement(id, { isEditable: true })
                     setIsDragActive(false);
                 }
@@ -476,7 +476,7 @@ const Handles = memo(({
 }: HandlesProps) => {
 
     const handleSize = 14; // Size of the resize handles
-    const showTopBottomHandles = element.type !== "text"
+    const showTopBottomHandles = element.kind !== "text"
 
     const isTooSmallForAllHandles = Math.min(handleSize * 2.2, element.height * 0.6) >= ((element.height * scale) - (handleSize * 0.7 * 2));
 

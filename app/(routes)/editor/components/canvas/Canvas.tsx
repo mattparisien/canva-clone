@@ -205,8 +205,8 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
   const sortedElements = useMemo(() => {
     return [...elements].sort((a, b) => {
       // Text elements should always be on top
-      if (a.type === "text" && b.type !== "text") return 1;
-      if (a.type !== "text" && b.type === "text") return -1;
+      if (a.kind === "text" && b.kind !== "text") return 1;
+      if (a.kind !== "text" && b.kind === "text") return -1;
       return 0;
     });
   }, [elements]);
