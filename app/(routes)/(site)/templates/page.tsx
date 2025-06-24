@@ -30,22 +30,40 @@ export default function TemplatesPage() {
 
   const handleCreateTemplate = async () => {
     try {
+      // Create a unique slug for the template
+      const timestamp = Date.now();
+      const slug = `template-${timestamp}`;
+      
       // Create a new template directly using the templates API
       const templateData = {
         title: "New Template",
+        slug: slug, // Add the slug field
         description: "A new blank template",
         type: "custom" as const,
-        category: "General",
-        author: "current-user", // You'll need to get this from auth context
+        category: "General", // Required field
+        author: "current-user-id", // Required field - you'll need to get this from auth context
         featured: false,
         popular: false,
-        canvasSize: {
+        canvasSize: { // Required field
           name: "Custom",
           width: 800,
           height: 600
         },
-        tags: ["blank", "custom"]
-        // layoutId will be created automatically by the backend
+        tags: ["blank", "custom"],
+        pages: [{
+          id: "page-1",
+          name: "Page 1",
+          canvasSize: {
+            name: "Custom",
+            width: 800,
+            height: 600
+          },
+          elements: [],
+          background: {
+            type: "color",
+            value: "#ffffff"
+          }
+        }]
       };
 
       createTemplate(templateData);

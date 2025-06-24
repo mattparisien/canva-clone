@@ -161,8 +161,9 @@ export interface Project {
 export interface Template {
   _id: string;                 // Unique identifier
   title: string;               // Template title
+  slug?: string;               // Unique slug for URL/identification
   description?: string;        // Optional description
-  type: string;                // Template type ('presentation', 'social', 'print', 'custom')
+  type: 'presentation' | 'social' | 'print' | 'custom'; // Template type
   category: string;            // Category for organization
   thumbnail?: string;          // Preview thumbnail URL
   previewImages?: string[];    // Additional preview images
@@ -176,6 +177,7 @@ export interface Template {
     height: number;            // Height in pixels
   };
   pages: any[];                // Template pages/slides
+  metadata?: any;              // Additional metadata
   createdAt: string;           // Creation timestamp
   updatedAt: string;           // Last updated timestamp
 }

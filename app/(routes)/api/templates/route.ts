@@ -46,3 +46,27 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+// POST: Create a new template
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    console.log('Frontend template creation data:', JSON.stringify(body, null, 2));
+
+    // Make request to backend
+    const response = await axios.post(`${BACKEND_URL}/api/templates`, body, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: await getAuthHeader(),
+      },
+    });
+
+    return NextResponse.json(response.data, { status: 201 });
+  } catch (error: any) {
+    console.error('Error creating template:', error.response?.data || error.message);
+    return NextResponse.json(
+      { message: error.response?.data?.message || 'Failed to create template' },
+      { status: error.response?.status || 500 }
+    );
+  }
+}
