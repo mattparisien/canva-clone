@@ -26,7 +26,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { forwardRef, ReactNode } from "react";
 import { v4 as uuid } from "uuid";
 import { Button } from "../ui/button";
-
+import { PresetSelectorPopover } from "../ui/preset-selector-popover";
 
 export type NavigationItemMouseEnterHandler = (itemId: string) => void;
 export type NavigationItemMouseLeaveHandler = (event: React.PointerEvent) => void;
@@ -167,19 +167,20 @@ export const NavigationSidebar = forwardRef<HTMLDivElement, NavigationSidebarPro
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                className="group relative h-14 w-14 rounded-full shadow-lg shadow-brand-blue/30 hover:shadow-xl hover:shadow-brand-blue/40 transition-all duration-300 overflow-hidden"
-                onClick={handleCreateProject}
-              >
-                <span className="absolute inset-0 bg-gradient-to-r from-brand-blue to-brand-teal transition-opacity duration-200 ease-in-out"></span>
-                <span className="absolute inset-0 bg-gradient-to-r from-brand-blue-dark to-brand-teal-dark opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"></span>
-                <span className="relative z-10">
-                  <Plus className="text-white transition-transform duration-300 group-hover:scale-110" style={{
-                    width: "1.3rem",
-                    height: "1.3rem",
-                  }} />
-                </span>
-              </Button>
+              <PresetSelectorPopover>
+                <Button
+                  className="group relative h-14 w-14 rounded-full shadow-lg shadow-brand-blue/30 hover:shadow-xl hover:shadow-brand-blue/40 transition-all duration-300 overflow-hidden"
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-brand-blue to-brand-teal transition-opacity duration-200 ease-in-out"></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-brand-blue-dark to-brand-teal-dark opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"></span>
+                  <span className="relative z-10">
+                    <Plus className="text-white transition-transform duration-300 group-hover:scale-110" style={{
+                      width: "1.3rem",
+                      height: "1.3rem",
+                    }} />
+                  </span>
+                </Button>
+              </PresetSelectorPopover>
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Create New</p>

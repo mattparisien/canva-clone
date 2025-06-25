@@ -461,20 +461,37 @@ export const setupKeyboardShortcuts = () => {
 // Initialize design data
 export const initializeDesign = async () => {
   try {
-    // Get design ID from URL query parameter
+    // Get parameters from URL query
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
+    const projectId = urlParams.get('id');
+    const templateId = urlParams.get('templateId');
+    const presetId = urlParams.get('preset');
 
-    if (!id) {
-      console.log('No design ID found in URL, creating new design');
+    // Handle preset initialization
+    if (presetId) {
+      console.log('Initializing with preset:', presetId);
+      await initializeWithPreset(presetId);
+      return;
+    }
+
+    // Handle template loading
+    if (templateId) {
+      console.log('Loading template:', templateId);
+      await initializeTemplate(templateId);
+      return;
+    }
+
+    // Handle project loading
+    if (!projectId) {
+      console.log('No design ID, template ID, or preset ID found in URL, creating new design');
       return;
     }
 
     // Store the design ID
-    useEditorStore.setState({ designId: id });
+    useEditorStore.setState({ designId: projectId });
 
     // Load the design data
-    const design = await projectsAPI.getById(id);
+    const design = await projectsAPI.getById(projectId);
 
     if (design) {
       console.log('Design loaded:', design.title);
@@ -533,6 +550,124 @@ export const initializeDesign = async () => {
     }
   } catch (error) {
     console.error('Error loading design:', error);
+  }
+};
+
+// Initialize template data
+export const initializeTemplate = async (templateId: string) => {
+  try {
+    console.log('Loading template:', templateId);
+    
+    // Import templatesAPI
+    const { templatesAPI } = await import('@/lib/api');
+    
+    // Load template data
+    const template = await templatesAPI.getById(templateId);
+
+    if (template) {
+      console.log('Template loaded:', template.title);
+
+      // Set template as the design name and mark as unsaved (since it's a new project based on template)
+      useEditorStore.setState({
+        designName: `${template.title} (Copy)`,
+        isDesignSaved: false, // Mark as unsaved since this will be a new project
+        designId: null // No project ID yet, will be created on first save
+      });
+
+      // Handle template pages
+      if (template.pages && template.pages.length > 0) {
+        // Convert template pages to frontend format
+        const frontendPages = template.pages.map(convertAPIPageToFrontend);
+        
+        useEditorStore.setState({
+          pages: frontendPages,
+          currentPageId: frontendPages[0].id,
+          currentPageIndex: 0
+        });
+      } else {
+        // Fallback to default page with template canvas size
+        const canvasSize = template.canvasSize || DEFAULT_CANVAS_SIZE;
+        const defaultPage: Page = {
+          id: `page-${Date.now()}`,
+          name: 'Page 1',
+          canvas: { width: canvasSize.width, height: canvasSize.height },
+          background: { type: 'color', value: '#ffffff' },
+          elements: [],
+          canvasSize: {
+            name: canvasSize.name || 'Custom',
+            width: canvasSize.width,
+            height: canvasSize.height
+          }
+        };
+        
+        useEditorStore.setState({
+          pages: [defaultPage],
+          currentPageId: defaultPage.id,
+          currentPageIndex: 0
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error loading template:', error);
+  }
+};
+
+// Initialize with preset data
+export const initializeWithPreset = async (presetId: string) => {
+  try {
+    console.log('Initializing with preset:', presetId);
+    
+    // Handle blank preset
+    if (presetId === 'blank') {
+      useEditorStore.setState({
+        designName: 'Untitled Design',
+        isDesignSaved: false,
+        designId: null
+      });
+      return;
+    }
+
+    // Import projectsAPI
+    const { projectsAPI } = await import('@/lib/api');
+    
+    // Load presets
+    const presets = await projectsAPI.getPresets();
+    const preset = presets.find((p: any) => p.id === presetId);
+
+    if (preset) {
+      console.log('Preset loaded:', preset.name);
+
+      // Set preset as the design name and mark as unsaved
+      useEditorStore.setState({
+        designName: `${preset.name} Project`,
+        isDesignSaved: false, // Mark as unsaved since this will be a new project
+        designId: null // No project ID yet, will be created on first save
+      });
+
+      // Create a page with preset canvas size
+      const canvasSize = {
+        name: preset.canvasSize.name,
+        width: preset.canvasSize.width,
+        height: preset.canvasSize.height
+      };
+      
+      const defaultPage: Page = {
+        id: `page-${Date.now()}`,
+        name: 'Page 1',
+        canvas: { width: canvasSize.width, height: canvasSize.height },
+        background: { type: 'color', value: '#ffffff' },
+        elements: [],
+        canvasSize: canvasSize
+      };
+      
+      useEditorStore.setState({
+        pages: [defaultPage],
+        currentPageId: defaultPage.id,
+        currentPageIndex: 0
+      });
+    }
+  } catch (error) {
+    console.error('Error loading preset:', error);
   }
 };
 

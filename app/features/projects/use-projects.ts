@@ -286,3 +286,17 @@ export function useTemplatesQuery(category?: string, type?: string) {
     useTemplateMutation, // Expose the full mutation object for access to more properties
   };
 }
+
+export function useProjectPresets() {
+  const presetsQuery = useQuery({
+    queryKey: ['projects', 'presets'],
+    queryFn: () => projectsAPI.getPresets(),
+    gcTime: 10 * 60 * 1000, // 10 minutes - presets change less frequently
+  });
+  
+  return {
+    presets: presetsQuery.data || [],
+    isLoading: presetsQuery.isLoading,
+    isError: presetsQuery.isError,
+  };
+}

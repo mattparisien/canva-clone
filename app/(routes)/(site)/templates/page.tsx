@@ -2,22 +2,21 @@
 
 import InteractiveCard from "@/components/composite/InteractiveCard/InteractiveCard"
 import { SelectionActions } from "@/components/composite/SelectionActions"
-import { Button } from "@components/ui/button"
-import { useToast } from "@components/ui/use-toast"
-import { templatesAPI } from "@lib/api"
-import { SelectionProvider } from "@lib/context/selection-context"
-import { useTemplatesQuery, useTemplatePresets } from "@/features/templates/use-templates"
-import { useRouter } from "next/navigation"
-import { Template, TemplatePreset } from "@/lib/types/api"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useTemplatePresets, useTemplatesQuery } from "@/features/templates/use-templates"
+import { Template, TemplatePreset } from "@/lib/types/api"
+import { Button } from "@components/ui/button"
+import { useToast } from "@components/ui/use-toast"
+import { SelectionProvider } from "@lib/context/selection-context"
 import { ChevronDown } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function TemplatesPage() {
   const { templates, isLoading, isError, useTemplate, createTemplate } = useTemplatesQuery()
@@ -40,14 +39,14 @@ export default function TemplatesPage() {
       // Create a unique slug for the template
       const timestamp = Date.now();
       const slug = `template-${timestamp}`;
-      
+
       // Use preset data if provided, otherwise use defaults
       const canvasSize = preset?.canvasSize || { name: "Custom", width: 800, height: 600 };
       const templateName = preset?.name || "New Template";
       const templateType = preset?.type || "custom";
       const templateCategory = preset?.category || "General";
       const templateTags = preset?.tags || ["blank", "custom"];
-      
+
       // Create a new template directly using the templates API
       const templateData: any = {
         title: templateName,
@@ -78,7 +77,7 @@ export default function TemplatesPage() {
       }
 
       createTemplate(templateData);
-      
+
       toast({
         title: "Success",
         description: `New ${templateName} template created successfully!`,
@@ -113,7 +112,7 @@ export default function TemplatesPage() {
     try {
       // Templates don't typically allow title editing, but we'll keep this for consistency
       console.log(`Updating template ${id} title to: ${newTitle}`)
-      
+
       toast({
         title: "Success",
         description: "Template updated successfully",
