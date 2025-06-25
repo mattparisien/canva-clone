@@ -41,15 +41,22 @@ function EditorLayoutContent({ children }: { children: React.ReactNode }) {
     const isPanelOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
     const closeSidebarPanel = useEditorStore((state) => state.closeSidebarPanel);
     const isSidebarPanelOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
-    const { handleTextColorChange, handleBackgroundColorChange } = useCanvas();
+    const { handleTextColorChange, handleBackgroundColorChange, handleCanvasBackgroundColorChange } = useCanvas();
     const activeItemId = useEditorStore((state) => state.sidebarPanel.activeItemId);
     const canvasSize = useCurrentCanvasSize();
     const selectedElement = useCanvasStore(state => state.selectedElement);
     const addElement = useCanvasStore(state => state.addElement);
+    const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected);
 
 
     const onTextColorChange = handleTextColorChange;
-    const onBackgroundColorChange = handleBackgroundColorChange;
+    const onBackgroundColorChange = useCallback((color: string) => {
+        if (isCanvasSelected) {
+            handleCanvasBackgroundColorChange(color);
+        } else {
+            handleBackgroundColorChange(color);
+        }
+    }, [isCanvasSelected, handleCanvasBackgroundColorChange, handleBackgroundColorChange]);
 
     // Function to create different shapes
     const handleAddShape = useCallback((shapeType: "rectangle" | "circle" | "line" | "arrow") => {

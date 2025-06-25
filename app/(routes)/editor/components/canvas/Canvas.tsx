@@ -23,6 +23,8 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
    * ------------------------------------------------------------------ */
   // Use Zustand stores directly
   const isEditMode = useEditorStore(state => state.isEditMode)
+  const openSidebarPanel = useEditorStore(state => state.openSidebarPanel)
+  const currentPage = useEditorStore(state => state.pages.find(p => p.id === state.currentPageId))
 
   // Canvas store selectors
   const elements = useCurrentPageElements()
@@ -127,6 +129,8 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
       } else {
         // Select the canvas if target is the canvas itself
         selectCanvas(true);
+        // Open the background color panel when canvas is selected
+        openSidebarPanel("background-color");
       }
 
       // Clear element selection
@@ -134,7 +138,7 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
         selectElement(null);
       }
     }
-  }, [selectElement, selectCanvas, canvasRef, isCanvasSelected, isEditMode])
+  }, [selectElement, selectCanvas, canvasRef, isCanvasSelected, isEditMode, openSidebarPanel])
 
   /* ------------------------------------------------------------------
    * Drag handlers (logical units)
@@ -219,11 +223,15 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
 
   const isBorderActive = (isCanvasSelected && isEditMode) || isCanvasHovering && isEditMode;
 
+  // Get background color from current page
+  const canvasBackgroundColor = currentPage?.background?.type === 'color' 
+    ? currentPage.background.value 
+    : '#ffffff'; // Default to white
+
   return (
     <div
       ref={handleRef}
-      className={classNames("canvas-container flex items-center justify-center p-1 z-50 relative bg-white shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)] overflow-hidden",
-        // "border-4 border-brand-blue": isBorderActive,
+      className={classNames("canvas-container flex items-center justify-center p-1 z-50 relative shadow-[-3px 10px 27px -7px rgba(0,0,0,0.8)] overflow-hidden",
         isBorderActive && "is-highlighted"
       )}
       data-canvas
@@ -238,7 +246,8 @@ const CanvasComponent: ForwardRefRenderFunction<HTMLDivElement, CanvasProps> = (
         transformOrigin: "center center",
         // Fix: TypeScript custom property using type assertion
         ['--canvas-scale' as string]: `${scale}`,
-        zIndex: 'var(--editor-canvas-z)'
+        zIndex: 'var(--editor-canvas-z)',
+        backgroundColor: canvasBackgroundColor
       }}
       onClick={handleCanvasClick}
       onMouseLeave={handleCanvasMouseLeave}

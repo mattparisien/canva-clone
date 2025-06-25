@@ -6,6 +6,7 @@ import useCanvasStore, {
   useCurrentPageElements,
   useCurrentCanvasSize
 } from "../stores/useCanvasStore"
+import useEditorStore from "../stores/useEditorStore"
 
 // Create a context for backward compatibility
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined)
@@ -31,6 +32,17 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
       store.updateElement(store.selectedElement.id, { backgroundColor: color });
     }
   }, [store.selectedElement, store.updateElement]);
+  
+  // Canvas background color change handler
+  const handleCanvasBackgroundColorChange = useCallback((color: string) => {
+    if (store.isCanvasSelected) {
+      const editor = useEditorStore.getState();
+      const currentPageId = editor.currentPageId;
+      if (currentPageId) {
+        editor.updatePageBackground(currentPageId, { type: 'color', value: color });
+      }
+    }
+  }, [store.isCanvasSelected]);
   
   // Create the context value
   const contextValue: CanvasContextType = {
@@ -74,6 +86,9 @@ export function CanvasProvider({ children }: { children: ReactNode }) {
     
     // Shape styling
     handleBackgroundColorChange,
+    
+    // Canvas styling
+    handleCanvasBackgroundColorChange,
   };
 
   return (

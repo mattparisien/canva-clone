@@ -1,5 +1,6 @@
 import { projectsAPI } from "@/lib/api";
 import { create } from "zustand";
+import React from "react";
 import { DEFAULT_CANVAS_SIZE } from "../constants/canvas";
 import { CanvasSize, EditorContextType, Element, Page } from "../types/canvas";
 import { Project, Layout } from "../types/api";
@@ -242,6 +243,17 @@ const useEditorStore = create<EditorState>((set, get) => ({
       pages: state.pages.map(page =>
         page.id === pageId
           ? { ...page, canvasSize }
+          : page
+      ),
+      isDesignSaved: false
+    }));
+  },
+
+  updatePageBackground: (pageId: string, background: { type: 'color' | 'image' | 'gradient', value?: string }) => {
+    set(state => ({
+      pages: state.pages.map(page =>
+        page.id === pageId
+          ? { ...page, background }
           : page
       ),
       isDesignSaved: false
@@ -492,6 +504,7 @@ export const initializeDesign = async () => {
 
     // Load the design data
     const design = await projectsAPI.getById(projectId);
+    console.log('the design', design);
 
     if (design) {
       console.log('Design loaded:', design.title);

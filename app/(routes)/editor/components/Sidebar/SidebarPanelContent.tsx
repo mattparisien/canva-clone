@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Search, ChevronRight, Circle, Palette, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import useCanvasStore from "@/lib/stores/useCanvasStore";
+import useEditorStore from "@/lib/stores/useEditorStore";
 import { useQuery } from "@tanstack/react-query";
 import { Brand } from "@/lib/types/brands";
 import { brandsAPI } from "@/lib/api";
@@ -410,7 +411,13 @@ export const TextColorPanelContent = ({ onTextColorChange }: { onTextColorChange
 export const BackgroundColorPanelContent = ({ onBackgroundColorChange }: { onBackgroundColorChange?: (color: string) => void }) => {
     // Get the currently selected element to show which color is active
     const selectedElement = useCanvasStore(state => state.selectedElement);
-    const currentBackgroundColor = selectedElement?.backgroundColor;
+    const isCanvasSelected = useCanvasStore(state => state.isCanvasSelected);
+    const currentPage = useEditorStore(state => state.pages.find(p => p.id === state.currentPageId));
+    
+    // Determine current background color based on selection
+    const currentBackgroundColor = isCanvasSelected 
+        ? (currentPage?.background?.type === 'color' ? currentPage.background.value : '#ffffff')
+        : selectedElement?.backgroundColor;
     const { data: brands } = useQuery<Brand[]>({
         queryKey: ["editor-brands"],
         queryFn: () => brandsAPI.getAll(),

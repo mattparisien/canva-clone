@@ -103,6 +103,7 @@ export interface EditorContextType {
   // Page content updates (called by CanvasContext)
   updatePageElements: (pageId: string, elements: Element[]) => void
   updatePageCanvasSize: (pageId: string, canvasSize: CanvasSize) => void
+  updatePageBackground: (pageId: string, background: { type: 'color' | 'image' | 'gradient', value?: string }) => void
 }
 
 // Canvas context handles the canvas-specific operations for the current page
@@ -155,5 +156,8 @@ export interface CanvasContextType {
   
   // Shape styling
   handleBackgroundColorChange: (color: string) => void
+  
+  // Canvas styling
+  handleCanvasBackgroundColorChange: (color: string) => void
 
 }
