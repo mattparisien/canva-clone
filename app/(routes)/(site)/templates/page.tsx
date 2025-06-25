@@ -6,12 +6,22 @@ import { Button } from "@components/ui/button"
 import { useToast } from "@components/ui/use-toast"
 import { templatesAPI } from "@lib/api"
 import { SelectionProvider } from "@lib/context/selection-context"
-import { useTemplatesQuery } from "@/features/templates/use-templates"
+import { useTemplatesQuery, useTemplatePresets } from "@/features/templates/use-templates"
 import { useRouter } from "next/navigation"
-import { Template } from "@/lib/types/api"
+import { Template, TemplatePreset } from "@/lib/types/api"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
+import { ChevronDown } from "lucide-react"
 
 export default function TemplatesPage() {
   const { templates, isLoading, isError, useTemplate, createTemplate } = useTemplatesQuery()
+  const { presets, isLoading: presetsLoading } = useTemplatePresets()
   const { toast } = useToast()
   const router = useRouter()
 
@@ -25,36 +35,35 @@ export default function TemplatesPage() {
     router.push(`/editor?templateId=${id}`)
   }
 
-  const handleCreateTemplate = async () => {
+  const handleCreateTemplate = async (preset?: TemplatePreset) => {
     try {
       // Create a unique slug for the template
       const timestamp = Date.now();
       const slug = `template-${timestamp}`;
       
+      // Use preset data if provided, otherwise use defaults
+      const canvasSize = preset?.canvasSize || { name: "Custom", width: 800, height: 600 };
+      const templateName = preset?.name || "New Template";
+      const templateType = preset?.type || "custom";
+      const templateCategory = preset?.category || "General";
+      const templateTags = preset?.tags || ["blank", "custom"];
+      
       // Create a new template directly using the templates API
-      const templateData = {
-        title: "New Template",
-        slug: slug, // Add the slug field
-        description: "A new blank template",
-        type: "custom" as const,
-        category: "General", // Required field
+      const templateData: any = {
+        title: templateName,
+        slug: slug,
+        description: `A new ${templateName.toLowerCase()} template`,
+        type: templateType as "presentation" | "social" | "print" | "custom",
+        category: templateCategory,
         author: "507f1f77bcf86cd799439011", // Valid ObjectId format for demo
         featured: false,
         popular: false,
-        canvasSize: { // Required field
-          name: "Custom",
-          width: 800,
-          height: 600
-        },
-        tags: ["blank", "custom"],
+        canvasSize: canvasSize,
+        tags: templateTags,
         pages: [{
           id: "page-1",
           name: "Page 1",
-          canvasSize: {
-            name: "Custom",
-            width: 800,
-            height: 600
-          },
+          canvasSize: canvasSize,
           elements: [],
           background: {
             type: "color",
@@ -63,11 +72,16 @@ export default function TemplatesPage() {
         }]
       };
 
+      // Add preset ID if a preset was selected
+      if (preset?.id) {
+        templateData.presetId = preset.id;
+      }
+
       createTemplate(templateData);
       
       toast({
         title: "Success",
-        description: "New template created successfully!",
+        description: `New ${templateName} template created successfully!`,
       });
 
     } catch (error) {
@@ -135,9 +149,59 @@ export default function TemplatesPage() {
       <div className="p-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Templates</h1>
-          <Button onClick={handleCreateTemplate}>
-            Create New Template
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                Create New Template
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 max-h-96 overflow-y-auto">
+              <DropdownMenuLabel>Choose Template Type</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleCreateTemplate()}>
+                Blank Template
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {presetsLoading ? (
+                <DropdownMenuItem disabled>
+                  Loading presets...
+                </DropdownMenuItem>
+              ) : (
+                <>
+                  {/* Group presets by category */}
+                  {Object.entries(
+                    presets.reduce((acc: { [category: string]: TemplatePreset[] }, preset: TemplatePreset) => {
+                      if (!acc[preset.category]) {
+                        acc[preset.category] = [];
+                      }
+                      acc[preset.category].push(preset);
+                      return acc;
+                    }, {})
+                  ).map(([category, categoryPresets]: [string, TemplatePreset[]]) => (
+                    <div key={category}>
+                      <DropdownMenuLabel className="text-xs text-muted-foreground">
+                        {category}
+                      </DropdownMenuLabel>
+                      {categoryPresets.map((preset: TemplatePreset) => (
+                        <DropdownMenuItem
+                          key={preset.id}
+                          onClick={() => handleCreateTemplate(preset)}
+                        >
+                          <div className="flex flex-col">
+                            <span>{preset.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {preset.canvasSize.width} × {preset.canvasSize.height}
+                            </span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                  ))}
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {templates.length === 0 ? (

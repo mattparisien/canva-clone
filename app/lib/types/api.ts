@@ -184,6 +184,23 @@ export interface Template {
 }
 
 /**
+ * Interface representing a template preset from the backend configuration.
+ */
+export interface TemplatePreset {
+  id: string;                  // Unique identifier (category:key)
+  category: string;            // Category (Instagram, Facebook, etc.)
+  key: string;                 // Preset key
+  name: string;                // Display name
+  canvasSize: {                // Canvas dimensions
+    name: string;              // Named size
+    width: number;             // Width in pixels
+    height: number;            // Height in pixels
+  };
+  type: string;                // Preset type
+  tags: string[];              // Associated tags
+}
+
+/**
  * Base interface for all API services with common authentication functionality.
  */
 export interface APIServiceBase {

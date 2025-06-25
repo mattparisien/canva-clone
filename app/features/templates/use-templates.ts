@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { templatesAPI } from '@/lib/api';
-import { Template } from '@/lib/types/api';
+import { Template, TemplatePreset } from '@/lib/types/api';
 import { useToast } from '@/components/ui/use-toast';
 
 interface UseTemplatesQueryProps {
@@ -222,5 +222,19 @@ export function useCategoryTemplates(category: string) {
     categoryTemplates: categoryQuery.data || [],
     isLoading: categoryQuery.isLoading,
     isError: categoryQuery.isError,
+  };
+}
+
+export function useTemplatePresets() {
+  const presetsQuery = useQuery({
+    queryKey: ['templates', 'presets'],
+    queryFn: () => templatesAPI.getPresets(),
+    gcTime: 10 * 60 * 1000, // 10 minutes - presets change less frequently
+  });
+  
+  return {
+    presets: presetsQuery.data || [] as TemplatePreset[],
+    isLoading: presetsQuery.isLoading,
+    isError: presetsQuery.isError,
   };
 }

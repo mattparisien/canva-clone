@@ -1,5 +1,5 @@
 import { Axios } from 'axios';
-import { APIService, Template } from '../types/api';
+import { APIService, Template, TemplatePreset } from '../types/api';
 import { APIBase } from './base';
 
 export class TemplatesAPI extends APIBase implements APIService<Template> {
@@ -73,6 +73,17 @@ export class TemplatesAPI extends APIBase implements APIService<Template> {
     } catch (error: any) {
       console.error(`Error fetching templates for category ${category}:`, error.response?.data || error.message);
       throw error.response?.data || new Error('Failed to fetch templates by category');
+    }
+  }
+
+  // Get template presets
+  async getPresets(): Promise<TemplatePreset[]> {
+    try {
+      const response = await this.apiClient.get<TemplatePreset[]>('/templates/presets/all');
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching template presets:', error.response?.data || error.message);
+      throw error.response?.data || new Error('Failed to fetch template presets');
     }
   }
 
