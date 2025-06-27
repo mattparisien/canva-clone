@@ -5,7 +5,6 @@ import type { Element } from "@/lib/types/canvas" // Update import to use types 
 import {
   DEFAULT_FONT_SIZE,
   DEFAULT_TEXT_ALIGN,
-  FONT_FAMILIES,
   MAX_FONT_SIZE,
   MIN_FONT_SIZE,
   type TextAlignment
@@ -22,10 +21,13 @@ import {
   Plus,
   Strikethrough,
   Type,
-  Underline
+  Underline,
+  Upload
 } from "lucide-react"
 import { useEffect, useRef, useState, forwardRef, ForwardRefRenderFunction, useCallback } from "react"
 import useEditorStore from "@/lib/stores/useEditorStore"
+import { useFonts } from "@/hooks/use-fonts"
+import { FontUpload } from "@/components/ui/font-upload"
 
 // Common button style classes
 const BUTTON_BASE_CLASSES = "text-gray-500 hover:bg-gray-50 hover:text-brand-blue transition"
@@ -88,8 +90,8 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   canvasWidth,
 }, ref) => {
   const [fontSize, setFontSize] = useState(selectedElement?.fontSize || DEFAULT_FONT_SIZE)
-  const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || FONT_FAMILIES[0])
   const [showFontDropdown, setShowFontDropdown] = useState(false)
+  const [showFontUpload, setShowFontUpload] = useState(false)
   const [isToolbarHovered, setIsToolbarHovered] = useState(false)
   const [textAlign, setTextAlign] = useState<TextAlignment>(
     selectedElement?.textAlign || DEFAULT_TEXT_ALIGN
@@ -104,6 +106,10 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   const openSidebarPanel = useEditorStore((state) => state.openSidebarPanel);
   const closeSidebarPanel = useEditorStore((state) => state.closeSidebarPanel);
   const isPanelOpen = useEditorStore((state) => state.sidebarPanel.isOpen);
+
+  // Get fonts from the custom hook
+  const { allFonts, isCustomFont, deleteFont, deleteFontByName } = useFonts();
+  const [fontFamily, setFontFamily] = useState(selectedElement?.fontFamily || allFonts[0] || "Inter")
 
 
   const toolbarRef = useRef<HTMLDivElement>(null)
@@ -123,14 +129,14 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
   useEffect(() => {
     if (selectedElement?.kind === "text") {
       setFontSize(selectedElement.fontSize || DEFAULT_FONT_SIZE)
-      setFontFamily(selectedElement.fontFamily || FONT_FAMILIES[0])
+      setFontFamily(selectedElement.fontFamily || allFonts[0] || "Inter")
       setTextAlign(selectedElement.textAlign || DEFAULT_TEXT_ALIGN)
       setIsBold(selectedElement.bold || false)
       setIsItalic(selectedElement.italic || false)
       setIsUnderlined(selectedElement.underline || false)
       setIsStrikethrough(selectedElement.isStrikethrough || false)
     }
-  }, [selectedElement])
+  }, [selectedElement, allFonts])
 
   // Handle font size change
   const handleFontSizeChange = (newSize: number | string) => {
@@ -291,22 +297,77 @@ const ElementPropertyBarComponent: ForwardRefRenderFunction<HTMLDivElement, Elem
 
             {showFontDropdown && (
               <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-xl shadow-lg z-50 max-h-60 overflow-y-auto border border-gray-100">
-                {FONT_FAMILIES.map((font) => (
-                  <button
-                    key={font}
-                    className={cn(
-                      "w-full text-left px-4 py-2 text-sm hover:bg-gray-50",
-                      fontFamily === font ? "bg-gray-50 font-medium text-brand-blue" : "",
+                {/* Upload Font Button */}
+                <button
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 border-b border-gray-100 flex items-center gap-2 text-blue-600 font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowFontUpload(true);
+                    setShowFontDropdown(false);
+                  }}
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload Font
+                </button>
+                
+                {/* Font List */}
+                {allFonts.map((font: string) => (
+                  <div key={font} className="flex items-center">
+                    <button
+                      className={cn(
+                        "flex-1 text-left px-4 py-2 text-sm hover:bg-gray-50",
+                        fontFamily === font ? "bg-gray-50 font-medium text-brand-blue" : "",
+                      )}
+                      style={{ fontFamily: font }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFontFamilyChange(font);
+                      }}
+                    >
+                      {font}
+                    </button>
+                    
+                    {/* Delete button for custom fonts */}
+                    {isCustomFont(font) && (
+                      <button
+                        className="px-2 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-r-xl"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`Delete font "${font}"?`)) {
+                            try {
+                              await deleteFontByName(font);
+                              // If this was the active font, switch to the first available font
+                              if (fontFamily === font) {
+                                const remainingFonts = allFonts.filter(f => f !== font);
+                                if (remainingFonts.length > 0) {
+                                  handleFontFamilyChange(remainingFonts[0]);
+                                }
+                              }
+                            } catch (error) {
+                              console.error('Failed to delete font:', error);
+                            }
+                          }
+                        }}
+                        title="Delete custom font"
+                      >
+                        ×
+                      </button>
                     )}
-                    style={{ fontFamily: font }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleFontFamilyChange(font);
-                    }}
-                  >
-                    {font}
-                  </button>
+                  </div>
                 ))}
+              </div>
+            )}
+
+            {/* Font Upload Popup */}
+            {showFontUpload && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <FontUpload
+                  onFontUploaded={(fontFamily) => {
+                    handleFontFamilyChange(fontFamily);
+                    setShowFontUpload(false);
+                  }}
+                  onClose={() => setShowFontUpload(false)}
+                />
               </div>
             )}
           </div>
