@@ -140,15 +140,20 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
 
     // Handle mouse down to start drag
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
-        // Don't initiate drag if the element is locked, edit mode is off,
-        // or if we're already resizing (to prevent drag during resize)
-        if (!isEditMode || element.locked || isResizing) return;
+        // Don't initiate drag if edit mode is off or if we're already resizing
+        if (!isEditMode || isResizing) return;
 
         // Check if the click target is a handle - this helps prevent conflict between drag and resize
         // We could also check for specific classes or data attributes on resize handles
         const target = e.target as HTMLElement;
         if (target.classList.contains('resize-handle')) {
             return; // Don't start dragging if we clicked on a resize handle
+        }
+
+        // Don't start dragging if the element is locked, but allow the mouse event to continue
+        // for selection purposes
+        if (element.locked) {
+            return;
         }
 
         // Use the hook's startDrag function
@@ -420,7 +425,7 @@ const ElementControls = memo(forwardRef<HTMLDivElement, ElementControlsProps>(({
                     updateElement(id, { isEditable: true })
                     setIsDragActive(false);
                 }
-            })
+            }, selectElement)
             }
             onMouseEnter={() => handleMouseEnter(element.id, isEditMode)}
             onMouseLeave={() => handleMouseLeave()}

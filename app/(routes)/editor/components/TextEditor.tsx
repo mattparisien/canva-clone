@@ -160,7 +160,6 @@ export function TextEditor({
     fontFamily,
     whiteSpace: "normal",
     lineHeight: 1.2,
-    wordBreak: "break-word",
     overflow: "hidden",
     width: "100%",
     minHeight: "1em",

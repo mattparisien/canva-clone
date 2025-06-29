@@ -200,6 +200,7 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     e: React.MouseEvent,
     element: CanvasElement,
     onDoubleClick: (id: string) => void,
+    onElementSelect?: (id: string, addToSelection: boolean) => void,
   ) => {
     // Always stop propagation to prevent canvas click handler from running
     e.stopPropagation();
@@ -207,6 +208,12 @@ export function useCanvasElementInteraction(elementRef?: React.RefObject<HTMLDiv
     // Don't process clicks if we just finished dragging
     if (justFinishedDragging.current) {
       return;
+    }
+
+    // Handle element selection for all elements (including locked ones)
+    if (onElementSelect) {
+      const isShiftPressed = e.shiftKey;
+      onElementSelect(element.id, isShiftPressed);
     }
 
     clickCount.current++;

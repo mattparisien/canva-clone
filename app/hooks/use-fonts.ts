@@ -67,20 +67,20 @@ export function useFonts() {
         }
     }, []);
 
-    // Delete a font by name (helper function)
-    const deleteFontByName = useCallback(async (fontName: string) => {
-        try {
-            const customFont = customFonts.find(font => font.family === fontName);
-            if (customFont) {
-                await deleteFont(customFont.id);
-            } else {
-                throw new Error("Font not found");
-            }
-        } catch (err: any) {
-            setError(err.message || "Failed to delete font");
-            throw err;
-        }
-    }, [customFonts, deleteFont]);
+    // // Delete a font by name (helper function)
+    // const deleteFontByName = useCallback(async (fontName: string) => {
+    //     try {
+    //         const customFont = customFonts.find(font => font.family === fontName);
+    //         if (customFont) {
+    //             await deleteFont(customFont.id);
+    //         } else {
+    //             throw new Error("Font not found");
+    //         }
+    //     } catch (err: any) {
+    //         setError(err.message || "Failed to delete font");
+    //         throw err;
+    //     }
+    // }, [customFonts, deleteFont]);
 
     // Get all available fonts (default + custom)
     const getAllFonts = useCallback(() => {
