@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
 import { DEFAULT_CANVAS_SIZE } from '../constants/canvas';
-import { CanvasContextType, Element, HistoryAction } from '../types/canvas';
+import { CanvasContextType, Element, HistoryAction, CanvasSize } from '../types/canvas';
 import { reorderByIndex } from '../utils/canvas-utils';
 import useEditorStore from './useEditorStore';
 
@@ -404,7 +404,9 @@ const useCanvasStore = create<CanvasState>((set, get) => {
     if (!currentPageId || !currentPage) return;
 
     // Store the previous size for history
-    const before = { ...currentPage.canvasSize };
+    const before: CanvasSize = currentPage.canvas 
+      ? { name: 'Custom', width: currentPage.canvas.width, height: currentPage.canvas.height }
+      : (currentPage.canvasSize || DEFAULT_CANVAS_SIZE);
 
     // Update the page canvas size
     editor.updatePageCanvasSize(currentPageId, size);
@@ -908,6 +910,61 @@ const useCanvasStore = create<CanvasState>((set, get) => {
       canRedo: false,
     }));
   },
+
+  // Text styling methods
+  handleTextColorChange: (color: string) => {
+    const { selectedElementIds } = get();
+    if (selectedElementIds.length === 0) return;
+
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
+    if (!currentPageId || !currentPage) return;
+
+    // Update all selected text elements
+    const elements = currentPage.elements.map(element => {
+      if (selectedElementIds.includes(element.id) && element.kind === 'text') {
+        return { ...element, color };
+      }
+      return element;
+    });
+
+    editor.updatePageElements(currentPageId, elements);
+  },
+
+  // Shape/element background color styling
+  handleBackgroundColorChange: (color: string) => {
+    const { selectedElementIds } = get();
+    if (selectedElementIds.length === 0) return;
+
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+    const currentPage = getCurrentPage();
+    if (!currentPageId || !currentPage) return;
+
+    // Update all selected elements that support background color
+    const elements = currentPage.elements.map(element => {
+      if (selectedElementIds.includes(element.id) && (element.kind === 'shape' || element.kind === 'text')) {
+        return { ...element, backgroundColor: color };
+      }
+      return element;
+    });
+
+    editor.updatePageElements(currentPageId, elements);
+  },
+
+  // Canvas background color styling
+  handleCanvasBackgroundColorChange: (color: string) => {
+    const editor = useEditorStore.getState();
+    const currentPageId = editor.currentPageId;
+    if (!currentPageId) return;
+
+    // Update the current page's background
+    editor.updatePageBackground(currentPageId, {
+      type: 'color',
+      value: color
+    });
+  },
   };
 });
 
@@ -926,7 +983,7 @@ export const useCurrentCanvasSize = () => {
     return state.pages.find(page => page.id === state.currentPageId);
   });
 
-  return currentPage?.canvasSize || DEFAULT_CANVAS_SIZE;
+  return currentPage?.canvas || DEFAULT_CANVAS_SIZE;
 };
 
 export default useCanvasStore;

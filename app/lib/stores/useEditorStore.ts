@@ -242,7 +242,11 @@ const useEditorStore = create<EditorState>((set, get) => ({
     set(state => ({
       pages: state.pages.map(page =>
         page.id === pageId
-          ? { ...page, canvasSize }
+          ? { 
+              ...page, 
+              canvas: { width: canvasSize.width, height: canvasSize.height },
+              canvasSize // Keep for backward compatibility
+            }
           : page
       ),
       isDesignSaved: false
