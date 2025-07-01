@@ -42,7 +42,7 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions }: any) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 flex items-center justify-center">
       <div className="relative inline-block border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-lg">
         <img
           src={imageUrl}
@@ -336,7 +336,7 @@ export default function OCRViewerPage() {
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* OCR Canvas - Takes up 2/3 of the space */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Visual OCR Overlay</CardTitle>
@@ -352,53 +352,7 @@ export default function OCRViewerPage() {
               </div>
 
               {/* Stats and Text Blocks - Takes up 1/3 of the space */}
-              <div className="space-y-6">
-                <OCRStats ocrResults={analysis.ocrResults} />
-                
-                {/* Text Blocks List */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Detected Text Blocks</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {analysis.ocrResults.map((block, index) => (
-                        <div
-                          key={index}
-                          className="p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"
-                          onClick={() => {
-                            // Scroll to and highlight corresponding overlay
-                            const overlay = document.getElementById(`ocr-block-${index}`);
-                            if (overlay) {
-                              overlay.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              overlay.classList.add('ring-2', 'ring-blue-500');
-                              setTimeout(() => {
-                                overlay.classList.remove('ring-2', 'ring-blue-500');
-                              }, 2000);
-                            }
-                          }}
-                        >
-                          <div className="font-medium text-sm mb-2">"{block.text}"</div>
-                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                            <div>X: {block.x}px</div>
-                            <div>Y: {block.y}px</div>
-                            <div>W: {block.w}px</div>
-                            <div>H: {block.h}px</div>
-                            <div>Font: {block.fontPx}px</div>
-                            <div>Chars: {block.text.length}</div>
-                          </div>
-                        </div>
-                      ))}
-                      
-                      {analysis.ocrResults.length === 0 && (
-                        <div className="text-center text-gray-500 py-8">
-                          No text blocks detected in this image
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+      
             </div>
           </div>
         )}
