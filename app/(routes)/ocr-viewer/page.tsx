@@ -27,7 +27,7 @@ async function analyzeFileWithOCR(file: File) {
 }
 
 // Temporary OCR Canvas Component
-function OCRCanvas({ imageUrl, ocrResults, imageDimensions, onTextBlocksChange }: any) {
+function OCRCanvas({ imageUrl, ocrResults, imageDimensions, colorAnalysis, onTextBlocksChange, showOriginalImage = true }: any) {
   const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
   const [scaleFactor, setScaleFactor] = useState({ x: 1, y: 1 });
   const [textBlocks, setTextBlocks] = useState<any[]>([]);
@@ -117,21 +117,110 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions, onTextBlocksChange }
     }
   };
 
+  // Helper function to determine if we should use light or dark text
+  const shouldUseLightText = (bgColor: string) => {
+    // Simple heuristic - if background is dark, use light text
+    if (!bgColor || bgColor === '#ffffff') return false;
+    if (bgColor === '#000000') return true;
+    
+    // For other colors, check if they're generally dark
+    const darkColors = ['#333', '#444', '#555', '#666', '#777', '#888'];
+    const darkKeywords = ['dark', 'black', 'navy', 'maroon'];
+    
+    return darkColors.some(c => bgColor.includes(c)) || 
+           darkKeywords.some(k => bgColor.toLowerCase().includes(k));
+  };
+
+  // Get dynamic canvas styling based on color analysis
+  const getCanvasStyle = () => {
+    if (!colorAnalysis) return {};
+    
+    const style: any = {};
+    
+    // Apply background color or gradient
+    if (colorAnalysis.backgroundStyle === 'gradient') {
+      // Try to create a gradient from dominant colors
+      if (colorAnalysis.dominantColors?.length >= 2) {
+        style.background = `linear-gradient(135deg, ${colorAnalysis.dominantColors[0]}, ${colorAnalysis.dominantColors[1]})`;
+      } else {
+        style.backgroundColor = colorAnalysis.backgroundColor;
+      }
+    } else if (colorAnalysis.backgroundColor && colorAnalysis.backgroundColor !== '#ffffff') {
+      style.backgroundColor = colorAnalysis.backgroundColor;
+    }
+    
+    return style;
+  };
+
   return (
     <div className="space-y-4 flex items-center justify-center">
+      {/* Color Analysis Info Bar */}
+      {colorAnalysis && (
+        <div className="w-full max-w-4xl mb-4 p-3 bg-gray-50 rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium">🎨 Detected Colors:</span>
+              <div className="flex items-center gap-2">
+                {colorAnalysis.dominantColors?.slice(0, 5).map((color: string, index: number) => (
+                  <div
+                    key={index}
+                    className="w-6 h-6 rounded border border-gray-300 shadow-sm"
+                    style={{ backgroundColor: color }}
+                    title={color}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-gray-600">
+                {colorAnalysis.colorScheme} • {colorAnalysis.colorTemperature}
+              </span>
+            </div>
+            <div className="text-xs text-gray-500">
+              Style: {colorAnalysis.styleCharacteristics?.join(', ')}
+            </div>
+          </div>
+          {colorAnalysis.error && (
+            <div className="mt-2 text-xs text-orange-600">
+              ⚠️ Color analysis: {colorAnalysis.error}
+            </div>
+          )}
+        </div>
+      )}
+
       <div 
-        className="relative inline-block border-2 border-gray-200 rounded-lg overflow-hidden bg-white shadow-lg"
+        className="relative inline-block border-2 border-gray-200 rounded-lg overflow-hidden shadow-lg"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        style={getCanvasStyle()}
       >
-        <img
-          src={imageUrl}
-          alt="OCR Analysis"
-          className="max-w-full h-auto block"
-          style={{ maxHeight: '70vh' }}
-          onLoad={handleImageLoad}
-        />
+        {/* Original image - conditionally rendered */}
+        {showOriginalImage ? (
+          <img
+            src={imageUrl}
+            alt="OCR Analysis"
+            className="max-w-full h-auto block"
+            style={{ maxHeight: '70vh' }}
+            onLoad={handleImageLoad}
+          />
+        ) : (
+          /* Placeholder div when image is hidden - maintains canvas dimensions */
+          <div
+            className="bg-transparent"
+            style={{ 
+              width: imageDimensions?.width ? `${imageDimensions.width * scaleFactor.x}px` : '100%',
+              height: imageDimensions?.height ? `${imageDimensions.height * scaleFactor.y}px` : '70vh',
+              minHeight: '300px'
+            }}
+            ref={(el) => {
+              // If no image is shown, we need to ensure scale factors are correct
+              if (el && !imageElement && imageDimensions) {
+                const scaleX = el.clientWidth / imageDimensions.width;
+                const scaleY = el.clientHeight / imageDimensions.height;
+                setScaleFactor({ x: scaleX, y: scaleY });
+              }
+            }}
+          />
+        )}
         
         {/* OCR Overlay Boxes */}
         {imageElement && textBlocks.map((block: any, index: number) => (
@@ -155,13 +244,16 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions, onTextBlocksChange }
             onMouseDown={(e) => handleMouseDown(e, index)}
             onDoubleClick={() => handleDoubleClick(index)}
           >
-            {/* Editable text content */}
+            {/* Use intelligent text colors based on detected colors */}
             {editingBlock === index ? (
               <textarea
-                className="absolute inset-0 w-full h-full bg-transparent text-white font-medium leading-tight resize-none border-0 outline-0 p-1"
+                className="absolute inset-0 w-full h-full bg-transparent font-medium leading-tight resize-none border-0 outline-0 p-1"
                 style={{
                   fontSize: `${Math.max(8, Math.min(block.fontPx * scaleFactor.x * 0.8, (block.h * scaleFactor.y) * 0.8))}px`,
-                  textShadow: '1px 1px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8)',
+                  color: colorAnalysis?.textColors?.[0] || '#ffffff',
+                  textShadow: shouldUseLightText(colorAnalysis?.backgroundColor || '#ffffff') 
+                    ? '1px 1px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8)'
+                    : '1px 1px 2px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.8)',
                 }}
                 value={block.text}
                 onChange={(e) => handleTextChange(index, e.target.value)}
@@ -171,12 +263,15 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions, onTextBlocksChange }
               />
             ) : (
               <div 
-                className="absolute text-white font-medium leading-tight drop-shadow-lg pointer-events-none"
+                className="absolute font-medium leading-tight drop-shadow-lg pointer-events-none"
                 style={{
                   left: '2px',
                   top: '2px',
                   fontSize: `${Math.max(8, Math.min(block.fontPx * scaleFactor.x * 0.8, (block.h * scaleFactor.y) * 0.8))}px`,
-                  textShadow: '1px 1px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8)',
+                  color: colorAnalysis?.textColors?.[0] || '#ffffff',
+                  textShadow: shouldUseLightText(colorAnalysis?.backgroundColor || '#ffffff') 
+                    ? '1px 1px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8)'
+                    : '1px 1px 2px rgba(255,255,255,0.8), -1px -1px 2px rgba(255,255,255,0.8)',
                   wordBreak: 'break-word',
                   hyphens: 'auto',
                   maxWidth: `${(block.w * scaleFactor.x) - 4}px`,
@@ -219,7 +314,7 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions, onTextBlocksChange }
 }
 
 // Temporary OCR Stats Component
-function OCRStats({ ocrResults, textBlocks }: any) {
+function OCRStats({ ocrResults, textBlocks, colorAnalysis }: any) {
   const currentBlocks = textBlocks || ocrResults;
   const totalCharacters = currentBlocks.reduce((sum: number, block: any) => sum + block.text.length, 0);
   const averageFontSize = currentBlocks.length > 0
@@ -298,6 +393,65 @@ function OCRStats({ ocrResults, textBlocks }: any) {
             ))}
           </div>
         </div>
+
+        {/* Color Analysis Section */}
+        {colorAnalysis && (
+          <div className="mt-4 pt-4 border-t">
+            <div className="text-sm font-medium mb-2">🎨 Color Analysis:</div>
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Background:</span>
+                <div 
+                  className="w-4 h-4 rounded border border-gray-300" 
+                  style={{ backgroundColor: colorAnalysis.backgroundColor }}
+                />
+                <span className="text-gray-600">{colorAnalysis.backgroundColor}</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Text Colors:</span>
+                <div className="flex gap-1">
+                  {colorAnalysis.textColors?.map((color: string, idx: number) => (
+                    <div 
+                      key={idx}
+                      className="w-3 h-3 rounded border border-gray-300" 
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Palette:</span>
+                <div className="flex gap-1">
+                  {colorAnalysis.dominantColors?.slice(0, 4).map((color: string, idx: number) => (
+                    <div 
+                      key={idx}
+                      className="w-3 h-3 rounded border border-gray-300" 
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span className="font-medium">Style:</span>
+                <span className="ml-1 text-gray-600">
+                  {colorAnalysis.styleCharacteristics?.join(', ')}
+                </span>
+              </div>
+
+              <div>
+                <span className="font-medium">Scheme:</span>
+                <span className="ml-1 text-gray-600">
+                  {colorAnalysis.colorScheme} ({colorAnalysis.colorTemperature})
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -319,15 +473,30 @@ interface OCRAnalysis {
     width: number;
     height: number;
   };
+  colorAnalysis?: {
+    backgroundColor: string;
+    backgroundStyle: string;
+    dominantColors: string[];
+    textColors: string[];
+    accentColors: string[];
+    colorScheme: string;
+    styleCharacteristics: string[];
+    hasBackgroundImage: boolean;
+    backgroundDescription: string;
+    contrastLevel: string;
+    colorTemperature: string;
+    error?: string;
+  };
   timestamp: string;
 }
 
 export default function OCRViewerPage() {
-  const [analysis, setAnalysis] = useState<OCRAnalysis | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [analysis, setAnalysis] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [editedTextBlocks, setEditedTextBlocks] = useState<any[]>([]);
+  const [showOriginalImage, setShowOriginalImage] = useState(true); // Add state for image visibility
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -365,6 +534,7 @@ export default function OCRViewerPage() {
           width: ocrAnalysis.imageDimensions?.width || 800,
           height: ocrAnalysis.imageDimensions?.height || 600
         },
+        colorAnalysis: ocrAnalysis.colorAnalysis,
         timestamp: new Date().toISOString()
       });
     } catch (err) {
@@ -386,14 +556,15 @@ export default function OCRViewerPage() {
         totalBlocks: currentBlocks.length,
         totalCharacters: currentBlocks.reduce((sum, block) => sum + block.text.length, 0),
         averageFontSize: currentBlocks.length > 0 
-          ? Math.round(currentBlocks.reduce((sum, block) => sum + block.fontPx, 0) / currentBlocks.length) 
+          ? Math.round(currentBlocks.reduce((sum: number, block: any) => sum + block.fontPx, 0) / currentBlocks.length) 
           : 0,
         imageDimensions: analysis.imageDimensions,
         hasEdits: editedTextBlocks.length > 0
       },
       originalOcrResults: analysis.ocrResults,
       editedTextBlocks: editedTextBlocks.length > 0 ? editedTextBlocks : null,
-      currentResults: currentBlocks
+      currentResults: currentBlocks,
+      colorAnalysis: analysis.colorAnalysis
     };
 
     const dataStr = JSON.stringify(enhancedData, null, 2);
@@ -411,6 +582,7 @@ export default function OCRViewerPage() {
     setImageFile(null);
     setEditedTextBlocks([]);
     setError(null);
+    setShowOriginalImage(true); // Reset image visibility
     // Reset file input
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
@@ -497,7 +669,20 @@ export default function OCRViewerPage() {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-4">
+                {/* Image visibility toggle */}
+                <div className="flex items-center mr-2">
+                  <input
+                    type="checkbox"
+                    id="show-original-image"
+                    checked={showOriginalImage}
+                    onChange={(e) => setShowOriginalImage(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4 mr-2"
+                  />
+                  <label htmlFor="show-original-image" className="text-sm font-medium text-gray-700">
+                    Show Original Image
+                  </label>
+                </div>
                 <Button variant="outline" onClick={handleDownloadResults}>
                   <Download className="h-4 w-4 mr-2" />
                   Download JSON
@@ -515,14 +700,28 @@ export default function OCRViewerPage() {
               <div className="lg:col-span-3">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Visual OCR Overlay</CardTitle>
+                    <CardTitle className="flex items-center justify-between">
+                      <div>Visual OCR Overlay</div>
+                      {!showOriginalImage && (
+                        <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded-full">
+                          Image Hidden
+                        </span>
+                      )}
+                    </CardTitle>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {showOriginalImage 
+                        ? "Showing original image with OCR text overlay. Use the checkbox above to hide the image." 
+                        : "Original image is hidden. Only OCR text blocks are visible against the detected background."}
+                    </p>
                   </CardHeader>
                   <CardContent>
                     <OCRCanvas
                       imageUrl={analysis.imageUrl}
                       ocrResults={analysis.ocrResults}
                       imageDimensions={analysis.imageDimensions}
+                      colorAnalysis={analysis.colorAnalysis}
                       onTextBlocksChange={setEditedTextBlocks}
+                      showOriginalImage={showOriginalImage} // Pass down the visibility state
                     />
                   </CardContent>
                 </Card>
@@ -533,6 +732,7 @@ export default function OCRViewerPage() {
                 <OCRStats 
                   ocrResults={analysis.ocrResults} 
                   textBlocks={editedTextBlocks.length > 0 ? editedTextBlocks : analysis.ocrResults}
+                  colorAnalysis={analysis.colorAnalysis}
                 />
               </div>
       
