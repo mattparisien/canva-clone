@@ -77,11 +77,13 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions, onTextBlocksChange }
       const newX = (e.clientX - imageRect.left - dragOffset.x) / scaleFactor.x;
       const newY = (e.clientY - imageRect.top - dragOffset.y) / scaleFactor.y;
 
-      setTextBlocks(prev => prev.map((block, index) => 
+      const updatedBlocks = textBlocks.map((block, index) => 
         index === draggedBlock 
           ? { ...block, x: Math.max(0, newX), y: Math.max(0, newY) }
           : block
-      ));
+      );
+      setTextBlocks(updatedBlocks);
+      onTextBlocksChange?.(updatedBlocks);
     }
   };
 
@@ -95,9 +97,11 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions, onTextBlocksChange }
   };
 
   const handleTextChange = (blockIndex: number, newText: string) => {
-    setTextBlocks(prev => prev.map((block, index) => 
+    const updatedBlocks = textBlocks.map((block, index) => 
       index === blockIndex ? { ...block, text: newText } : block
-    ));
+    );
+    setTextBlocks(updatedBlocks);
+    onTextBlocksChange?.(updatedBlocks);
   };
 
   const handleTextBlur = () => {
@@ -374,17 +378,22 @@ export default function OCRViewerPage() {
   const handleDownloadResults = () => {
     if (!analysis) return;
 
+    const currentBlocks = editedTextBlocks.length > 0 ? editedTextBlocks : analysis.ocrResults;
+    
     const enhancedData = {
       metadata: {
         timestamp: analysis.timestamp,
-        totalBlocks: analysis.ocrResults.length,
-        totalCharacters: analysis.ocrResults.reduce((sum, block) => sum + block.text.length, 0),
-        averageFontSize: analysis.ocrResults.length > 0 
-          ? Math.round(analysis.ocrResults.reduce((sum, block) => sum + block.fontPx, 0) / analysis.ocrResults.length) 
+        totalBlocks: currentBlocks.length,
+        totalCharacters: currentBlocks.reduce((sum, block) => sum + block.text.length, 0),
+        averageFontSize: currentBlocks.length > 0 
+          ? Math.round(currentBlocks.reduce((sum, block) => sum + block.fontPx, 0) / currentBlocks.length) 
           : 0,
-        imageDimensions: analysis.imageDimensions
+        imageDimensions: analysis.imageDimensions,
+        hasEdits: editedTextBlocks.length > 0
       },
-      ocrResults: analysis.ocrResults
+      originalOcrResults: analysis.ocrResults,
+      editedTextBlocks: editedTextBlocks.length > 0 ? editedTextBlocks : null,
+      currentResults: currentBlocks
     };
 
     const dataStr = JSON.stringify(enhancedData, null, 2);
@@ -392,7 +401,7 @@ export default function OCRViewerPage() {
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `ocr-analysis-${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `ocr-analysis-${editedTextBlocks.length > 0 ? 'edited-' : ''}${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -400,6 +409,7 @@ export default function OCRViewerPage() {
   const handleReset = () => {
     setAnalysis(null);
     setImageFile(null);
+    setEditedTextBlocks([]);
     setError(null);
     // Reset file input
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
@@ -476,9 +486,16 @@ export default function OCRViewerPage() {
             <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm">
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-semibold">OCR Analysis Results</h2>
-                <span className="text-sm text-gray-500">
-                  {analysis.ocrResults.length} text blocks detected
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">
+                    {analysis.ocrResults.length} text blocks detected
+                  </span>
+                  {editedTextBlocks.length > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      ✏️ Modified
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleDownloadResults}>
@@ -493,9 +510,9 @@ export default function OCRViewerPage() {
             </div>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* OCR Canvas - Takes up 2/3 of the space */}
-              <div className="lg:col-span-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* OCR Canvas - Takes up 3/4 of the space */}
+              <div className="lg:col-span-3">
                 <Card>
                   <CardHeader>
                     <CardTitle>Visual OCR Overlay</CardTitle>
@@ -505,12 +522,19 @@ export default function OCRViewerPage() {
                       imageUrl={analysis.imageUrl}
                       ocrResults={analysis.ocrResults}
                       imageDimensions={analysis.imageDimensions}
+                      onTextBlocksChange={setEditedTextBlocks}
                     />
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Stats and Text Blocks - Takes up 1/3 of the space */}
+              {/* Stats and Text Blocks - Takes up 1/4 of the space */}
+              <div className="lg:col-span-1 space-y-6">
+                <OCRStats 
+                  ocrResults={analysis.ocrResults} 
+                  textBlocks={editedTextBlocks.length > 0 ? editedTextBlocks : analysis.ocrResults}
+                />
+              </div>
       
             </div>
           </div>
