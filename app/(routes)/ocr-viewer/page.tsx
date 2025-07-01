@@ -57,7 +57,7 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions }: any) {
           <div
             key={index}
             id={`ocr-block-${index}`}
-            className="absolute border-2 border-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors cursor-pointer flex items-center justify-center overflow-hidden"
+            className="absolute border-2 border-red-500 bg-red-500/10 hover:bg-red-500/20 transition-colors cursor-pointer"
             style={{
               left: `${block.x * scaleFactor.x}px`,
               top: `${block.y * scaleFactor.y}px`,
@@ -66,14 +66,19 @@ function OCRCanvas({ imageUrl, ocrResults, imageDimensions }: any) {
             }}
             title={`"${block.text}" (${block.fontPx}px)`}
           >
-            {/* Display the actual text content directly on the image */}
+            {/* Display the actual text content directly on the image with precise positioning */}
             <div 
-              className="text-white font-medium text-center leading-tight drop-shadow-lg"
+              className="absolute text-white font-medium leading-tight drop-shadow-lg"
               style={{
-                fontSize: `${Math.max(8, Math.min(block.fontPx * scaleFactor.x * 0.8, block.h * scaleFactor.y * 0.8))}px`,
+                left: '2px',
+                top: '2px',
+                fontSize: `${Math.max(8, Math.min(block.fontPx * scaleFactor.x * 0.8, (block.h * scaleFactor.y) * 0.8))}px`,
                 textShadow: '1px 1px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8)',
                 wordBreak: 'break-word',
-                hyphens: 'auto'
+                hyphens: 'auto',
+                maxWidth: `${(block.w * scaleFactor.x) - 4}px`,
+                maxHeight: `${(block.h * scaleFactor.y) - 4}px`,
+                overflow: 'hidden'
               }}
             >
               {block.text}
